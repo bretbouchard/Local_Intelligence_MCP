@@ -1,0 +1,72 @@
+# SwiftLint Configuration for Apple MCP Server
+# Aligns with Swift 6.0+ and constitutional requirements
+
+disabled_rules:
+  # Disabled rules for compatibility with our code style
+  - trailing_whitespace  # Handled by editor
+  - line_length  # We prefer longer lines for clarity in Swift
+
+opt_in_rules:
+  # Enabled opt-in rules for better code quality
+  - force_unwrapping
+  - implicitly_unwrapped_optional
+  - missing_docs
+  - redundant_type_annotation
+  - redundant_nil_coalescing
+  - unused_import
+  - unused_private_declaration
+
+# Rule configurations
+line_length:
+  warning: 120
+  error: 150
+
+function_body_length:
+  warning: 60
+  error: 100
+
+type_body_length:
+  warning: 400
+  error: 600
+
+file_length:
+  warning: 500
+  error: 800
+
+cyclomatic_complexity:
+  warning: 10
+  error: 15
+
+reporter: "xcode"  # Compatible with Xcode build system
+
+excluded:
+  - Carthage
+  - Pods
+  - Sources/External
+  - .build
+  - DerivedData
+
+# Custom rules for MCP Server specific requirements
+custom_rules:
+  mcp_tool_naming:
+    name: "MCP Tool Naming Convention"
+    regex: '(class|struct)\s+((?!.*Tool$)[A-Z]\w*)'
+    message: "MCP tool classes should end with 'Tool'"
+    severity: warning
+
+  security_sensitive_data:
+    name: "Security Sensitive Data Handling"
+    regex: '\b(password|secret|key|token)\s*[=:]\s*"[^"]*"'
+    message: "Hardcoded sensitive data detected - use secure storage"
+    severity: error
+
+  swift_concurrency_usage:
+    name: "Swift Concurrency Usage"
+    regex: '(class|struct)\s+\w+\s*\{(?![^}]*actor)'
+    message: "Prefer actors for thread-safe operations in MCP server"
+    severity: warning
+
+# Include additional configuration files
+included:
+  - Sources
+  - Tests

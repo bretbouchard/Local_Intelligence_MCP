@@ -1,0 +1,51 @@
+# SwiftFormat Configuration for Apple MCP Server
+# Consistent code formatting across the project
+
+# Indentation
+indent: 4
+tabWidth: 4
+
+# Line breaks
+lineBreakAroundMultilineExpressionChainComponents: false
+lineBreakBeforeControlFlowKeywords: false
+lineBreakAroundBinaryOperators: false
+
+# Spaces
+spaceAroundOperators: true
+spaceAroundParens: false
+spaceAroundBrackets: false
+spaceAroundGenerics: false
+spaceAroundComments: true
+
+# Braces
+braces: sameLine
+braceStyle: nextLine
+
+# Organization
+organizeDeclarations: true
+sortDeclarations: false
+
+# Imports
+groupImports: true
+
+# Documentation
+docComments: enabled
+docCommentsBeforeModifiers: true
+
+# Trimming
+trimTrailingWhitespace: true
+trimBlankLines: true
+
+# Files
+indentCase: false
+elseOnSameLine: true
+wrapArguments: false
+wrapCollections: false
+preserveComments: true
+
+# Excluded patterns
+excluded:
+  - Carthage
+  - Pods
+  - .build
+  - DerivedData

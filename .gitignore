@@ -1,0 +1,126 @@
+# Apple MCP Server .gitignore
+
+# Swift
+.DS_Store
+.build/
+.swiftpm/
+.xcode/
+xcuserdata/
+*.xcodeproj/*
+!*.xcodeproj/project.pbxproj
+!*.xcodeproj/xcshareddata/
+
+# Testing
+.swiftpm/xcode/package.xcworkspace/xcuserdata
+*.xcresult
+
+# Documentation (private)
+docs/
+
+# Package Manager (allow Package.resolved for dependency tracking)
+!Package.resolved
+
+# Public Documentation (keep)
+!pub_docs/
+
+# AI Assistant Folders (keep repo clean and tidy)
+claude/
+cursor/
+github_copilot/
+codeium/
+tabnine/
+continue/
+windsurf/
+ana/
+aide/
+roo/
+.assistant/
+.ai/
+.claude/
+.cursor/
+.codeium/
+.tabnine/
+.continue/
+.windsurf/
+.ana/
+.aide/
+.roo/
+
+# Internal Planning and Development Tools (DO NOT COMMIT)
+specs/
+.claude/
+.specify/
+memory/
+
+# IDE and Editor Files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+logs/
+*.log.*
+
+# Configuration and Runtime
+config/
+.local/
+.temp/
+tmp/
+*.pid
+*.lock
+
+# Security and Secrets
+*.key
+*.pem
+*.crt
+*.p12
+secrets/
+.env
+.env.*
+!env.example
+
+# Build Artifacts
+derived-data/
+build/
+dist/
+bin/
+*.dylib
+*.so
+
+# Package Manager
+Packages/
+# Package.resolved - Allow for dependency tracking
+
+# Testing Coverage
+*.profraw
+coverage/
+
+# Temporary Files
+*.tmp
+*.temp
+.cache/
+.npm/
+.yarn/
+
+# macOS
+.AppleDouble
+.LSOverride
+Icon
+._*
+
+# Backups
+*.bak
+*.backup
+*.old
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Generated Files
+generated/
+auto-generated/
