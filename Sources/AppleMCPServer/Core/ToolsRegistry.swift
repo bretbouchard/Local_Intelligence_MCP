@@ -95,7 +95,7 @@ actor ToolsRegistry {
     /// Get tool by name
     /// - Parameter name: Tool name
     /// - Returns: Tool if found, nil otherwise
-    func getTool(_ name: String) async -> MCPTool? {
+    func getTool(_ name: String) async -> (any MCPToolProtocol)? {
         return tools[name]
     }
 
@@ -212,7 +212,7 @@ actor ToolsRegistry {
 
     // MARK: - Private Methods
 
-    private func validateTool(_ tool: MCPTool) -> ValidationResult {
+    private func validateTool(_ tool: any MCPToolProtocol) -> ValidationResult {
         var errors: [ValidationError] = []
 
         // Validate tool name
@@ -255,7 +255,7 @@ actor ToolsRegistry {
         return ValidationResult(errors: errors)
     }
 
-    private func validateParameters(_ tool: MCPTool, parameters: [String: Any]) -> ValidationResult {
+    private func validateParameters(_ tool: any MCPToolProtocol, parameters: [String: Any]) -> ValidationResult {
         var errors: [ValidationError] = []
 
         // Basic parameter validation
@@ -287,7 +287,7 @@ actor ToolsRegistry {
         return ValidationResult(errors: errors)
     }
 
-    private func validatePermissions(for tool: MCPTool, context: MCPExecutionContext) async throws {
+    private func validatePermissions(for tool: any MCPToolProtocol, context: MCPExecutionContext) async throws {
         for permission in tool.requiresPermission {
             // For now, we'll log permission checks
             // In a full implementation, you'd check actual system permissions
