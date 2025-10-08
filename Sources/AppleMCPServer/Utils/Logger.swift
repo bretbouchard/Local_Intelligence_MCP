@@ -404,37 +404,37 @@ struct CategoryLogger {
     }
 
     func debug(_ message: String, metadata: [String: Any] = [:]) {
-        // Simple synchronous call - let caller handle async if needed
-        Task { @MainActor in
-            await logger.debug(message, category: category, metadata: metadata.sanitizedForLogging())
+        // Make synchronous call to avoid concurrency issues
+        Task {
+            await logger.debug(message, category: category, metadata: metadata)
         }
     }
 
     func info(_ message: String, metadata: [String: Any] = [:]) {
-        // Simple synchronous call - let caller handle async if needed
-        Task { @MainActor in
-            await logger.info(message, category: category, metadata: metadata.sanitizedForLogging())
+        // Make synchronous call to avoid concurrency issues
+        Task {
+            await logger.info(message, category: category, metadata: metadata)
         }
     }
 
     func warning(_ message: String, metadata: [String: Any] = [:]) {
-        // Simple synchronous call - let caller handle async if needed
-        Task { @MainActor in
-            await logger.warning(message, category: category, metadata: metadata.sanitizedForLogging())
+        // Make synchronous call to avoid concurrency issues
+        Task {
+            await logger.warning(message, category: category, metadata: metadata)
         }
     }
 
     func error(_ message: String, error: Error? = nil, metadata: [String: Any] = [:]) {
-        // Simple synchronous call - let caller handle async if needed
-        Task { @MainActor in
-            await logger.error(message, error: error, category: category, metadata: metadata.sanitizedForLogging())
+        // Make synchronous call to avoid concurrency issues
+        Task {
+            await logger.error(message, error: error, category: category, metadata: metadata)
         }
     }
 
     func critical(_ message: String, error: Error? = nil, metadata: [String: Any] = [:]) {
-        // Simple synchronous call - let caller handle async if needed
-        Task { @MainActor in
-            await logger.critical(message, error: error, category: category, metadata: metadata.sanitizedForLogging())
+        // Make synchronous call to avoid concurrency issues
+        Task {
+            await logger.critical(message, error: error, category: category, metadata: metadata)
         }
     }
 }
