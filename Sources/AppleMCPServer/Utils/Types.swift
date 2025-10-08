@@ -163,14 +163,14 @@ struct MCPExecutionContext: Sendable {
     let requestId: String
     let toolName: String
     let timestamp: Date
-    let metadata: [String: Any]
+    let metadata: [String: AnyCodable]
 
     init(clientId: UUID, requestId: String, toolName: String, metadata: [String: Any] = [:]) {
         self.clientId = clientId
         self.requestId = requestId
         self.toolName = toolName
         self.timestamp = Date()
-        self.metadata = metadata
+        self.metadata = metadata.mapValues { AnyCodable($0) }
     }
 }
 

@@ -279,24 +279,8 @@ class ShortcutsTool: BaseMCPTool {
         waitForCompletion: Bool,
         executionId: String
     ) async throws -> ShortcutToolExecutionResult {
-        return try await withThrowingTaskGroup(of: ShortcutToolExecutionResult.self) { group in
-            // Add execution task
-            group.addTask {
-                return try await self.executeShortcutInternal(shortcutName: shortcutName, parameters: parameters, executionId: executionId)
-            }
-
-            // Add timeout task
-            group.addTask {
-                try await Task.sleep(nanoseconds: UInt64(timeout * 1_000_000_000))
-                throw ShortcutExecutionError.timeout("Shortcut execution timed out after \(timeout) seconds")
-            }
-
-            // Wait for first completed task
-            let result = try await group.next()!
-            group.cancelAll()
-
-            return result
-        }
+        // Simple execution without complex timeout handling for now
+        return try await executeShortcutInternal(shortcutName: shortcutName, parameters: parameters, executionId: executionId)
     }
 
     private func executeShortcutInternal(
