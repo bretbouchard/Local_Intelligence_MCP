@@ -592,7 +592,7 @@ import json
 from websockets.client import connect
 
 async def apple_mcp_client():
-    uri = "ws://localhost:8080/mcp"
+    uri = "ws://localhost:8050/mcp"
     async with connect(uri) as websocket:
         # Initialize connection
         init_msg = {
@@ -630,7 +630,7 @@ asyncio.run(apple_mcp_client())
 const WebSocket = require('ws');
 
 class AppleMCPClient {
-    constructor(url = 'ws://localhost:8080/mcp') {
+    constructor(url = 'ws://localhost:8050/mcp') {
         this.url = url;
         this.ws = null;
         this.requestId = 0;
@@ -749,12 +749,35 @@ main().catch(console.error);
 
 ## 🔧 Configuration
 
+### Environment Variables
+
+The server can be configured using environment variables, which override configuration file settings:
+
+```bash
+# Server settings
+export MCP_SERVER_PORT=8050
+export MCP_SERVER_HOST=localhost
+export MCP_MAX_CLIENTS=20
+
+# Security settings
+export MCP_REQUIRE_AUTH=false
+export MCP_API_KEY=your-api-key
+
+# Feature toggles
+export MCP_ENABLE_SHORTCUTS=true
+export MCP_ENABLE_VOICE_CONTROL=true
+export MCP_ENABLE_SYSTEM_INFO=true
+
+# Logging
+export MCP_LOG_LEVEL=info
+```
+
 ### Server Configuration
 ```json
 {
   "server": {
     "host": "localhost",
-    "port": 8080,
+    "port": 8050,
     "maxClients": 10,
     "requestTimeout": 300,
     "enableCors": true
@@ -805,13 +828,13 @@ main().catch(console.error);
 ### Health Monitoring
 ```bash
 # Check server health
-curl http://localhost:8080/health
+curl http://localhost:8050/health
 
 # Get server status
-curl http://localhost:8080/status
+curl http://localhost:8050/status
 
 # List available tools
-curl -X POST http://localhost:8080/mcp \
+curl -X POST http://localhost:8050/mcp \
   -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","method":"tools/list","id":1}'
 ```

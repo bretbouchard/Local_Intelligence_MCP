@@ -231,7 +231,7 @@ struct ServerConfiguration: Codable {
 
     static let `default` = ServerConfiguration(
         host: "localhost",
-        port: 8080,
+        port: 8050,
         maxClients: 10,
         enableTLS: false,
         certFile: nil,
