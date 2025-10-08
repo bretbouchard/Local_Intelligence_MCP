@@ -189,7 +189,7 @@ actor MCPServer {
         return ServerCapabilities(
             name: MCPConstants.Server.name,
             version: MCPConstants.Server.version,
-            protocolVersion: MCPConstants.Protocol.version,
+            protocolVersion: MCPConstants.ProtocolInfo.version,
             tools: await toolsRegistry.getAvailableTools(),
             uptime: uptime,
             activeConnections: clients.count,
@@ -242,7 +242,7 @@ actor MCPServer {
     }
 
     private func getMemoryUsage() -> Int64 {
-        let info = mach_task_basic_info()
+        var info = mach_task_basic_info()
         var count = mach_msg_type_number_t(MemoryLayout<mach_task_basic_info>.size)/4
 
         let kerr: kern_return_t = withUnsafeMutablePointer(to: &info) {

@@ -76,6 +76,13 @@ class Configuration {
         try parseConfiguration(configDict)
     }
 
+    /// Async version of loadFromFile
+    /// - Parameter path: Path to configuration file
+    /// - Throws: ConfigurationError if loading fails
+    func loadFromFileAsync(path: String) async throws {
+        try loadFromFile(path: path)
+    }
+
     /// Load configuration from environment variables
     func loadFromEnvironment() {
         // Server configuration from environment
@@ -264,6 +271,20 @@ struct ServerConfiguration: Codable {
         }
 
         return dict
+    }
+
+    func validate() async -> ConfigurationValidation {
+        var issues: [ConfigurationIssue] = []
+
+        if port < 1024 || port > 65535 {
+            issues.append(.invalidPort(port))
+        }
+
+        if maxClients < 1 || maxClients > 100 {
+            issues.append(.invalidMaxClients(maxClients))
+        }
+
+        return ConfigurationValidation(isValid: issues.isEmpty, issues: issues)
     }
 }
 

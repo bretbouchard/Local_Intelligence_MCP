@@ -586,7 +586,7 @@ class VoiceControlTool: BaseMCPTool {
     }
 }
 
-struct VoiceCommandResult {
+struct VoiceCommandResult: Sendable {
     let success: Bool
     let data: [String: Any]?
     let executionTime: TimeInterval

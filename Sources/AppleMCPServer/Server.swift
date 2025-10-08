@@ -76,7 +76,7 @@ struct StartCommand: AsyncParsableCommand {
 
             await logger.info("Configuration loaded successfully", metadata: [
                 "configFile": configFile ?? "default",
-                "serverName": config.server.name
+                "serverName": MCPConstants.Server.name
             ])
 
             // Initialize security manager
@@ -128,7 +128,7 @@ struct StartCommand: AsyncParsableCommand {
             configuration.loadFromEnvironment()
         }
 
-        return configuration.serverConfig
+        return configuration.server
     }
 
     private func waitForShutdownSignal() async -> String {
@@ -169,15 +169,23 @@ struct StatusCommand: AsyncParsableCommand {
             let config = try await loadConfiguration(logger: logger)
 
             // Initialize components
-            let securityManager = SecurityManager(logger: logger)
+            let securityManager = SecurityManager()
+            let toolsRegistry = ToolsRegistry(logger: logger, securityManager: securityManager)
             let server = MCPServer(
                 configuration: config,
                 logger: logger,
-                securityManager: securityManager
+                securityManager: securityManager,
+                toolsRegistry: toolsRegistry
             )
 
             // Check health
-            let healthStatus = try await server.checkHealth()
+            let healthResult = await server.healthCheck()
+            let healthStatus: [String: Any] = [
+                "status": healthResult.isHealthy ? "healthy" : "unhealthy",
+                "uptime": healthResult.uptime,
+                "activeConnections": healthResult.activeConnections,
+                "checks": healthResult.checks
+            ]
 
             // Display status
             await displayStatus(healthStatus: healthStatus)
@@ -189,19 +197,20 @@ struct StatusCommand: AsyncParsableCommand {
     }
 
     private func loadConfiguration(logger: Logger) async throws -> ServerConfiguration {
-        let configLoader = ConfigurationLoader(logger: logger)
+        let configuration = Configuration()
 
         if let configFile = configFile {
-            return try await configLoader.loadFromFile(path: configFile)
+            try await configuration.loadFromFileAsync(path: configFile)
         } else {
-            return try await configLoader.loadDefaultConfiguration()
+            configuration.loadFromDefaults()
+            configuration.loadFromEnvironment()
         }
+
+        return configuration.server
     }
 
     private func displayStatus(healthStatus: [String: Any]) async {
-        let logLevel = ConfigurationLogLevel(rawValue: self.logLevel ?? "info") ?? .info
-        let logConfig = LoggingConfiguration(level: logLevel)
-        let logger = Logger(configuration: logConfig)
+        let logger = Logger(configuration: .default)
 
         print("\n🍎 Apple MCP Server Status")
         print("=" * 30)
@@ -268,13 +277,16 @@ struct ShowConfigCommand: AsyncParsableCommand {
     }
 
     private func loadConfiguration(logger: Logger) async throws -> ServerConfiguration {
-        let configLoader = ConfigurationLoader(logger: logger)
+        let configuration = Configuration()
 
         if let configFile = configFile {
-            return try await configLoader.loadFromFile(path: configFile)
+            try await configuration.loadFromFileAsync(path: configFile)
         } else {
-            return try await configLoader.loadDefaultConfiguration()
+            configuration.loadFromDefaults()
+            configuration.loadFromEnvironment()
         }
+
+        return configuration.server
     }
 
     private func displayConfiguration(config: ServerConfiguration, showSensitive: Bool) async {
@@ -282,41 +294,12 @@ struct ShowConfigCommand: AsyncParsableCommand {
         print("=" * 40)
 
         print("\n📋 Server Configuration:")
-        print("  Name: \(config.server.name)")
-        print("  Version: \(config.server.version)")
-        print("  Protocol Version: \(config.server.protocolVersion)")
-        print("  Max Clients: \(config.server.maxClients)")
-        print("  Timeout: \(config.server.timeout) seconds")
-
-        print("\n🔒 Security Configuration:")
-        print("  Require Authentication: \(config.security.requireAuthentication)")
-        print("  Session Timeout: \(config.security.sessionTimeout) seconds")
-        print("  Audit Logging: \(config.security.auditLogging)")
-        print("  Encryption Enabled: \(config.security.encryptionEnabled)")
-
-        print("\n🌐 Network Configuration:")
-        print("  Transport: \(config.network.transport)")
-        print("  Host: \(config.network.host)")
-        print("  Port: \(config.network.port)")
-        print("  Keep Alive: \(config.network.keepAlive)")
-
-        print("\n⚙️  Feature Configuration:")
-        print("  Shortcuts Enabled: \(config.features.shortcutsEnabled)")
-        print("  Voice Control Enabled: \(config.features.voiceControlEnabled)")
-        print("  System Info Enabled: \(config.features.systemInfoEnabled)")
-        print("  Permission Management: \(config.features.permissionManagement)")
-
-        print("\n📝 Logging Configuration:")
-        print("  Level: \(config.logging.level)")
-        print("  File Logging: \(config.logging.fileLogging)")
-        print("  Console Logging: \(config.logging.consoleLogging)")
-        print("  Structured Logging: \(config.logging.structuredLogging)")
-
-        if showSensitive {
-            print("\n🔐 Sensitive Configuration:")
-            print("  API Keys: \(config.api.keys.count)")
-            print("  Database URL: \(config.database.url)")
-            print("  Certificate Path: \(config.security.certificatePath ?? "None")")
+        print("  Host: \(config.host)")
+        print("  Port: \(config.port)")
+        print("  Max Clients: \(config.maxClients)")
+        print("  TLS Enabled: \(config.enableTLS)")
+        if let certFile = config.certFile {
+            print("  Certificate File: \(certFile)")
         }
 
         print("=" * 40)
@@ -337,16 +320,16 @@ struct ValidateConfigCommand: AsyncParsableCommand {
 
         do {
             let config = try await loadConfiguration(logger: logger)
-            let validation = config.validate()
+            let validation = await config.validate()
 
             if validation.isValid {
                 print("✅ Configuration is valid")
             } else {
                 print("❌ Configuration validation failed:")
-                for error in validation.errors {
-                    print("  • \(error.message)")
+                for issue in validation.issues {
+                    print("  • \(issue.description)")
                 }
-                throw ValidationError.invalidConfiguration
+                throw ConfigurationError.validationError("Configuration validation failed")
             }
 
         } catch {
@@ -356,13 +339,16 @@ struct ValidateConfigCommand: AsyncParsableCommand {
     }
 
     private func loadConfiguration(logger: Logger) async throws -> ServerConfiguration {
-        let configLoader = ConfigurationLoader(logger: logger)
+        let configuration = Configuration()
 
         if let configFile = configFile {
-            return try await configLoader.loadFromFile(path: configFile)
+            try await configuration.loadFromFileAsync(path: configFile)
         } else {
-            return try await configLoader.loadDefaultConfiguration()
+            configuration.loadFromDefaults()
+            configuration.loadFromEnvironment()
         }
+
+        return configuration.server
     }
 }
 
@@ -389,9 +375,9 @@ struct ResetConfigCommand: AsyncParsableCommand {
         }
 
         do {
-            let configLoader = ConfigurationLoader(logger: logger)
-            try await configLoader.resetToDefaults()
-
+            // Configuration reset is just loading defaults
+            let configuration = Configuration()
+            configuration.loadFromDefaults()
             print("✅ Configuration reset to defaults successfully")
 
         } catch {

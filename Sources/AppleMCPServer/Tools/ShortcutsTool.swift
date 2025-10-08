@@ -429,7 +429,7 @@ struct ShortcutMetadata {
     }
 }
 
-struct ShortcutToolExecutionResult {
+struct ShortcutToolExecutionResult: Sendable {
     let success: Bool
     let data: [String: Any]?
     let executionTime: TimeInterval

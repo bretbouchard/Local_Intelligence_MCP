@@ -266,11 +266,24 @@ struct MCPConstants {
         static let name = "model-context-protocol"
     }
 
+    // Legacy accessors for backward compatibility
+    struct `Protocol` {
+        static let version = ProtocolInfo.version
+        static let name = ProtocolInfo.name
+    }
+
     struct Server {
         static let name = "Apple MCP Server"
         static let version = "1.0.0"
         static let maxConcurrentClients = 10
         static let defaultTimeout: TimeInterval = 30.0
+    }
+
+    struct Timeouts {
+        static let `default` = 30.0
+        static let toolExecution = 10.0
+        static let systemInfo = 1.0
+        static let voiceCommand = 3.0
     }
 
     struct Tools {
