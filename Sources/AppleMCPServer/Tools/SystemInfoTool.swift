@@ -377,7 +377,9 @@ class SystemInfoTool: BaseMCPTool {
                 if addr.pointee.sa_family == AF_INET {
                     var hostname = [CChar](repeating: 0, count: Int(NI_MAXHOST))
                     if getnameinfo(addr, socklen_t(addr.pointee.sa_len), &hostname, socklen_t(hostname.count), nil, 0, NI_NUMERICHOST) == 0 {
-                        let address = String(cString: hostname)
+                        let nullTerminated = hostname.prefix(while: { $0 != 0 })
+                        let uint8Array = Array(nullTerminated).map { UInt8(bitPattern: $0) }
+                        let address = String(decoding: uint8Array, as: UTF8.self)
 
                         // Skip loopback addresses
                         if !address.hasPrefix("127.") && !interfaceName.hasPrefix("lo") {
@@ -520,7 +522,7 @@ class SystemInfoTool: BaseMCPTool {
             "server": [
                 "name": MCPConstants.Server.name,
                 "version": MCPConstants.Server.version,
-                "protocolVersion": MCPConstants.`Protocol`.version,
+                "protocolVersion": MCPConstants.ProtocolInfo.version,
                 "startTime": serverStartTime.iso8601String,
                 "uptime": uptime,
                 "status": "running"
