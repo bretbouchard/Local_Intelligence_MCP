@@ -158,7 +158,7 @@ struct ValidationWarning {
 // MARK: - Execution Context Types
 
 /// Context for MCP tool execution
-struct MCPExecutionContext {
+struct MCPExecutionContext: Sendable {
     let clientId: UUID
     let requestId: String
     let toolName: String
@@ -212,7 +212,7 @@ extension MCPResult {
 }
 
 /// Generic wrapper for any Codable value
-struct AnyCodable: Codable {
+struct AnyCodable: Codable, @unchecked Sendable {
     let value: Any
 
     init<T>(_ value: T) {
