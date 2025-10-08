@@ -325,20 +325,14 @@ class ShortcutsListTool: BaseMCPTool {
     private func sortShortcuts(_ shortcuts: [ShortcutInfo], by sortBy: String, order sortOrder: String) -> [ShortcutInfo] {
         let ascending = sortOrder == "asc"
 
-        return shortcuts.sorted { shortcut1, shortcut2 in
+        return shortcuts.sorted { (shortcut1: ShortcutInfo, shortcut2: ShortcutInfo) -> Bool in
             let comparison: Bool
 
             switch sortBy {
             case "name":
                 comparison = shortcut1.name.lowercased() < shortcut2.name.lowercased()
             case "lastUsed":
-                comparison = shortcut1.lastUsed ?? Date.distantPast < (shortcut2.lastUsed ?? Date.distantPast)
-            case "useCount":
-                comparison = shortcut1.useCount < shortcut2.useCount
-            case "category":
-                comparison = shortcut1.category.rawValue < shortcut2.category.rawValue
-            case "createdDate":
-                comparison = shortcut1.createdDate < shortcut2.createdDate
+                comparison = shortcut1.lastUsed < shortcut2.lastUsed
             default:
                 comparison = shortcut1.name.lowercased() < shortcut2.name.lowercased()
             }
@@ -351,22 +345,13 @@ class ShortcutsListTool: BaseMCPTool {
         var result: [String: Any] = [
             "name": shortcut.name,
             "description": shortcut.description,
-            "category": shortcut.category.rawValue,
             "isAvailable": shortcut.isAvailable,
-            "isEnabled": shortcut.isEnabled,
-            "estimatedDuration": shortcut.estimatedDuration as Any
+            "lastUsed": shortcut.lastUsed.iso8601String
         ]
 
         if includeParameters {
             result["parameters"] = shortcut.parameters.map { $0.export() }
             result["requiresInput"] = !shortcut.parameters.isEmpty
-        }
-
-        if includeUsageStats {
-            result["useCount"] = shortcut.useCount
-            result["lastUsed"] = shortcut.lastUsed?.iso8601String as Any
-            result["createdDate"] = shortcut.createdDate.iso8601String
-            result["modifiedDate"] = shortcut.modifiedDate.iso8601String
         }
 
         return result

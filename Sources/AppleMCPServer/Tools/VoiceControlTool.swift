@@ -133,7 +133,7 @@ class VoiceControlTool: BaseMCPTool {
                 metadata: [
                     "command": command.sanitizedForLogging,
                     "success": result.success,
-                    "confidence": result.confidence ?? 0.0,
+                    "confidence": result.confidence,
                     "executionId": executionId,
                     "language": language,
                     "timeout": timeout
@@ -147,9 +147,9 @@ class VoiceControlTool: BaseMCPTool {
                 "success": result.success,
                 "executionTime": executionTime,
                 "timestamp": Date().iso8601String,
-                "recognizedCommand": result.recognizedCommand,
+                "recognizedCommand": result.recognizedCommand as Any,
                 "confidence": result.confidence,
-                "outputs": result.data ?? [:],
+                "outputs": result.data as Any,
                 "metadata": [
                     "inputParameters": commandParameters,
                     "confidenceThreshold": confidenceThreshold,
@@ -163,7 +163,7 @@ class VoiceControlTool: BaseMCPTool {
             return MCPResponse(
                 success: result.success,
                 data: AnyCodable(responseData),
-                error: result.error,
+                error: result.error.map { MCPError(code: "VOICE_COMMAND_ERROR", message: $0) },
                 executionTime: executionTime
             )
 
@@ -403,12 +403,12 @@ class VoiceControlTool: BaseMCPTool {
             return VoiceCommandResult(
                 success: true,
                 data: [
-                    "executedCommand": command,
-                    "recognizedCommand": command,
-                    "status": "completed",
-                    "executionDetails": executionResult.details,
-                    "feedback": executionResult.feedback,
-                    "executionId": executionId
+                    "executedCommand": AnyCodable(command),
+                    "recognizedCommand": AnyCodable(command),
+                    "status": AnyCodable("completed"),
+                    "executionDetails": AnyCodable(executionResult.details),
+                    "feedback": AnyCodable(executionResult.feedback),
+                    "executionId": AnyCodable(executionId)
                 ],
                 executionTime: executionTime,
                 executionId: executionId,
@@ -588,7 +588,7 @@ class VoiceControlTool: BaseMCPTool {
 
 struct VoiceCommandResult: Sendable {
     let success: Bool
-    let data: [String: Any]?
+    let data: [String: AnyCodable]?
     let executionTime: TimeInterval
     let executionId: String
     let recognizedCommand: String?
@@ -597,7 +597,7 @@ struct VoiceCommandResult: Sendable {
 
     init(
         success: Bool,
-        data: [String: Any]? = nil,
+        data: [String: AnyCodable]? = nil,
         executionTime: TimeInterval,
         executionId: String,
         recognizedCommand: String? = nil,

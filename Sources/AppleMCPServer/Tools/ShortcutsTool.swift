@@ -126,7 +126,7 @@ class ShortcutsTool: BaseMCPTool {
                 "success": result.success,
                 "executionTime": executionTime,
                 "timestamp": Date().iso8601String,
-                "outputs": result.data ?? [:],
+                "outputs": result.data as Any,
                 "metadata": [
                     "inputParameters": shortcutParameters,
                     "timeoutUsed": timeout,
@@ -320,17 +320,17 @@ class ShortcutsTool: BaseMCPTool {
 
         if success {
             // Simulate successful execution with meaningful output
-            let outputs: [String: Any] = [
-                "executionId": executionId,
-                "shortcutName": shortcutName,
-                "status": "completed",
-                "message": "Shortcut executed successfully",
-                "outputs": parameters.isEmpty ? [:] : ["processedInput": parameters],
-                "executionDetails": [
+            let outputs: [String: AnyCodable] = [
+                "executionId": AnyCodable(executionId),
+                "shortcutName": AnyCodable(shortcutName),
+                "status": AnyCodable("completed"),
+                "message": AnyCodable("Shortcut executed successfully"),
+                "outputs": AnyCodable(parameters.isEmpty ? [:] : ["processedInput": parameters]),
+                "executionDetails": AnyCodable([
                     "startTime": startTime.iso8601String,
                     "endTime": Date().iso8601String,
                     "duration": executionTime
-                ]
+                ])
             ]
 
             await logger.info("Shortcut execution completed successfully", category: .shortcuts, metadata: [
@@ -431,12 +431,12 @@ struct ShortcutMetadata {
 
 struct ShortcutToolExecutionResult: Sendable {
     let success: Bool
-    let data: [String: Any]?
+    let data: [String: AnyCodable]?
     let executionTime: TimeInterval
     let executionId: String
     let error: String?
 
-    init(success: Bool, data: [String: Any]? = nil, executionTime: TimeInterval, executionId: String, error: String? = nil) {
+    init(success: Bool, data: [String: AnyCodable]? = nil, executionTime: TimeInterval, executionId: String, error: String? = nil) {
         self.success = success
         self.data = data
         self.executionTime = executionTime
