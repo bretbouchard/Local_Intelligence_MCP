@@ -45,7 +45,7 @@ Create a configuration file at `~/.config/apple-mcp-server/config.json`:
 {
   "server": {
     "host": "localhost",
-    "port": 8080,
+    "port": 8050,
     "maxClients": 10
   },
   "security": {
@@ -58,6 +58,29 @@ Create a configuration file at `~/.config/apple-mcp-server/config.json`:
     "systemInfo": { "enabled": true }
   }
 }
+```
+
+### Environment Variables
+
+The server can also be configured using environment variables:
+
+```bash
+# Override default port
+export MCP_SERVER_PORT=8050
+
+# Override host
+export MCP_SERVER_HOST=0.0.0.0
+
+# Override max clients
+export MCP_MAX_CLIENTS=20
+
+# Enable features
+export MCP_ENABLE_SHORTCUTS=true
+export MCP_ENABLE_VOICE_CONTROL=true
+export MCP_ENABLE_SYSTEM_INFO=true
+
+# Set log level
+export MCP_LOG_LEVEL=info
 ```
 
 ## 🛠️ Available MCP Tools
@@ -90,6 +113,21 @@ Add to your AI assistant configuration:
     "apple-mcp": {
       "command": "apple-mcp-server",
       "args": ["--config", "~/.config/apple-mcp-server/config.json"]
+    }
+  }
+}
+```
+
+Or use environment variables:
+
+```json
+{
+  "mcpServers": {
+    "apple-mcp": {
+      "command": "apple-mcp-server",
+      "env": {
+        "MCP_SERVER_PORT": "8050"
+      }
     }
   }
 }
