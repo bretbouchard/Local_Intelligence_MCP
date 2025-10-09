@@ -56,8 +56,8 @@ actor MCPServer {
             throw MCPServerError.configurationError(issues)
         }
 
-        // Initialize tools
-        try await toolsRegistry.initialize()
+        // Tools are already initialized in Server.swift
+        // No need to initialize them again here
 
         startTime = Date()
         isRunning = true
