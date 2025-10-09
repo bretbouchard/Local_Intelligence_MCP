@@ -8,7 +8,7 @@
 import Foundation
 
 /// Tool for executing Voice Control commands
-class VoiceControlTool: BaseMCPTool {
+class VoiceControlTool: BaseMCPTool, @unchecked Sendable {
 
     init(logger: Logger, securityManager: SecurityManager) {
         let inputSchema: [String: Any] = [
@@ -72,32 +72,22 @@ class VoiceControlTool: BaseMCPTool {
         )
     }
 
-    override func performExecution(parameters: [String: Any], context: MCPExecutionContext) async throws -> MCPResponse {
-        guard let command = parameters["command"] as? String else {
+    override func performExecution(parameters: [String: AnyCodable], context: MCPExecutionContext) async throws -> MCPResponse {
+        guard let command = parameters["command"]?.value as? String else {
             throw ToolsRegistryError.invalidParameters("command parameter is required")
         }
 
-        let commandParameters = parameters["parameters"] as? [String: Any] ?? [:]
-        let confidenceThreshold = parameters["confidenceThreshold"] as? Float ?? 0.7
-        let language = parameters["language"] as? String ?? "en-US"
-        let timeout = parameters["timeout"] as? Double ?? 10.0
-        let validateCommand = parameters["validateCommand"] as? Bool ?? true
-        let waitForCompletion = parameters["waitForCompletion"] as? Bool ?? true
+        let commandParameters = parameters["parameters"]?.value as? [String: Any] ?? [:]
+        let confidenceThreshold = parameters["confidenceThreshold"]?.value as? Float ?? 0.7
+        let language = parameters["language"]?.value as? String ?? "en-US"
+        let timeout = parameters["timeout"]?.value as? Double ?? 10.0
+        let validateCommand = parameters["validateCommand"]?.value as? Bool ?? true
+        let waitForCompletion = parameters["waitForCompletion"]?.value as? Bool ?? true
 
         let startTime = Date()
         let executionId = generateExecutionID()
 
-        await logger.info("Executing voice command", category: .voiceControl, metadata: [
-            "command": command.sanitizedForLogging,
-            "confidenceThreshold": confidenceThreshold,
-            "language": language,
-            "timeout": timeout,
-            "validateCommand": validateCommand,
-            "waitForCompletion": waitForCompletion,
-            "parameters": commandParameters.sanitizedForLogging(),
-            "executionId": executionId,
-            "clientId": context.clientId.uuidString
-        ])
+        await logger.info("Executing voice command", category: .voiceControl, metadata: [:])
 
         do {
             // Validate voice control availability and permissions
@@ -130,14 +120,7 @@ class VoiceControlTool: BaseMCPTool {
             await logger.performance(
                 "voice_command_execution",
                 duration: executionTime,
-                metadata: [
-                    "command": command.sanitizedForLogging,
-                    "success": result.success,
-                    "confidence": result.confidence,
-                    "executionId": executionId,
-                    "language": language,
-                    "timeout": timeout
-                ]
+                metadata: [:]
             )
 
             // Prepare comprehensive response
@@ -174,13 +157,7 @@ class VoiceControlTool: BaseMCPTool {
                 "Voice command execution failed",
                 error: error,
                 category: .voiceControl,
-                metadata: [
-                    "command": command.sanitizedForLogging,
-                    "executionId": executionId,
-                    "executionTime": executionTime,
-                    "language": language,
-                    "timeout": timeout
-                ]
+                metadata: [:]
             )
 
             // Provide helpful error information
@@ -237,9 +214,7 @@ class VoiceControlTool: BaseMCPTool {
         // Basic character validation
         let allowedCharacters = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: " .,!?-"))
         if command.rangeOfCharacter(from: allowedCharacters.inverted) != nil {
-            await logger.warning("Voice command contains unusual characters", category: .voiceControl, metadata: [
-                "command": command.sanitizedForLogging
-            ])
+            await logger.warning("Voice command contains unusual characters", category: .voiceControl, metadata: [:])
         }
     }
 
@@ -281,10 +256,7 @@ class VoiceControlTool: BaseMCPTool {
         }
 
         if !isValidCommand {
-            await logger.warning("Unknown voice command", category: .voiceControl, metadata: [
-                "command": command.sanitizedForLogging,
-                "suggestions": Array(knownCommands.values.flatMap { $0 }.prefix(5))
-            ])
+            await logger.warning("Unknown voice command", category: .voiceControl, metadata: [:])
             // Continue anyway as the command might be valid but not in our known list
         }
     }
@@ -343,11 +315,7 @@ class VoiceControlTool: BaseMCPTool {
     ) async throws -> VoiceCommandResult {
         let startTime = Date()
 
-        await logger.debug("Starting voice command execution", category: .voiceControl, metadata: [
-            "command": command.sanitizedForLogging,
-            "language": language,
-            "executionId": executionId
-        ])
+        await logger.debug("Starting voice command execution", category: .voiceControl, metadata: [:])
 
         // Simulate voice recognition processing
         try await Task.sleep(nanoseconds: UInt64.random(in: 200_000_000...1_000_000_000)) // 0.2-1.0 seconds
@@ -377,12 +345,7 @@ class VoiceControlTool: BaseMCPTool {
         let executionTime = Date().timeIntervalSince(startTime)
 
         if executionResult.success {
-            await logger.info("Voice command executed successfully", category: .voiceControl, metadata: [
-                "command": command.sanitizedForLogging,
-                "executionId": executionId,
-                "executionTime": executionTime,
-                "confidence": confidence
-            ])
+            await logger.info("Voice command executed successfully", category: .voiceControl, metadata: [:])
 
             return VoiceCommandResult(
                 success: true,
@@ -402,12 +365,7 @@ class VoiceControlTool: BaseMCPTool {
         } else {
             let error = executionResult.error ?? "Voice command execution failed"
 
-            await logger.error("Voice command execution failed", category: .voiceControl, metadata: [
-                "command": command.sanitizedForLogging,
-                "executionId": executionId,
-                "executionTime": executionTime,
-                "error": error
-            ])
+            await logger.error("Voice command execution failed", category: .voiceControl, metadata: [:])
 
             return VoiceCommandResult(
                 success: false,
@@ -534,11 +492,7 @@ class VoiceControlTool: BaseMCPTool {
 
     private func updateVoiceCommandUsage(command: String, success: Bool, executionTime: TimeInterval) async {
         // In a real implementation, this would update usage statistics in a database
-        await logger.debug("Updating voice command usage statistics", category: .voiceControl, metadata: [
-            "command": command.sanitizedForLogging,
-            "success": success,
-            "executionTime": executionTime
-        ])
+        await logger.debug("Updating voice command usage statistics", category: .voiceControl, metadata: [:])
     }
 
     // MARK: - Error Types

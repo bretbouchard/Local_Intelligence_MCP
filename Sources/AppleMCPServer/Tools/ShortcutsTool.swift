@@ -8,7 +8,7 @@
 import Foundation
 
 /// Tool for executing Apple Shortcuts
-class ShortcutsTool: BaseMCPTool {
+class ShortcutsTool: BaseMCPTool, @unchecked Sendable {
 
     init(logger: Logger, securityManager: SecurityManager) {
         let inputSchema: [String: Any] = [
@@ -59,28 +59,20 @@ class ShortcutsTool: BaseMCPTool {
         )
     }
 
-    override func performExecution(parameters: [String: Any], context: MCPExecutionContext) async throws -> MCPResponse {
-        guard let shortcutName = parameters["shortcutName"] as? String else {
+    override func performExecution(parameters: [String: AnyCodable], context: MCPExecutionContext) async throws -> MCPResponse {
+        guard let shortcutName = parameters["shortcutName"]?.value as? String else {
             throw ToolsRegistryError.invalidParameters("shortcutName parameter is required")
         }
 
-        let shortcutParameters = parameters["parameters"] as? [String: Any] ?? [:]
-        let timeout = parameters["timeout"] as? Double ?? 30.0
-        let validateParameters = parameters["validateParameters"] as? Bool ?? true
-        let waitForCompletion = parameters["waitForCompletion"] as? Bool ?? true
+        let shortcutParameters = parameters["parameters"]?.value as? [String: Any] ?? [:]
+        let timeout = parameters["timeout"]?.value as? Double ?? 30.0
+        let validateParameters = parameters["validateParameters"]?.value as? Bool ?? true
+        let waitForCompletion = parameters["waitForCompletion"]?.value as? Bool ?? true
 
         let startTime = Date()
         let executionId = generateExecutionID()
 
-        await logger.info("Executing shortcut", category: .shortcuts, metadata: [
-            "shortcutName": shortcutName,
-            "parameters": shortcutParameters.sanitizedForLogging(),
-            "timeout": timeout,
-            "validateParameters": validateParameters,
-            "waitForCompletion": waitForCompletion,
-            "executionId": executionId,
-            "clientId": context.clientId.uuidString
-        ])
+        await logger.info("Executing shortcut '\(shortcutName)'", category: .shortcuts, metadata: [:])
 
         do {
             // Validate shortcut name
@@ -112,10 +104,9 @@ class ShortcutsTool: BaseMCPTool {
                 "shortcut_execution",
                 duration: executionTime,
                 metadata: [
-                    "shortcutName": shortcutName,
-                    "success": result.success,
-                    "executionId": executionId,
-                    "timeout": timeout
+                    "shortcutName": AnyCodable(shortcutName),
+                    "executionTime": AnyCodable(executionTime),
+                    "success": AnyCodable(result.success)
                 ]
             )
 
@@ -146,15 +137,10 @@ class ShortcutsTool: BaseMCPTool {
             let executionTime = Date().timeIntervalSince(startTime)
 
             await logger.error(
-                "Shortcut execution failed",
+                "Shortcut execution failed for '\(shortcutName)'",
                 error: error,
                 category: .shortcuts,
-                metadata: [
-                    "shortcutName": shortcutName,
-                    "executionId": executionId,
-                    "executionTime": executionTime,
-                    "timeout": timeout
-                ]
+                metadata: [:]
             )
 
             let errorResponse: [String: Any] = [
@@ -290,10 +276,7 @@ class ShortcutsTool: BaseMCPTool {
     ) async throws -> ShortcutToolExecutionResult {
         let startTime = Date()
 
-        await logger.debug("Starting shortcut execution", category: .shortcuts, metadata: [
-            "shortcutName": shortcutName,
-            "executionId": executionId
-        ])
+        await logger.debug("Starting shortcut execution '\(shortcutName)'", category: .shortcuts, metadata: [:])
 
         // Simulate actual shortcut execution
         // In a real implementation, this would use NSUserActivity or the Intents framework
@@ -317,11 +300,7 @@ class ShortcutsTool: BaseMCPTool {
                 ])
             ]
 
-            await logger.info("Shortcut execution completed successfully", category: .shortcuts, metadata: [
-                "shortcutName": shortcutName,
-                "executionId": executionId,
-                "executionTime": executionTime
-            ])
+            await logger.info("Shortcut execution completed successfully for '\(shortcutName)'", category: .shortcuts, metadata: [:])
 
             return ShortcutToolExecutionResult(
                 success: true,
@@ -332,12 +311,7 @@ class ShortcutsTool: BaseMCPTool {
         } else {
             let error = "Shortcut execution failed (simulated timeout)"
 
-            await logger.error("Shortcut execution failed", category: .shortcuts, metadata: [
-                "shortcutName": shortcutName,
-                "executionId": executionId,
-                "executionTime": executionTime,
-                "error": error
-            ])
+            await logger.error("Shortcut execution failed for '\(shortcutName)'", category: .shortcuts, metadata: [:])
 
             return ShortcutToolExecutionResult(
                 success: false,
@@ -353,11 +327,7 @@ class ShortcutsTool: BaseMCPTool {
 
     private func updateShortcutUsage(shortcutName: String, success: Bool, executionTime: TimeInterval) async {
         // In a real implementation, this would update usage statistics in a database
-        await logger.debug("Updating shortcut usage statistics", category: .shortcuts, metadata: [
-            "shortcutName": shortcutName,
-            "success": success,
-            "executionTime": executionTime
-        ])
+        await logger.debug("Updating shortcut usage statistics for '\(shortcutName)'", category: .shortcuts, metadata: [:])
     }
 
     // MARK: - Error Types

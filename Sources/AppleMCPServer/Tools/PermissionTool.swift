@@ -8,7 +8,7 @@
 import Foundation
 
 /// Tool for checking system permission status
-class PermissionTool: BaseMCPTool {
+class PermissionTool: BaseMCPTool, @unchecked Sendable {
 
     init(logger: Logger, securityManager: SecurityManager) {
         let inputSchema: [String: Any] = [
@@ -38,8 +38,8 @@ class PermissionTool: BaseMCPTool {
         )
     }
 
-    override func performExecution(parameters: [String: Any], context: MCPExecutionContext) async throws -> MCPResponse {
-        let permissionsToCheck = parameters["permissions"] as? [String] ?? []
+    override func performExecution(parameters: [String: AnyCodable], context: MCPExecutionContext) async throws -> MCPResponse {
+        let permissionsToCheck = parameters["permissions"]?.value as? [String] ?? []
 
         let permissionStatuses = try await checkPermissions(permissionsToCheck)
 

@@ -28,7 +28,7 @@ actor ToolsRegistry {
 
     /// Initialize the tools registry with default tools
     func initialize() async throws {
-        await logger.info("Initializing MCP tools registry", category: .server)
+        await logger.info("Initializing MCP tools registry", category: .server, metadata: [:])
 
         // Register built-in tools
         try await registerTool(SystemInfoTool(logger: logger, securityManager: securityManager))
@@ -37,10 +37,7 @@ actor ToolsRegistry {
         try await registerTool(ShortcutsListTool(logger: logger, securityManager: securityManager))
         try await registerTool(VoiceControlTool(logger: logger, securityManager: securityManager))
 
-        await logger.info("MCP tools registry initialized", category: .server, metadata: [
-            "totalTools": tools.count,
-            "toolNames": Array(tools.keys)
-        ])
+        await logger.info("MCP tools registry initialized with \(tools.count) tools", category: .server, metadata: [:])
     }
 
     /// Register a new tool
@@ -60,11 +57,7 @@ actor ToolsRegistry {
 
         tools[tool.name] = tool
 
-        await logger.info("Tool registered", category: .server, metadata: [
-            "toolName": tool.name,
-            "toolCategory": tool.category.rawValue,
-            "offlineCapable": tool.offlineCapable
-        ])
+        await logger.info("Tool '\(tool.name)' registered (\(tool.category.rawValue))", category: .server, metadata: [:])
     }
 
     /// Unregister a tool
@@ -72,9 +65,7 @@ actor ToolsRegistry {
     func unregisterTool(_ toolName: String) async {
         guard tools.removeValue(forKey: toolName) != nil else { return }
 
-        await logger.info("Tool unregistered", category: .server, metadata: [
-            "toolName": toolName
-        ])
+        await logger.info("Tool '\(toolName)' unregistered", category: .server, metadata: [:])
     }
 
     /// Get available tools
@@ -117,17 +108,11 @@ actor ToolsRegistry {
             direction: .inbound,
             messageId: context.requestId,
             method: name,
-            metadata: [
-                "clientId": context.clientId.uuidString,
-                "parameters": parameters.sanitizedForLogging()
-            ]
+            metadata: [:]
         )
 
         guard let tool = tools[name] else {
-            await logger.warning("Tool not found", category: .server, metadata: [
-                "toolName": name,
-                "clientId": context.clientId.uuidString
-            ])
+            await logger.warning("Tool '\(name)' not found for client \(context.clientId.uuidString)", category: .server, metadata: [:])
 
             let error = MCPError(
                 code: "TOOL_NOT_FOUND",
@@ -139,7 +124,7 @@ actor ToolsRegistry {
                 direction: .outbound,
                 messageId: context.requestId,
                 method: name,
-                metadata: ["error": error.code]
+                metadata: ["error": AnyCodable(error.code)]
             )
 
             return MCPResponse(success: false, error: error)
@@ -157,8 +142,9 @@ actor ToolsRegistry {
                 )
             }
 
-            // Execute tool
-            let result = try await tool.execute(parameters: parameters, context: context)
+            // Execute tool with Sendable parameters
+            let sendableParameters = convertToSendableParameters(parameters)
+            let result = try await tool.execute(parameters: sendableParameters, context: context)
 
             let executionTime = Date().timeIntervalSince(startTime)
 
@@ -166,9 +152,9 @@ actor ToolsRegistry {
                 "tool_execution",
                 duration: executionTime,
                 metadata: [
-                    "toolName": name,
-                    "clientId": context.clientId.uuidString,
-                    "success": result.success
+                    "toolName": AnyCodable(name),
+                    "clientId": AnyCodable(context.clientId.uuidString),
+                    "success": AnyCodable(result.success)
                 ]
             )
 
@@ -177,8 +163,8 @@ actor ToolsRegistry {
                 messageId: context.requestId,
                 method: name,
                 metadata: [
-                    "success": result.success,
-                    "executionTime": executionTime
+                    "success": AnyCodable(result.success),
+                    "executionTime": AnyCodable(executionTime)
                 ]
             )
 
@@ -188,14 +174,10 @@ actor ToolsRegistry {
             let executionTime = Date().timeIntervalSince(startTime)
 
             await logger.error(
-                "Tool execution failed",
+                "Tool execution failed for '\(name)'",
                 error: error,
                 category: .server,
-                metadata: [
-                    "toolName": name,
-                    "clientId": context.clientId.uuidString,
-                    "executionTime": executionTime
-                ]
+                metadata: [:]
             )
 
             let mcpError = error.mcpError
@@ -203,7 +185,7 @@ actor ToolsRegistry {
                 direction: .outbound,
                 messageId: context.requestId,
                 method: name,
-                metadata: ["error": mcpError.code]
+                metadata: ["error": AnyCodable(mcpError.code)]
             )
 
             return MCPResponse(success: false, error: mcpError, executionTime: executionTime)
@@ -291,11 +273,14 @@ actor ToolsRegistry {
         for permission in tool.requiresPermission {
             // For now, we'll log permission checks
             // In a full implementation, you'd check actual system permissions
-            await logger.debug("Checking permission", category: .security, metadata: [
-                "permission": permission.rawValue,
-                "toolName": tool.name,
-                "clientId": context.clientId.uuidString
-            ])
+            await logger.debug("Checking permission \(permission.rawValue) for tool '\(tool.name)'", category: .security, metadata: [:])
+        }
+    }
+
+    private func convertToSendableParameters(_ parameters: [String: Any]) -> [String: AnyCodable] {
+        // Convert parameters to Sendable format using AnyCodable
+        return parameters.mapValues { value in
+            AnyCodable(value)
         }
     }
 }
@@ -394,23 +379,23 @@ enum ToolsRegistryError: Error, LocalizedError {
 
 // MARK: - Base Tool Protocol
 
-protocol MCPToolProtocol {
+protocol MCPToolProtocol: Sendable {
     var name: String { get }
     var description: String { get }
-    var inputSchema: [String: Any] { get }
+    var inputSchema: [String: AnyCodable] { get }
     var category: ToolCategory { get }
     var requiresPermission: [PermissionType] { get }
     var offlineCapable: Bool { get }
 
-    func execute(parameters: [String: Any], context: MCPExecutionContext) async throws -> MCPResponse
+    func execute(parameters: [String: AnyCodable], context: MCPExecutionContext) async throws -> MCPResponse
 }
 
 // MARK: - Tool Base Class
 
-class BaseMCPTool: MCPToolProtocol {
+class BaseMCPTool: @unchecked Sendable, MCPToolProtocol {
     let name: String
     let description: String
-    let inputSchema: [String: Any]
+    let inputSchema: [String: AnyCodable]
     let category: ToolCategory
     let requiresPermission: [PermissionType]
     let offlineCapable: Bool
@@ -429,7 +414,7 @@ class BaseMCPTool: MCPToolProtocol {
     ) {
         self.name = name
         self.description = description
-        self.inputSchema = inputSchema
+        self.inputSchema = inputSchema.mapValues { AnyCodable($0) }
         self.category = category
         self.requiresPermission = requiresPermission
         self.offlineCapable = offlineCapable
@@ -437,40 +422,29 @@ class BaseMCPTool: MCPToolProtocol {
         self.securityManager = securityManager
     }
 
-    func execute(parameters: [String: Any], context: MCPExecutionContext) async throws -> MCPResponse {
+    func execute(parameters: [String: AnyCodable], context: MCPExecutionContext) async throws -> MCPResponse {
         let startTime = Date()
 
-        await logger.debug("Executing tool", category: .server, metadata: [
-            "toolName": name,
-            "clientId": context.clientId.uuidString,
-            "parameters": parameters.sanitizedForLogging()
-        ])
+        await logger.debug("Executing tool '\(name)' for client \(context.clientId.uuidString)", category: .server, metadata: [:])
 
         do {
             let result = try await performExecution(parameters: parameters, context: context)
             let executionTime = Date().timeIntervalSince(startTime)
 
-            await logger.debug("Tool execution completed", category: .server, metadata: [
-                "toolName": name,
-                "success": result.success,
-                "executionTime": executionTime
-            ])
+            await logger.debug("Tool '\(name)' completed with success=\(result.success) in \(executionTime)s", category: .server, metadata: [:])
 
             return MCPResponse(success: result.success, data: result.data, error: result.error, executionTime: executionTime)
         } catch {
             let executionTime = Date().timeIntervalSince(startTime)
 
-            await logger.error("Tool execution failed", error: error, category: .server, metadata: [
-                "toolName": name,
-                "executionTime": executionTime
-            ])
+            await logger.error("Tool '\(name)' failed after \(executionTime)s", error: error, category: .server, metadata: [:])
 
             return MCPResponse(success: false, error: error.mcpError, executionTime: executionTime)
         }
     }
 
     /// Override this method in subclasses to implement tool-specific logic
-    func performExecution(parameters: [String: Any], context: MCPExecutionContext) async throws -> MCPResponse {
+    func performExecution(parameters: [String: AnyCodable], context: MCPExecutionContext) async throws -> MCPResponse {
         throw ToolsRegistryError.toolNotFound(name)
     }
 }

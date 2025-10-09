@@ -9,7 +9,7 @@ import Foundation
 import SystemConfiguration
 
 /// Tool for retrieving system information
-class SystemInfoTool: BaseMCPTool {
+class SystemInfoTool: BaseMCPTool, @unchecked Sendable {
 
     init(logger: Logger, securityManager: SecurityManager) {
         let inputSchema: [String: Any] = [
@@ -45,12 +45,12 @@ class SystemInfoTool: BaseMCPTool {
         )
     }
 
-    override func performExecution(parameters: [String: Any], context: MCPExecutionContext) async throws -> MCPResponse {
-        guard let categories = parameters["categories"] as? [String] else {
+    override func performExecution(parameters: [String: AnyCodable], context: MCPExecutionContext) async throws -> MCPResponse {
+        guard let categories = parameters["categories"]?.value as? [String] else {
             throw ToolsRegistryError.invalidParameters("categories parameter is required and must be an array")
         }
 
-        let includeSensitive = parameters["includeSensitive"] as? Bool ?? false
+        let includeSensitive = parameters["includeSensitive"]?.value as? Bool ?? false
         let startTime = Date()
         let executionId = generateExecutionID()
 

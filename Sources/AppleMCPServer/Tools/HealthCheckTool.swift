@@ -8,7 +8,7 @@
 import Foundation
 
 /// Tool for checking server health and status
-class HealthCheckTool: BaseMCPTool {
+class HealthCheckTool: BaseMCPTool, @unchecked Sendable {
 
     init(logger: Logger, securityManager: SecurityManager) {
         let inputSchema: [String: Any] = [
@@ -43,9 +43,9 @@ class HealthCheckTool: BaseMCPTool {
         )
     }
 
-    override func performExecution(parameters: [String: Any], context: MCPExecutionContext) async throws -> MCPResponse {
-        let components = parameters["components"] as? [String] ?? ["server", "security", "tools", "permissions", "system", "network", "storage"]
-        let detailed = parameters["detailed"] as? Bool ?? false
+    override func performExecution(parameters: [String: AnyCodable], context: MCPExecutionContext) async throws -> MCPResponse {
+        let components = parameters["components"]?.value as? [String] ?? ["server", "security", "tools", "permissions", "system", "network", "storage"]
+        let detailed = parameters["detailed"]?.value as? Bool ?? false
 
         let startTime = Date()
         let executionId = generateExecutionID()
