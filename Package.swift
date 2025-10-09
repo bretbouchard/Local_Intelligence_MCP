@@ -10,7 +10,7 @@ let package = Package(
         .iOS(.v16)
     ],
     products: [
-        .library(
+        .executable(
             name: "AppleMCPServer",
             targets: ["AppleMCPServer"]
         ),
@@ -33,8 +33,8 @@ let package = Package(
         .package(url: "https://github.com/Quick/Nimble.git", from: "12.0.0"),
     ],
     targets: [
-        // Main library target
-        .target(
+        // Main executable target
+        .executableTarget(
             name: "AppleMCPServer",
             dependencies: [
                 .product(name: "MCP", package: "swift-sdk"),
