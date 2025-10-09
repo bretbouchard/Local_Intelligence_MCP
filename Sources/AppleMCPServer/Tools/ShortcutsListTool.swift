@@ -8,7 +8,7 @@
 import Foundation
 
 /// Tool for listing available Apple Shortcuts
-class ShortcutsListTool: BaseMCPTool {
+class ShortcutsListTool: BaseMCPTool, @unchecked Sendable {
 
     init(logger: Logger, securityManager: SecurityManager) {
         let inputSchema: [String: Any] = [
@@ -75,29 +75,19 @@ class ShortcutsListTool: BaseMCPTool {
         )
     }
 
-    override func performExecution(parameters: [String: Any], context: MCPExecutionContext) async throws -> MCPResponse {
-        let category = parameters["category"] as? String
-        let search = parameters["search"] as? String
-        let includeParameters = parameters["includeParameters"] as? Bool ?? false
-        let includeUsageStats = parameters["includeUsageStats"] as? Bool ?? false
-        let onlyAvailable = parameters["onlyAvailable"] as? Bool ?? true
-        let sortBy = parameters["sortBy"] as? String ?? "name"
-        let sortOrder = parameters["sortOrder"] as? String ?? "asc"
-        let limit = parameters["limit"] as? Int ?? 50
+    override func performExecution(parameters: [String: AnyCodable], context: MCPExecutionContext) async throws -> MCPResponse {
+        let category = parameters["category"]?.value as? String
+        let search = parameters["search"]?.value as? String
+        let includeParameters = parameters["includeParameters"]?.value as? Bool ?? false
+        let includeUsageStats = parameters["includeUsageStats"]?.value as? Bool ?? false
+        let onlyAvailable = parameters["onlyAvailable"]?.value as? Bool ?? true
+        let sortBy = parameters["sortBy"]?.value as? String ?? "name"
+        let sortOrder = parameters["sortOrder"]?.value as? String ?? "asc"
+        let limit = parameters["limit"]?.value as? Int ?? 50
 
         let startTime = Date()
 
-        await logger.info("Listing shortcuts", category: .shortcuts, metadata: [
-            "category": category ?? "all",
-            "search": search ?? "none",
-            "includeParameters": includeParameters,
-            "includeUsageStats": includeUsageStats,
-            "onlyAvailable": onlyAvailable,
-            "sortBy": sortBy,
-            "sortOrder": sortOrder,
-            "limit": limit,
-            "clientId": context.clientId.uuidString
-        ])
+        await logger.info("Listing shortcuts", category: .shortcuts, metadata: [:])
 
         do {
             // Get list of shortcuts with comprehensive metadata
@@ -147,10 +137,10 @@ class ShortcutsListTool: BaseMCPTool {
                 "shortcuts_listing",
                 duration: executionTime,
                 metadata: [
-                    "totalCount": shortcuts.count,
-                    "returnedCount": limitedShortcuts.count,
-                    "category": category ?? "all",
-                    "search": search ?? "none"
+                    "totalCount": AnyCodable(shortcuts.count),
+                    "returnedCount": AnyCodable(limitedShortcuts.count),
+                    "category": AnyCodable(category ?? "all"),
+                    "search": AnyCodable(search ?? "none")
                 ]
             )
 
@@ -167,11 +157,7 @@ class ShortcutsListTool: BaseMCPTool {
                 "Shortcuts listing failed",
                 error: error,
                 category: .shortcuts,
-                metadata: [
-                    "category": category ?? "all",
-                    "search": search ?? "none",
-                    "executionTime": executionTime
-                ]
+                metadata: [:]
             )
 
             return MCPResponse(

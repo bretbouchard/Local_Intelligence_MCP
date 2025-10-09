@@ -404,37 +404,37 @@ struct CategoryLogger {
     }
 
     func debug(_ message: String, metadata: [String: Any] = [:]) {
-        // Make synchronous call to avoid concurrency issues
+        // Remove metadata to avoid Swift 6 concurrency issues
         Task {
-            await logger.debug(message, category: category, metadata: metadata)
+            await logger.debug(message, category: category, metadata: [:])
         }
     }
 
     func info(_ message: String, metadata: [String: Any] = [:]) {
-        // Make synchronous call to avoid concurrency issues
+        // Remove metadata to avoid Swift 6 concurrency issues
         Task {
-            await logger.info(message, category: category, metadata: metadata)
+            await logger.info(message, category: category, metadata: [:])
         }
     }
 
     func warning(_ message: String, metadata: [String: Any] = [:]) {
-        // Make synchronous call to avoid concurrency issues
+        // Remove metadata to avoid Swift 6 concurrency issues
         Task {
-            await logger.warning(message, category: category, metadata: metadata)
+            await logger.warning(message, category: category, metadata: [:])
         }
     }
 
     func error(_ message: String, error: Error? = nil, metadata: [String: Any] = [:]) {
-        // Make synchronous call to avoid concurrency issues
+        // Remove metadata to avoid Swift 6 concurrency issues
         Task {
-            await logger.error(message, error: error, category: category, metadata: metadata)
+            await logger.error(message, error: error, category: category, metadata: [:])
         }
     }
 
     func critical(_ message: String, error: Error? = nil, metadata: [String: Any] = [:]) {
-        // Make synchronous call to avoid concurrency issues
+        // Remove metadata to avoid Swift 6 concurrency issues
         Task {
-            await logger.critical(message, error: error, category: category, metadata: metadata)
+            await logger.critical(message, error: error, category: category, metadata: [:])
         }
     }
 }

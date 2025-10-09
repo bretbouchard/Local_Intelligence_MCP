@@ -47,12 +47,7 @@ actor MCPServer {
             throw MCPServerError.alreadyRunning
         }
 
-        await logger.info("Starting Apple MCP Server", category: .server, metadata: [
-            "version": MCPConstants.Server.version,
-            "host": configuration.host,
-            "port": configuration.port,
-            "maxClients": configuration.maxClients
-        ])
+        await logger.info("Starting Apple MCP Server", category: .server, metadata: [:])
 
         // Validate configuration
         let validation = await configuration.validate()
@@ -67,20 +62,14 @@ actor MCPServer {
         startTime = Date()
         isRunning = true
 
-        await logger.info("Apple MCP Server started successfully", category: .server, metadata: [
-            "uptime": 0.0,
-            "activeClients": 0
-        ])
+        await logger.info("Apple MCP Server started successfully", category: .server, metadata: [:])
     }
 
     /// Stop the MCP server
     func stop() async {
         guard isRunning else { return }
 
-        await logger.info("Stopping Apple MCP Server", category: .server, metadata: [
-            "activeClients": clients.count,
-            "uptime": uptime
-        ])
+        await logger.info("Stopping Apple MCP Server", category: .server, metadata: [:])
 
         // Disconnect all clients
         for (clientId, client) in clients {
@@ -90,7 +79,7 @@ actor MCPServer {
         isRunning = false
         startTime = nil
 
-        await logger.info("Apple MCP Server stopped", category: .server)
+        await logger.info("Apple MCP Server stopped", category: .server, metadata: [:])
     }
 
     // MARK: - Client Management
@@ -122,16 +111,9 @@ actor MCPServer {
 
         clients[clientId] = client
 
-        await logger.securityEvent(.clientConnected, clientId: clientId.uuidString, details: [
-            "clientName": clientInfo.name,
-            "clientVersion": clientInfo.version
-        ])
+        await logger.securityEvent(.clientConnected, clientId: clientId.uuidString, details: [:])
 
-        await logger.info("Client connected", category: .server, metadata: [
-            "clientId": clientId.uuidString,
-            "clientName": clientInfo.name,
-            "totalClients": clients.count
-        ])
+        await logger.info("Client connected", category: .server, metadata: [:])
 
         return sessionToken
     }
@@ -145,16 +127,9 @@ actor MCPServer {
 
         clients.removeValue(forKey: clientId)
 
-        await logger.securityEvent(.clientDisconnected, clientId: clientId.uuidString, details: [
-            "reason": reason,
-            "sessionDuration": Date().timeIntervalSince(client.connectedAt)
-        ])
+        await logger.securityEvent(.clientDisconnected, clientId: clientId.uuidString, details: [:])
 
-        await logger.info("Client disconnected", category: .server, metadata: [
-            "clientId": clientId.uuidString,
-            "reason": reason,
-            "remainingClients": clients.count
-        ])
+        await logger.info("Client disconnected", category: .server, metadata: [:])
     }
 
     /// Validate client session

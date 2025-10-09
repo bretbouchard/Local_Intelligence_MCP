@@ -63,21 +63,13 @@ struct StartCommand: AsyncParsableCommand {
         )
         let logger = Logger(configuration: logConfig)
 
-        await logger.info("Starting Apple MCP Server", metadata: [
-            "version": MCPConstants.Server.version,
-            "buildDate": "2025-10-07",
-            "debug": debug,
-            "startTime": startTime.iso8601String
-        ])
+        await logger.info("Starting Apple MCP Server v\(MCPConstants.Server.version)", category: .general, metadata: [:])
 
         do {
             // Load configuration
             let config = try await loadConfiguration(logger: logger)
 
-            await logger.info("Configuration loaded successfully", metadata: [
-                "configFile": configFile ?? "default",
-                "serverName": MCPConstants.Server.name
-            ])
+            await logger.info("Configuration loaded successfully - Server: \(MCPConstants.Server.name)", category: .server, metadata: [:])
 
             // Initialize security manager
             let securityManager = SecurityManager()
@@ -98,20 +90,20 @@ struct StartCommand: AsyncParsableCommand {
             try await server.start()
 
             if foreground {
-                await logger.info("Server running in foreground mode. Press Ctrl+C to stop.")
+                await logger.info("Server running in foreground mode. Press Ctrl+C to stop.", category: .server, metadata: [:])
 
                 // Handle graceful shutdown
                 let signal = await waitForShutdownSignal()
-                await logger.info("Received shutdown signal: \(signal)")
+                await logger.info("Received shutdown signal: \(signal)", category: .server, metadata: [:])
 
                 try await server.stop()
-                await logger.info("Server stopped gracefully")
+                await logger.info("Server stopped gracefully", category: .server, metadata: [:])
             } else {
-                await logger.info("Server started successfully")
+                await logger.info("Server started successfully", category: .server, metadata: [:])
             }
 
         } catch {
-            await logger.error("Failed to start server", error: error)
+            await logger.error("Failed to start server", error: error, category: .server, metadata: [:])
             throw error
         }
     }
@@ -191,7 +183,7 @@ struct StatusCommand: AsyncParsableCommand {
             await displayStatus(healthStatus: healthStatus)
 
         } catch {
-            await logger.error("Failed to check server status", error: error)
+            await logger.error("Failed to check server status", error: error, category: .server, metadata: [:])
             throw error
         }
     }
@@ -271,7 +263,7 @@ struct ShowConfigCommand: AsyncParsableCommand {
             let config = try await loadConfiguration(logger: logger)
             await displayConfiguration(config: config, showSensitive: showSensitive)
         } catch {
-            await logger.error("Failed to load configuration", error: error)
+            await logger.error("Failed to load configuration", error: error, category: .server, metadata: [:])
             throw error
         }
     }
@@ -333,7 +325,7 @@ struct ValidateConfigCommand: AsyncParsableCommand {
             }
 
         } catch {
-            await logger.error("Configuration validation failed", error: error)
+            await logger.error("Configuration validation failed", error: error, category: .server, metadata: [:])
             throw error
         }
     }
@@ -381,7 +373,7 @@ struct ResetConfigCommand: AsyncParsableCommand {
             print("✅ Configuration reset to defaults successfully")
 
         } catch {
-            await logger.error("Failed to reset configuration", error: error)
+            await logger.error("Failed to reset configuration", error: error, category: .server, metadata: [:])
             throw error
         }
     }
