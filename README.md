@@ -1,6 +1,15 @@
-# Local Intelligence MCP
+# 🧠 Local Intelligence MCP
 
-A cross-platform Swift-based Model Context Protocol (MCP) server that provides comprehensive text processing and content analysis tools to AI agents while maintaining strict security and privacy requirements.
+A Swift-based, cross-platform Model Context Protocol (MCP) server that extends Apple's on-device Intelligence features to local AI agents in a secure and privacy-preserving way.
+
+Local Intelligence MCP provides text processing, summarization, and contextual analysis tools designed to augment Apple Intelligence capabilities within your own applications — without sharing data externally and without being affiliated with or authored by Apple.
+
+## ✅ Key Points
+
+- **Built independently** using Apple's public frameworks and Model Context Protocol support
+- **Integrates with Apple Intelligence** for local inference, privacy, and system-level AI features  
+- **Not developed, endorsed, or affiliated** with Apple Inc.
+- **Privacy-first architecture**: all analysis runs locally, with optional sandboxed model extensions
 
 ## ✨ Features
 
@@ -150,44 +159,170 @@ export MCP_LOG_LEVEL=info
 - **Audit Logging**: Complete security event logging and monitoring
 - **Session Management**: Secure session handling with hijacking protection
 
-## Usage with AI Assistants
+## 🔌 Platform Integration
 
-Add to your AI assistant configuration:
+Local Intelligence MCP integrates with major AI platforms and development environments. For comprehensive setup instructions, see our [**Platform Integration Guide**](./PLATFORM_INTEGRATION.md).
 
+### Quick Setup Examples
+
+#### Claude Desktop
 ```json
 {
   "mcpServers": {
     "local-intelligence-mcp": {
-      "type": "stdio",
       "command": "swift",
-      "args": [
-        "run",
-        "--package-path",
-        "/your/path/local_intelligence_mcp",
-        "LocalIntelligenceMCP",
-        "start-command",
-        "--mcp-mode"
-      ]
+      "args": ["run", "--package-path", "/path/to/Local_Intelligence_MCP", "LocalIntelligenceMCP"]
     }
   }
 }
 ```
 
-
-Or use environment variables:
-
+#### VS Code + GitHub Copilot
 ```json
 {
   "mcpServers": {
     "local-intelligence-mcp": {
-      "command": "local-intelligence-mcp-server",
-      "env": {
-        "MCP_SERVER_PORT": "8050"
-      }
+      "command": "swift",
+      "args": ["run", "LocalIntelligenceMCP"],
+      "cwd": "/path/to/Local_Intelligence_MCP"
     }
   }
 }
 ```
+
+#### Docker Integration
+```bash
+# Start server
+docker-compose up -d
+
+# For Claude Desktop
+{
+  "mcpServers": {
+    "local-intelligence-mcp": {
+      "command": "docker",
+      "args": ["exec", "-i", "local-intelligence-mcp", "/usr/local/bin/LocalIntelligenceMCP"]
+    }
+  }
+}
+```
+
+### Supported Platforms
+
+| Platform | Status | Configuration |
+|----------|--------|---------------|
+| **Claude Desktop** | ✅ Full Support | [Setup Guide](./PLATFORM_INTEGRATION.md#claude-desktop) |
+| **VS Code + Copilot** | ✅ Full Support | [Setup Guide](./PLATFORM_INTEGRATION.md#vs-code-with-github-copilot) |
+| **Cursor IDE** | ✅ Full Support | [Setup Guide](./PLATFORM_INTEGRATION.md#cursor-ide) |
+| **Windsurf** | ✅ Full Support | [Setup Guide](./PLATFORM_INTEGRATION.md#windsurf) |
+| **Google AI Studio** | ✅ HTTP Integration | [Setup Guide](./PLATFORM_INTEGRATION.md#google-ai-studio--vertex-ai) |
+| **ChatGPT/OpenAI** | ✅ HTTP Integration | [Setup Guide](./PLATFORM_INTEGRATION.md#chatgpt--openai-platform) |
+| **JetBrains IDEs** | 🔄 Coming Soon | Custom MCP Plugin |
+| **Zed Editor** | ✅ Basic Support | [Setup Guide](./PLATFORM_INTEGRATION.md#zed-editor) |
+
+For detailed instructions, troubleshooting, and advanced configurations, see the [**Platform Integration Guide**](./PLATFORM_INTEGRATION.md).
+
+## 🔧 Quick Start Guide
+
+### 1. Build and Run Locally
+
+```bash
+git clone https://github.com/bretbouchard/Local_Intelligence_MCP.git
+cd Local_Intelligence_MCP
+swift build -c release
+swift run LocalIntelligenceMCP
+```
+
+### 2. Docker Quick Start
+
+```bash
+# Using the management script
+./docker-manager.sh start
+
+# Or manually
+docker-compose up -d
+```
+
+### 3. Verify Installation
+
+```bash
+# Test MCP endpoint
+echo '{"jsonrpc": "2.0", "id": 1, "method": "ping"}' | nc localhost 3000
+
+# Or using curl
+curl -X POST http://localhost:3000 \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc": "2.0", "id": 1, "method": "tools/list"}'
+```
+
+## 🔧 Troubleshooting
+
+### Common Issues
+
+#### MCP Server Not Starting
+
+```bash
+# Check if port is in use
+lsof -i :3000
+
+# Check Swift installation
+swift --version
+
+# Run with debug logging
+MCP_LOG_LEVEL=debug swift run LocalIntelligenceMCP
+```
+
+#### Connection Issues
+
+```bash
+# Test connectivity
+telnet localhost 3000
+
+# Check server health
+curl http://localhost:3000/health
+
+# Verify MCP protocol
+echo '{"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"protocolVersion": "2024-11-05", "capabilities": {}, "clientInfo": {"name": "test", "version": "1.0.0"}}}' | nc localhost 3000
+```
+
+#### Docker Issues
+
+```bash
+# Check container status
+docker ps -a | grep local-intelligence-mcp
+
+# View container logs
+docker logs local-intelligence-mcp
+
+# Restart container
+docker restart local-intelligence-mcp
+```
+
+#### Tool Not Found Errors
+
+```bash
+# List available tools
+echo '{"jsonrpc": "2.0", "id": 1, "method": "tools/list"}' | nc localhost 3000
+
+# Check specific tool
+echo '{"jsonrpc": "2.0", "id": 1, "method": "tools/call", "params": {"name": "health_check", "arguments": {}}}' | nc localhost 3000
+```
+
+### FAQ
+
+**Q: Which platforms are supported?**
+A: macOS 12.0+, Linux (Ubuntu 20.04+), and Docker containers on any platform.
+
+**Q: Can I run multiple instances?**
+A: Yes, use different ports with `MCP_SERVER_PORT` environment variable.
+
+**Q: How do I update to the latest version?**
+A: `git pull && swift build -c release`
+
+**Q: Is there a GUI interface?**
+A: No, this is an MCP server designed to integrate with AI assistants and IDEs.
+
+**Q: How do I report issues?**
+A: Please use the [GitHub Issues](https://github.com/bretbouchard/Local_Intelligence_MCP/issues) page.
 
 ## Development
 
@@ -208,6 +343,7 @@ Sources/LocalIntelligenceMCP/
 This project includes a comprehensive test suite with **400+ test methods** covering:
 
 #### Test Categories
+
 - **Unit Tests**: Individual component testing with 200+ methods
 - **Integration Tests**: End-to-end workflow testing with 20+ methods
 - **Performance Tests**: Concurrent load testing with 10+ methods
@@ -232,6 +368,7 @@ swift test --filter testSecurityAudit_MaliciousParameterInjection
 ```
 
 #### Test Coverage
+
 - **Security Testing**: Comprehensive validation against OWASP Top 10
 - **Performance Testing**: Load testing up to 100 concurrent requests
 - **Integration Testing**: Complete user story workflows
@@ -446,14 +583,23 @@ This project follows the [Local Intelligence MCP Constitution](docs/constitution
 4. **Tool-Based Architecture** - Modular, independently testable design
 5. **Offline-First Design** - Core functionality works offline
 
-## Documentation
+## 📚 Documentation
 
-- [Implementation Plan](specs/001-local-intelligence-mcp-server/plan.md)
-- [Feature Specification](specs/001-local-intelligence-mcp-server/spec.md)
-- [Data Model](specs/001-local-intelligence-mcp-server/data-model.md)
-- [API Contracts](specs/001-local-intelligence-mcp-server/contracts/)
-- [Quickstart Guide](specs/001-local-intelligence-mcp-server/quickstart.md)
-- [Tasks](specs/001-local-intelligence-mcp-server/tasks.md)
+### Core Documentation
+- [**Platform Integration Guide**](./PLATFORM_INTEGRATION.md) - Comprehensive setup for all platforms
+- [**API Documentation**](./API.md) - Complete MCP protocol implementation details
+- [**Docker Setup Guide**](./DOCKER_SETUP_GUIDE.md) - Containerized deployment instructions
+- [**Security Documentation**](./SECURITY.md) - Security features and privacy protection
+
+### Development Documentation  
+- [**Constitution**](./specs/constitution.md) - Core principles and technical constraints
+- [**Error Handling Guide**](./docs/ERROR_HANDLING_AND_LOGGING_GUIDE.md) - Logging and error management
+- [**Platform APIs Research**](./docs/local_intelligence_platform_apis_research.md) - Technical implementation details
+
+### Quick Reference
+- [**Claude Integration Example**](./CLAUDE_example.md) - Claude Desktop specific examples
+- [**Gemini Integration Example**](./GEMINI_example.md) - Google AI Studio integration
+- [**Cursor Rules Example**](./.cursorrules_example.md) - IDE-specific configuration examples
 
 ## Contributing
 
@@ -466,7 +612,7 @@ This project follows the [Local Intelligence MCP Constitution](docs/constitution
 
 ## License
 
-[License Name] - see LICENSE file for details.
+MIT License - see [LICENSE](./LICENSE) file for details.
 
 ## Support
 
