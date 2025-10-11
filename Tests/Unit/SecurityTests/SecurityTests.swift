@@ -1,7 +1,7 @@
 import XCTest
-@testable import AppleMCPServer
+@testable import LocalIntelligenceMCP
 
-/// Test suite for Apple MCP Server security components
+/// Test suite for Local Intelligence MCP security components
 final class SecurityTests: XCTestCase {
 
     private var securityManager: SecurityManager!

@@ -1,0 +1,535 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://apple.com/mcp/schemas/extraction/TagGenerationTool.schema.json",
+  "title": "Tag Generation Tool",
+  "description": "Generate tags/keywords for retrieval & filtering from audio domain content with confidence scoring",
+  "type": "object",
+  "version": "1.0.0",
+  "tool_name": "apple.tags.generate",
+  "category": "extraction",
+  "domain": "audio-production",
+
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "text": {
+        "type": "string",
+        "description": "Text content to generate tags from",
+        "minLength": 1,
+        "maxLength": 20000,
+        "examples": [
+          "Recorded lead vocals using Neumann U87 through API 312 preamp, mixed on SSL console",
+          "Jazz trio session: upright bass, grand piano, drums recorded in ambient studio space",
+          "Client feedback: Needs more vocal presence, bass is too muddy, overall mix feels harsh"
+        ]
+      },
+      "limit": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 20,
+        "default": 12,
+        "description": "Maximum number of tags to generate",
+        "examples": [10, 15, 20]
+      },
+      "vocabulary": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "Optional vocabulary list to prioritize specific terms",
+        "examples": [
+          ["vocal", "mixing", "mastering", "compression"],
+          ["rock", "pop", "electronic", "indie"],
+          ["client", "deadline", "budget", "delivery"]
+        ]
+      },
+      "audio_context": {
+        "type": "object",
+        "description": "Audio domain context for improved tag generation",
+        "properties": {
+          "domain": {
+            "type": "string",
+            "enum": ["recording", "mixing", "mastering", "live_sound", "post_production", "general"],
+            "default": "general",
+            "description": "Audio domain specialization"
+          },
+          "content_type": {
+            "type": "string",
+            "enum": ["session_notes", "technical_specs", "client_communication", "equipment_list", "review", "general"],
+            "default": "general",
+            "description": "Type of content being processed"
+          },
+          "min_confidence": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0,
+            "default": 0.3,
+            "description": "Minimum confidence threshold for generated tags"
+          },
+          "include_entities": {
+            "type": "boolean",
+            "default": true,
+            "description": "Include equipment and entity-based tags"
+          },
+          "include_technical": {
+            "type": "boolean",
+            "default": true,
+            "description": "Include technical audio terms and specifications"
+          },
+          "include_business": {
+            "type": "boolean",
+            "default": true,
+            "description": "Include business and role-related tags"
+          }
+        }
+      }
+    },
+    "required": ["text"],
+    "additionalProperties": false
+  },
+
+  "output_schema": {
+    "type": "object",
+    "properties": {
+      "tags": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string",
+              "description": "Generated tag text"
+            },
+            "confidence": {
+              "type": "number",
+              "minimum": 0.0,
+              "maximum": 1.0,
+              "description": "Confidence score for this tag"
+            },
+            "category": {
+              "type": "string",
+              "enum": ["equipment", "technical", "workflow", "genre", "business", "quality", "format", "location", "role", "sentiment"],
+              "description": "Category of the generated tag"
+            },
+            "source": {
+              "type": "string",
+              "enum": ["extracted", "vocabulary", "inferred", "domain"],
+              "description": "How the tag was generated"
+            },
+            "context": {
+              "type": "string",
+              "description": "Context where the tag was found (if applicable)"
+            }
+          },
+          "required": ["text", "confidence", "category", "source"]
+        },
+        "description": "Array of generated tags with metadata"
+      },
+      "confidence": {
+        "type": "array",
+        "items": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0
+        },
+        "description": "Confidence scores corresponding to each tag",
+        "examples": [[0.95, 0.87, 0.82, 0.75, 0.68]]
+      },
+      "metadata": {
+        "type": "object",
+        "properties": {
+          "processingTime": {
+            "type": "number",
+            "description": "Time taken to generate tags (seconds)"
+          },
+          "textLength": {
+            "type": "integer",
+            "description": "Length of the input text"
+          },
+          "totalTags": {
+            "type": "integer",
+            "description": "Total number of tags generated"
+          },
+          "averageConfidence": {
+            "type": "number",
+            "description": "Average confidence across all generated tags"
+          },
+          "audioDomain": {
+            "type": "string",
+            "description": "Detected audio domain for the content"
+          },
+          "vocabularyUsed": {
+            "type": "boolean",
+            "description": "Whether custom vocabulary was used"
+          },
+          "categoriesCovered": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "List of tag categories included in results"
+          }
+        }
+      }
+    },
+    "required": ["tags", "confidence"],
+    "additionalProperties": false
+  },
+
+  "examples": [
+    {
+      "description": "Generate tags from recording session notes",
+      "input": {
+        "text": "Session setup: Neumann U87 for lead vocals, SM57 for guitar amp. API 312 preamps going into Pro Tools via Universal Audio Apollo. Recording at 24-bit/96kHz. Client wants warm, intimate vocal sound.",
+        "limit": 10,
+        "audio_context": {
+          "domain": "recording",
+          "content_type": "session_notes",
+          "min_confidence": 0.5
+        }
+      },
+      "output": {
+        "tags": [
+          {
+            "text": "Neumann U87",
+            "confidence": 0.95,
+            "category": "equipment",
+            "source": "extracted",
+            "context": "Neumann U87 for lead vocals"
+          },
+          {
+            "text": "SM57",
+            "confidence": 0.9,
+            "category": "equipment",
+            "source": "extracted",
+            "context": "SM57 for guitar amp"
+          },
+          {
+            "text": "API 312",
+            "confidence": 0.9,
+            "category": "equipment",
+            "source": "extracted",
+            "context": "API 312 preamps"
+          },
+          {
+            "text": "Pro Tools",
+            "confidence": 0.85,
+            "category": "equipment",
+            "source": "extracted",
+            "context": "Pro Tools via Universal Audio Apollo"
+          },
+          {
+            "text": "Universal Audio Apollo",
+            "confidence": 0.85,
+            "category": "equipment",
+            "source": "extracted",
+            "context": "Universal Audio Apollo"
+          },
+          {
+            "text": "recording",
+            "confidence": 0.8,
+            "category": "workflow",
+            "source": "extracted"
+          },
+          {
+            "text": "24-bit/96kHz",
+            "confidence": 0.85,
+            "category": "technical",
+            "source": "extracted"
+          },
+          {
+            "text": "lead vocals",
+            "confidence": 0.8,
+            "category": "genre",
+            "source": "extracted"
+          },
+          {
+            "text": "client",
+            "confidence": 0.7,
+            "category": "business",
+            "source": "extracted"
+          },
+          {
+            "text": "warm",
+            "confidence": 0.65,
+            "category": "quality",
+            "source": "inferred"
+          }
+        ],
+        "confidence": [0.95, 0.9, 0.9, 0.85, 0.85, 0.8, 0.85, 0.8, 0.7, 0.65],
+        "metadata": {
+          "processingTime": 0.045,
+          "textLength": 189,
+          "totalTags": 10,
+          "averageConfidence": 0.83,
+          "audioDomain": "recording",
+          "vocabularyUsed": false,
+          "categoriesCovered": ["equipment", "workflow", "technical", "genre", "business", "quality"]
+        }
+      }
+    },
+    {
+      "description": "Generate tags from mixing session notes",
+      "input": {
+        "text": "Mixing the indie rock track: SSL console for analog warmth. Vocal compression with LA-2A style, 4:1 ratio. Bass needs tightening, guitars are sitting well. Working towards loud commercial master.",
+        "limit": 12,
+        "audio_context": {
+          "domain": "mixing",
+          "include_technical": true,
+          "include_business": true
+        }
+      },
+      "output": {
+        "tags": [
+          {
+            "text": "SSL",
+            "confidence": 0.9,
+            "category": "equipment",
+            "source": "extracted"
+          },
+          {
+            "text": "mixing",
+            "confidence": 0.95,
+            "category": "workflow",
+            "source": "extracted"
+          },
+          {
+            "text": "indie rock",
+            "confidence": 0.85,
+            "category": "genre",
+            "source": "extracted"
+          },
+          {
+            "text": "compression",
+            "confidence": 0.8,
+            "category": "technical",
+            "source": "extracted"
+          },
+          {
+            "text": "vocal",
+            "confidence": 0.75,
+            "category": "genre",
+            "source": "extracted"
+          },
+          {
+            "text": "bass",
+            "confidence": 0.75,
+            "category": "genre",
+            "source": "extracted"
+          },
+          {
+            "text": "guitars",
+            "confidence": 0.7,
+            "category": "genre",
+            "source": "extracted"
+          },
+          {
+            "text": "mastering",
+            "confidence": 0.8,
+            "category": "workflow",
+            "source": "extracted"
+          },
+          {
+            "text": "commercial",
+            "confidence": 0.7,
+            "category": "business",
+            "source": "extracted"
+          },
+          {
+            "text": "analog",
+            "confidence": 0.75,
+            "category": "quality",
+            "source": "inferred"
+          }
+        ],
+        "confidence": [0.9, 0.95, 0.85, 0.8, 0.75, 0.75, 0.7, 0.8, 0.7, 0.75],
+        "metadata": {
+          "processingTime": 0.038,
+          "textLength": 166,
+          "totalTags": 10,
+          "averageConfidence": 0.79,
+          "audioDomain": "mixing",
+          "vocabularyUsed": false,
+          "categoriesCovered": ["equipment", "workflow", "genre", "technical", "business", "quality"]
+        }
+      }
+    },
+    {
+      "description": "Generate tags with custom vocabulary",
+      "input": {
+        "text": "Electronic music production session in Ableton Live. Using Serum for synth sounds, kick drum needs more punch. Working on drop section for the client.",
+        "limit": 8,
+        "vocabulary": ["EDM", "drop", "synth", "punch", "Ableton Live"],
+        "audio_context": {
+          "domain": "recording",
+          "content_type": "session_notes"
+        }
+      },
+      "output": {
+        "tags": [
+          {
+            "text": "Ableton Live",
+            "confidence": 0.95,
+            "category": "equipment",
+            "source": "vocabulary",
+            "context": "Electronic music production session in Ableton Live"
+          },
+          {
+            "text": "Serum",
+            "confidence": 0.85,
+            "category": "equipment",
+            "source": "extracted",
+            "context": "Using Serum for synth sounds"
+          },
+          {
+            "text": "EDM",
+            "confidence": 0.8,
+            "category": "genre",
+            "source": "inferred"
+          },
+          {
+            "text": "synth",
+            "confidence": 0.8,
+            "category": "genre",
+            "source": "extracted",
+            "context": "synth sounds"
+          },
+          {
+            "text": "drop",
+            "confidence": 0.75,
+            "category": "workflow",
+            "source": "vocabulary",
+            "context": "drop section"
+          },
+          {
+            "text": "kick drum",
+            "confidence": 0.75,
+            "category": "genre",
+            "source": "extracted"
+          },
+          {
+            "text": "punch",
+            "confidence": 0.7,
+            "category": "quality",
+            "source": "vocabulary"
+          },
+          {
+            "text": "client",
+            "confidence": 0.65,
+            "category": "business",
+            "source": "extracted"
+          }
+        ],
+        "confidence": [0.95, 0.85, 0.8, 0.8, 0.75, 0.75, 0.7, 0.65],
+        "metadata": {
+          "processingTime": 0.042,
+          "textLength": 147,
+          "totalTags": 8,
+          "averageConfidence": 0.78,
+          "audioDomain": "recording",
+          "vocabularyUsed": true,
+          "categoriesCovered": ["equipment", "genre", "workflow", "quality", "business"]
+        }
+      }
+    }
+  ],
+
+  "tag_categories": {
+    "equipment": {
+      "description": "Audio equipment, brands, and software",
+      "examples": ["Neumann", "SSL", "Pro Tools", "Waves", "LA-2A", "Serum"]
+    },
+    "technical": {
+      "description": "Technical audio terms and specifications",
+      "examples": ["compression", "EQ", "24-bit/96kHz", "automation", "reverb", "delay"]
+    },
+    "workflow": {
+      "description": "Audio production workflow stages and actions",
+      "examples": ["recording", "mixing", "mastering", "tracking", "editing", "drop"]
+    },
+    "genre": {
+      "description": "Music genres, styles, and instruments",
+      "examples": ["rock", "jazz", "electronic", "vocals", "guitar", "drums", "synth"]
+    },
+    "business": {
+      "description": "Business and project-related terms",
+      "examples": ["client", "deadline", "budget", "commercial", "delivery", "project"]
+    },
+    "quality": {
+      "description": "Descriptive quality terms",
+      "examples": ["warm", "punchy", "bright", "muddy", "clean", "analog", "tight"]
+    },
+    "format": {
+      "description": "Audio formats and technical specifications",
+      "examples": ["WAV", "MP3", "24-bit", "96kHz", "stereo", "mono"]
+    },
+    "location": {
+      "description": "Recording locations and spaces",
+      "examples": ["studio", "live", "church", "outdoor", "rehearsal"]
+    },
+    "role": {
+      "description": "Professional roles and positions",
+      "examples": ["producer", "engineer", "artist", "composer", "mixing engineer"]
+    },
+    "sentiment": {
+      "description": "Sentiment and opinion indicators",
+      "examples": ["needs work", "sounds great", "fix", "improve", "satisfied"]
+    }
+  },
+
+  "performance_targets": {
+    "execution_time": "<150ms",
+    "memory_usage": "<3MB",
+    "accuracy": ">80% relevant tags, >70% confidence accuracy"
+  },
+
+  "tag_sources": {
+    "extracted": {
+      "description": "Tags directly extracted from text using pattern matching",
+      "confidence": "0.7-0.95"
+    },
+    "vocabulary": {
+      "description": "Tags from provided vocabulary list",
+      "confidence": "0.9-0.98"
+    },
+    "inferred": {
+      "description": "Tags inferred from context and domain knowledge",
+      "confidence": "0.5-0.8"
+    },
+    "domain": {
+      "description": "Tags based on audio domain specialization",
+      "confidence": "0.6-0.85"
+    }
+  },
+
+  "error_handling": {
+    "empty_text": {
+      "code": "E_INPUT",
+      "message": "Text input cannot be empty"
+    },
+    "invalid_vocabulary": {
+      "code": "E_VOCAB",
+      "message": "Vocabulary list contains invalid terms"
+    },
+    "generation_failed": {
+      "code": "E_GENERATE",
+      "message": "Failed to generate tags from provided text"
+    }
+  },
+
+  "integration_notes": {
+    "best_practices": [
+      "Use audio_context parameter to improve domain-specific tag accuracy",
+      "Provide vocabulary for domain-specific terminology prioritization",
+      "Set appropriate confidence thresholds based on use case requirements",
+      "Adjust limit based on application needs (more tags for comprehensive analysis, fewer for focused results)"
+    ],
+    "use_cases": [
+      "Content discovery and search optimization",
+      "Automatic categorization of audio documentation",
+      "Keyword extraction for SEO and metadata",
+      "Content analysis for audio production workflows",
+      "Tag-based filtering and organization systems"
+    ]
+  }
+}

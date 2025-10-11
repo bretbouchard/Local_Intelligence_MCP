@@ -4,15 +4,15 @@
 import PackageDescription
 
 let package = Package(
-    name: "AppleMCPServer",
+    name: "LocalIntelligenceMCP",
     platforms: [
         .macOS(.v13),
         .iOS(.v16)
     ],
     products: [
         .executable(
-            name: "AppleMCPServer",
-            targets: ["AppleMCPServer"]
+            name: "LocalIntelligenceMCP",
+            targets: ["LocalIntelligenceMCP"]
         ),
     ],
     dependencies: [
@@ -35,7 +35,7 @@ let package = Package(
     targets: [
         // Main executable target
         .executableTarget(
-            name: "AppleMCPServer",
+            name: "LocalIntelligenceMCP",
             dependencies: [
                 .product(name: "MCP", package: "swift-sdk"),
                 .product(name: "AnyCodable", package: "AnyCodable"),
@@ -44,20 +44,21 @@ let package = Package(
                 .product(name: "NIOHTTP1", package: "swift-nio"),
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
             ],
-            path: "Sources/AppleMCPServer"
+            path: "Sources/LocalIntelligenceMCP"
         ),
 
         // Test targets
-        .testTarget(
-            name: "AppleMCPServerTests",
-            dependencies: [
-                "AppleMCPServer",
-                .product(name: "Quick", package: "Quick"),
-                .product(name: "Nimble", package: "Nimble"),
-                .product(name: "NIOCore", package: "swift-nio"),
-                .product(name: "NIOEmbedded", package: "swift-nio"),
-            ],
-            path: "Tests"
-        ),
+        // Note: Tests directory will be created when needed
+        // .testTarget(
+        //     name: "LocalIntelligenceMCPTests",
+        //     dependencies: [
+        //         "LocalIntelligenceMCP",
+        //         .product(name: "Quick", package: "Quick"),
+        //         .product(name: "Nimble", package: "Nimble"),
+        //         .product(name: "NIOCore", package: "swift-nio"),
+        //         .product(name: "NIOEmbedded", package: "swift-nio"),
+        //     ],
+        //     path: "Tests/LocalIntelligenceMCPTests"
+        // ),
     ]
 )

@@ -1,0 +1,45 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Feedback Analysis Tool",
+  "description": "Analyze client feedback with sentiment analysis and action item extraction for audio projects",
+  "type": "object",
+  "properties": {
+    "feedback": {
+      "type": "string",
+      "description": "Client feedback text to analyze",
+      "minLength": 1
+    },
+    "project_context": {
+      "type": "string",
+      "description": "Context about the project (e.g., 'mix review', 'mastering feedback', 'production notes')"
+    },
+    "feedback_type": {
+      "type": "string",
+      "description": "Type of feedback being provided",
+      "enum": ["mix", "master", "production", "general", "technical", "creative"],
+      "default": "general"
+    },
+    "sentiment_analysis": {
+      "type": "boolean",
+      "description": "Perform sentiment analysis on the feedback",
+      "default": true
+    },
+    "extract_action_items": {
+      "type": "boolean",
+      "description": "Extract actionable items from feedback",
+      "default": true
+    },
+    "identify_priorities": {
+      "type": "boolean",
+      "description": "Identify priority levels for different feedback points",
+      "default": true
+    },
+    "summarize_feedback": {
+      "type": "boolean",
+      "description": "Generate a summary of the feedback",
+      "default": true
+    }
+  },
+  "required": ["feedback"],
+  "additionalProperties": false
+}

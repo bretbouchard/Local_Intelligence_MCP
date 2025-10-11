@@ -1,12 +1,12 @@
 //
 //  ConcurrencyTests.swift
-//  AppleMCPServer
+//  LocalIntelligenceMCP
 //
 //  Created on 2025-10-08.
 //
 
 import XCTest
-@testable import AppleMCPServer
+@testable import LocalIntelligenceMCP
 
 final class ConcurrencyTests: XCTestCase {
 

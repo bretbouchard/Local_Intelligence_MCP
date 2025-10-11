@@ -1,0 +1,270 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://apple.com/mcp/schemas/texttools/focused-summarization.json",
+  "title": "Focused Summarization Tool",
+  "description": "AI-powered focused summarization for audio session content with coverage tracking and focus area selection",
+  "type": "object",
+  "tool": {
+    "name": "apple.summarize.focus",
+    "description": "Creates focused summaries of audio session content, transcripts, or documentation with emphasis on specific areas of interest",
+    "version": "1.0.0",
+    "category": "text-processing",
+    "domain": "audio-production",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string",
+          "description": "Audio session notes, transcripts, or technical documentation to summarize",
+          "minLength": 100,
+          "maxLength": 50000,
+          "examples": [
+            "Today's session focused on mixing the lead vocals. We started with EQ, cutting 200Hz mud and adding 3dB at 8kHz for air...",
+            "Recording session log: Drums tracked with Neumann U67 on overheads, API 512 preamps, SSL console..."
+          ]
+        },
+        "focus_areas": {
+          "type": "array",
+          "description": "Specific areas to focus on in the summary",
+          "items": {
+            "type": "string",
+            "enum": [
+              "recording",
+              "mixing",
+              "mastering",
+              "technical",
+              "creative",
+              "performance",
+              "equipment",
+              "production",
+              "critique",
+              "workflow"
+            ]
+          },
+          "minItems": 1,
+          "maxItems": 5,
+          "default": ["mixing", "technical"],
+          "examples": [
+            ["mixing", "technical"],
+            ["recording", "equipment"],
+            ["creative", "performance"],
+            ["mastering", "workflow"]
+          ]
+        },
+        "style": {
+          "type": "string",
+          "description": "Summary style and format",
+          "enum": ["bullet", "paragraph", "executive", "technical"],
+          "default": "bullet",
+          "examples": [
+            "bullet - Bullet point format for quick scanning",
+            "paragraph - Narrative paragraph format",
+            "executive - Executive summary style with key takeaways",
+            "technical - Technical documentation style with specifications"
+          ]
+        },
+        "max_points": {
+          "type": "integer",
+          "description": "Maximum number of summary points to generate",
+          "minimum": 1,
+          "maximum": 20,
+          "default": 10,
+          "examples": [5, 10, 15]
+        },
+        "coverage_threshold": {
+          "type": "number",
+          "description": "Minimum coverage percentage (0.0-1.0) for focus areas",
+          "minimum": 0.1,
+          "maximum": 1.0,
+          "default": 0.7,
+          "examples": [0.5, 0.7, 0.9]
+        },
+        "preserve_technical_terms": {
+          "type": "boolean",
+          "description": "Preserve audio-specific technical terminology in the summary",
+          "default": true
+        }
+      },
+      "required": ["text"],
+      "additionalProperties": false
+    },
+    "response": {
+      "type": "object",
+      "properties": {
+        "summary": {
+          "type": "string",
+          "description": "The focused summary content"
+        },
+        "coverage_analysis": {
+          "type": "object",
+          "description": "Analysis of how well the focus areas were covered",
+          "properties": {
+            "focus_areas_covered": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Focus areas that were successfully covered"
+            },
+            "coverage_percentage": {
+              "type": "number",
+              "description": "Overall coverage percentage",
+              "minimum": 0.0,
+              "maximum": 1.0
+            },
+            "area_coverage": {
+              "type": "object",
+              "description": "Coverage breakdown by focus area",
+              "additionalProperties": {
+                "type": "number",
+                "minimum": 0.0,
+                "maximum": 1.0
+              }
+            },
+            "technical_terms_preserved": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Audio technical terms that were preserved"
+            }
+          }
+        },
+        "statistics": {
+          "type": "object",
+          "description": "Summary generation statistics",
+          "properties": {
+            "original_length": {
+              "type": "integer",
+              "description": "Character count of original text"
+            },
+            "summary_length": {
+              "type": "integer",
+              "description": "Character count of generated summary"
+            },
+            "compression_ratio": {
+              "type": "number",
+              "description": "Ratio of summary length to original length"
+            },
+            "points_generated": {
+              "type": "integer",
+              "description": "Number of summary points generated"
+            },
+            "confidence_score": {
+              "type": "number",
+              "description": "Confidence in summary quality (0.0-1.0)",
+              "minimum": 0.0,
+              "maximum": 1.0
+            }
+          }
+        }
+      }
+    },
+    "examples": [
+      {
+        "description": "Technical mixing summary",
+        "input": {
+          "text": "Today's session focused on mixing the lead vocals. Started with EQ using SSL Channel strip, cutting 200Hz mud and adding 3dB at 8kHz for air. Applied Waves CLA-76 compressor with 4:1 ratio, fastest attack. Added Valhalla VintageVerb plate reverb with 2.2s decay. Client requested more presence, so we boosted upper mids with API 550A. Overall vocal sits well in the mix now.",
+          "focus_areas": ["mixing", "technical"],
+          "style": "bullet",
+          "max_points": 8
+        }
+      },
+      {
+        "description": "Recording equipment summary",
+        "input": {
+          "text": "Recording session setup: Neumann U67 microphone as primary vocal mic, positioned 6 inches from source. API 312 preamps for warmth and character. SSL G-Series console for mixing. Pro Tools HD system at 96kHz/24-bit. Used Avalon VT-737sp for vocal channel strip processing. Room treatment with acoustic panels for optimal sound.",
+          "focus_areas": ["recording", "equipment"],
+          "style": "technical",
+          "preserve_technical_terms": true
+        }
+      },
+      {
+        "description": "Executive summary with coverage threshold",
+        "input": {
+          "text": "Three-day recording session completed successfully. Day 1: Drum tracking with multiple mic configurations. Day 2: Bass and rhythm guitar tracking. Day 3: Lead vocal tracking with multiple takes. Client satisfied with performances. Budget within limits. Next phase: mixing and overdubs.",
+          "focus_areas": ["production", "workflow"],
+          "style": "executive",
+          "coverage_threshold": 0.8
+        }
+      }
+    ],
+    "focus_area_details": {
+      "recording": {
+        "description": "Recording techniques, microphone placement, capture methods",
+        "keywords": ["microphone", "preamp", "tracking", "capture", "setup", "placement"]
+      },
+      "mixing": {
+        "description": "Mixing processes, EQ, compression, effects processing",
+        "keywords": ["EQ", "compression", "reverb", "delay", "balance", "automation", "effects"]
+      },
+      "mastering": {
+        "description": "Mastering techniques, final processing, delivery formats",
+        "keywords": ["mastering", "limiting", "final", "delivery", "loudness", "format"]
+      },
+      "technical": {
+        "description": "Technical specifications, settings, parameters",
+        "keywords": ["settings", "parameters", "specs", "levels", "frequency", "kHz", "dB"]
+      },
+      "creative": {
+        "description": "Creative decisions, artistic direction, musical choices",
+        "keywords": ["creative", "artistic", "direction", "choice", "feel", "vibe"]
+      },
+      "performance": {
+        "description": "Performance quality, musical execution, artist delivery",
+        "keywords": ["performance", "take", "delivery", "execution", "quality", "emotion"]
+      },
+      "equipment": {
+        "description": "Audio equipment, gear, instruments, software",
+        "keywords": ["equipment", "gear", "microphone", "console", "plugin", "software"]
+      },
+      "production": {
+        "description": "Production decisions, project management, workflow",
+        "keywords": ["production", "project", "management", "schedule", "budget", "client"]
+      },
+      "critique": {
+        "description": "Critical assessment, feedback, improvement areas",
+        "keywords": ["feedback", "critique", "assessment", "improvement", "issues", "problems"]
+      },
+      "workflow": {
+        "description": "Session workflow, processes, procedures",
+        "keywords": ["workflow", "process", "procedure", "session", "schedule", "timeline"]
+      }
+    },
+    "performance_metrics": {
+      "execution_time": {
+        "target": "<200ms",
+        "description": "Maximum time for summary generation"
+      },
+      "memory_usage": {
+        "target": "<3MB",
+        "description": "Maximum memory usage during processing"
+      },
+      "accuracy": {
+        "target": ">90%",
+        "description": "Focus area coverage accuracy"
+      }
+    },
+    "audio_domain_features": [
+      "Audio technical term preservation",
+      "Equipment and brand name recognition",
+      "Studio workflow pattern understanding",
+      "Session structure awareness",
+      "Musical terminology handling",
+      "Production context integration"
+    ],
+    "version_history": [
+      {
+        "version": "1.0.0",
+        "date": "2025-10-08",
+        "changes": [
+          "Initial implementation with 10 focus areas",
+          "Coverage tracking and analysis",
+          "Multiple summary styles",
+          "Audio domain terminology preservation",
+          "Confidence scoring and validation"
+        ]
+      }
+    ]
+  }
+}

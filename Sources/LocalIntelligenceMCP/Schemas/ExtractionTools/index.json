@@ -1,0 +1,243 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://apple.com/mcp/schemas/extraction/index.json",
+  "title": "Extraction Tools Schema Catalog",
+  "description": "Catalog of extraction and classification tool schemas for audio domain applications",
+  "type": "object",
+  "version": "1.0.0",
+  "tools": [
+    {
+      "name": "apple.schema.extract",
+      "title": "Schema Extraction Tool",
+      "description": "Extract structured fields from free text according to provided schema for audio domain content",
+      "schema_file": "SchemaExtractionTool.schema.json",
+      "category": "extraction",
+      "domain": "audio-production",
+      "capabilities": [
+        "Structured data extraction from free text",
+        "Audio domain entity recognition",
+        "Schema-based validation and confidence scoring",
+        "Multiple entity types (equipment, technical, workflow, business)",
+        "Context-aware extraction with audio domain specialization"
+      ],
+      "performance_targets": {
+        "execution_time": "<200ms",
+        "memory_usage": "<5MB",
+        "accuracy": ">85% for standard entities, >70% for complex entities"
+      }
+    },
+    {
+      "name": "apple.tags.generate",
+      "title": "Tag Generation Tool",
+      "description": "Generate tags/keywords for retrieval & filtering from audio domain content with confidence scoring",
+      "schema_file": "TagGenerationTool.schema.json",
+      "category": "extraction",
+      "domain": "audio-production",
+      "capabilities": [
+        "Multi-category tag generation",
+        "Confidence scoring and source attribution",
+        "Custom vocabulary support",
+        "Audio domain specialization",
+        "Deduplication and relevance ranking"
+      ],
+      "performance_targets": {
+        "execution_time": "<150ms",
+        "memory_usage": "<3MB",
+        "accuracy": ">80% relevant tags, >70% confidence accuracy"
+      }
+    }
+  ],
+  "categories": {
+    "extraction": {
+      "description": "Tools for extracting structured data and generating metadata from audio domain content",
+      "tools": ["apple.schema.extract", "apple.tags.generate"],
+      "common_use_cases": [
+        "Content organization and retrieval",
+        "Metadata generation and enhancement",
+        "Search optimization and indexing",
+        "Automated categorization and tagging",
+        "Data extraction from documentation"
+      ]
+    }
+  },
+  "integration_patterns": {
+    "sequential_processing": {
+      "description": "Use schema extraction followed by tag generation for comprehensive analysis",
+      "example": "apple.schema.extract → apple.tags.generate",
+      "use_cases": ["Document processing", "Content analysis", "Metadata enrichment"]
+    },
+    "parallel_analysis": {
+      "description": "Run extraction and tag generation in parallel for rich metadata generation",
+      "example": "apple.schema.extract + apple.tags.generate",
+      "use_cases": ["Batch processing", "Content indexing", "Search preparation"]
+    },
+    "schema_enhancement": {
+      "description": "Use tag generation to enhance schema extraction with contextual information",
+      "example": "apple.tags.generate → apple.schema.extract",
+      "use_cases": ["Domain-specific extraction", "Context-aware parsing", "Entity disambiguation"]
+    }
+  },
+  "shared_features": {
+    "audio_domain_expertise": {
+      "description": "Both tools specialized for audio production domain with industry-specific terminology",
+      "supported_domains": [
+        "recording", "mixing", "mastering", "live_sound",
+        "post_production", "sound_design", "general"
+      ]
+    },
+    "confidence_scoring": {
+      "description": "Confidence scores provided for all extractions and tag generations",
+      "scoring_range": "0.0-1.0",
+      "threshold_configurable": true,
+      "source_attribution": true
+    },
+    "context_awareness": {
+      "description": "Tools analyze and incorporate context for improved accuracy",
+      "context_types": [
+        "domain", "content_type", "confidence_threshold",
+        "vocabulary", "processing_options"
+      ]
+    },
+    "entity_recognition": {
+      "description": "Built-in entity recognition for audio domain concepts",
+      "entity_categories": [
+        "equipment", "technical", "workflow", "genre",
+        "business", "quality", "format", "location", "role"
+      ]
+    }
+  },
+  "implementation_notes": {
+    "pattern_matching": {
+      "description": "Regex-based pattern matching for entity extraction",
+      "patterns_count": "50+ audio-specific patterns",
+      "accuracy": "High for standard entities, medium for complex contexts"
+    },
+    "domain_vocabulary": {
+      "description": "Comprehensive audio domain vocabulary and terminology",
+      "vocabulary_size": "200+ audio-specific terms",
+      "categories": "Equipment, Technical, Workflow, Genre, Business"
+    },
+    "performance_optimization": {
+      "description": "Optimized for real-time processing in audio production environments",
+      "inference_time": "<200ms for comprehensive analysis",
+      "memory_efficiency": "Lightweight processing suitable for on-device operation",
+      "batch_processing": "Support for multiple document processing"
+    },
+    "extensibility": {
+      "description": "Designed for easy extension with new patterns and domains",
+      "custom_patterns": "Support for custom regex patterns and vocabularies",
+      "domain_specialization": "Configurable domain-specific extraction rules",
+      "schema_flexibility": "Support for complex nested schema definitions"
+    }
+  },
+  "usage_examples": {
+    "session_documentation_processing": {
+      "description": "Processing audio session documentation for structured data and tags",
+      "flow": [
+        "Input session notes or documentation",
+        "Schema extraction for structured data (equipment, settings, etc.)",
+        "Tag generation for categorization and search",
+        "Combine results for comprehensive metadata"
+      ],
+      "example_input": "Session setup: Neumann U87 vocals, API preamps, SSL console mixing at 24/96"
+    },
+    "equipment_catalog_analysis": {
+      "description": "Analyzing equipment catalogs and documentation",
+      "flow": [
+        "Equipment manual or catalog text",
+        "Extract technical specifications and features",
+        "Generate relevant tags for search and categorization",
+        "Produce structured metadata for catalog systems"
+      ],
+      "example_input": "SSL AWS 948 console: 24 channels, SuperAnalogue processing, automation"
+    },
+    "client_communication_analysis": {
+      "description": "Analyzing client feedback and communications",
+      "flow": [
+        "Client email or feedback text",
+        "Extract requirements and preferences",
+        "Generate tags for sentiment and priority",
+        "Structure data for project management systems"
+      ],
+      "example_input": "Vocals need more presence, bass is too muddy, deadline is Friday"
+    }
+  },
+  "quality_assurance": {
+    "validation_testing": {
+      "description": "Comprehensive testing framework for extraction accuracy",
+      "test_datasets": "Audio session notes, equipment manuals, client communications",
+      "accuracy_targets": ">85% for entities, >80% for tags",
+      "performance_targets": "Latency <200ms, memory <5MB"
+    },
+    "edge_case_handling": {
+      "description": "Robust handling of edge cases and ambiguous inputs",
+      "ambiguous_entities": "Context-based disambiguation",
+      "missing_data": "Graceful degradation with confidence scoring",
+      "invalid_inputs": "Clear error messages and recovery suggestions"
+    },
+    "consistency_validation": {
+      "description": "Consistent behavior across multiple runs and inputs",
+      "deterministic_output": "Same input produces same output",
+      "confidence_stability": "Consistent confidence scoring",
+      "schema_compliance": "Strict adherence to provided schemas"
+    }
+  },
+  "performance_benchmarks": {
+    "processing_speed": {
+      "description": "Benchmark processing speeds for different content types",
+      "short_text": "<50ms for <1000 characters",
+      "medium_text": "<150ms for 1000-5000 characters",
+      "long_text": "<200ms for 5000+ characters"
+    },
+    "memory_usage": {
+      "description": "Memory consumption during processing",
+      "base_usage": "<2MB baseline",
+      "peak_usage": "<5MB during processing",
+      "memory_efficiency": "Automatic cleanup and optimization"
+    },
+    "accuracy_metrics": {
+      "description": "Accuracy metrics across different content types",
+      "technical_content": ">90% accuracy for technical specifications",
+      "general_content": ">80% accuracy for general audio content",
+      "domain_specific": ">85% accuracy for domain-specific terminology"
+    }
+  },
+  "future_roadmap": {
+    "enhanced_entity_recognition": {
+      "description": "Planned enhancements to entity recognition capabilities",
+      "v1.1_features": [
+        "Machine learning-based entity recognition",
+        "Context-aware entity disambiguation",
+        "Relationship extraction between entities"
+      ]
+    },
+    "advanced_tag_generation": {
+      "description": "Planned improvements to tag generation",
+      "v1.1_features": [
+        "Hierarchical tag generation",
+        "Semantic similarity-based tagging",
+        "Custom tag model training"
+      ]
+    },
+    "integration_enhancements": {
+      "description": "Planned improvements to tool integration",
+      "v1.2_features": [
+        "Real-time collaborative processing",
+        "Advanced batch processing workflows",
+        "Multi-language support for international content"
+      ]
+    }
+  },
+  "version_history": [
+    {
+      "version": "1.0.0",
+      "date": "2025-10-09",
+      "changes": [
+        "Initial release with 2 core extraction tools",
+        "Comprehensive JSON schema definitions",
+        "Audio domain specialization with 10+ entity categories",
+        "Performance optimization for real-time processing"
+      ]
+    }
+  ]
+}

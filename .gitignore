@@ -1,4 +1,4 @@
-# Apple MCP Server .gitignore
+# Local Intelligence MCP .gitignore
 
 # Swift
 .DS_Store
@@ -14,14 +14,17 @@ xcuserdata/
 .swiftpm/xcode/package.xcworkspace/xcuserdata
 *.xcresult
 
-# Documentation (private)
-docs/
+# Documentation (private - hide docs_private)
+docs_private/
+*.draft.md
+*.internal.md
+
+# Generated Documentation
+documentation/
+generated-docs/
 
 # Package Manager (allow Package.resolved for dependency tracking)
 !Package.resolved
-
-# Public Documentation (keep)
-!pub_docs/
 
 # AI Assistant Folders (keep repo clean and tidy)
 claude/
@@ -46,7 +49,7 @@ roo/
 .aide/
 .roo/
 
-# Internal Planning and Development Tools (DO NOT COMMIT)
+# Internal Planning and Development Tools (DO NOT COMMIT - keep specs private)
 specs/
 .claude/
 .specify/
@@ -92,7 +95,6 @@ bin/
 
 # Package Manager
 Packages/
-# Package.resolved - Allow for dependency tracking
 
 # Testing Coverage
 *.profraw
@@ -124,3 +126,38 @@ Icon
 # Generated Files
 generated/
 auto-generated/
+
+# Docker
+.dockerignore.bak
+docker-compose.override.yml
+
+# Node modules (if any)
+node_modules/
+
+# Python (if any)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+
+# Archive files
+*.zip
+*.tar.gz
+*.rar
+
+# Large files that shouldn't be in git
+*.large
+*.dump
+*.sql
+.clinerules/byterover-rules.md
+.kilocode/rules/byterover-rules.md
+.roo/rules/byterover-rules.md
+.windsurf/rules/byterover-rules.md
+.cursor/rules/byterover-rules.mdc
+.kiro/steering/byterover-rules.md
+.qoder/rules/byterover-rules.md
+.augment/rules/byterover-rules.md

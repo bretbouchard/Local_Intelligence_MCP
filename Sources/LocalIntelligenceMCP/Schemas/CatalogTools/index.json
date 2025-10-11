@@ -1,0 +1,65 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Catalog & Session Tools Schemas",
+  "description": "JSON schemas for Local Intelligence MCP Catalog and Session analysis tools",
+  "type": "object",
+  "properties": {
+    "tools": {
+      "type": "array",
+      "description": "Available catalog and session analysis tools",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "schema_file": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string",
+            "enum": ["catalog", "session", "feedback"]
+          }
+        },
+        "required": ["name", "description", "schema_file", "category"]
+      }
+    },
+    "version": {
+      "type": "string",
+      "description": "Schema version",
+      "default": "1.0.0"
+    },
+    "last_updated": {
+      "type": "string",
+      "description": "Last update timestamp",
+      "format": "date-time"
+    }
+  },
+  "required": ["tools", "version"],
+  "example": {
+    "tools": [
+      {
+        "name": "CatalogSummarizationTool",
+        "description": "Summarize plugin catalog entries generically (vendor-neutral)",
+        "schema_file": "CatalogSummarizationTool.schema.json",
+        "category": "catalog"
+      },
+      {
+        "name": "SessionNotesTool",
+        "description": "Specialized summarization for audio engineering session documentation",
+        "schema_file": "SessionNotesTool.schema.json",
+        "category": "session"
+      },
+      {
+        "name": "FeedbackAnalysisTool",
+        "description": "Analyze client feedback with sentiment analysis and action item extraction",
+        "schema_file": "FeedbackAnalysisTool.schema.json",
+        "category": "feedback"
+      }
+    ],
+    "version": "1.0.0"
+  }
+}

@@ -1,0 +1,314 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "PII Redaction Tool Schema",
+  "description": "Schema for apple.text.redact tool - redacts personally identifiable information from audio session notes and transcripts while preserving audio-specific technical content",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "const": "apple.text.redact"
+    },
+    "description": {
+      "type": "string",
+      "const": "Redacts personally identifiable information from audio session notes and transcripts while preserving audio-specific technical content."
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string",
+          "description": "Audio session notes, transcripts, or technical documentation containing potential PII",
+          "minLength": 10
+        },
+        "mode": {
+          "type": "string",
+          "description": "Redaction strategy to apply",
+          "enum": ["replace", "hash", "mask", "remove"],
+          "default": "replace"
+        },
+        "categories": {
+          "type": "array",
+          "description": "PII categories to detect and redact",
+          "items": {
+            "type": "string",
+            "enum": [
+              "names",
+              "emails",
+              "phones",
+              "addresses",
+              "financial",
+              "ids",
+              "dates",
+              "urls",
+              "custom"
+            ]
+          },
+          "default": [
+            "names",
+            "emails",
+            "phones",
+            "addresses",
+            "financial",
+            "ids",
+            "dates",
+            "urls",
+            "custom"
+          ]
+        },
+        "preserve_audio_terms": {
+          "type": "boolean",
+          "description": "Preserve audio-specific terms even if they might be mistaken for PII",
+          "default": true
+        },
+        "custom_patterns": {
+          "type": "array",
+          "description": "Custom regex patterns for PII detection",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Pattern name for reference"
+              },
+              "pattern": {
+                "type": "string",
+                "description": "Regex pattern to match"
+              },
+              "replacement": {
+                "type": "string",
+                "description": "Custom replacement text (optional)"
+              }
+            },
+            "required": ["name", "pattern"]
+          },
+          "default": []
+        },
+        "whitelist": {
+          "type": "array",
+          "description": "Terms that should never be redacted (e.g., studio names, common audio terms)",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        }
+      },
+      "required": ["text"]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "redacted_text": {
+          "type": "string",
+          "description": "The input text with PII redacted according to the specified policy"
+        },
+        "metadata": {
+          "type": "object",
+          "properties": {
+            "redaction_mode": {
+              "type": "string",
+              "description": "The redaction mode that was applied"
+            },
+            "categories_processed": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "List of PII categories that were processed"
+            },
+            "preserve_audio_terms": {
+              "type": "boolean",
+              "description": "Whether audio term preservation was enabled"
+            },
+            "custom_patterns_count": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Number of custom patterns processed"
+            },
+            "whitelist_size": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Size of the whitelist used"
+            },
+            "redaction_counts": {
+              "type": "object",
+              "description": "Count of redactions per category",
+              "additionalProperties": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "total_instances_redacted": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Total number of PII instances redacted"
+            },
+            "detected_pii_instances": {
+              "type": "array",
+              "description": "Detailed information about each detected and redacted PII instance",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "category": {
+                    "type": "string",
+                    "description": "PII category for the detected instance"
+                  },
+                  "pattern_name": {
+                    "type": "string",
+                    "description": "Name of the custom pattern (for custom patterns)"
+                  },
+                  "matched_text": {
+                    "type": "string",
+                    "description": "The original text that matched the PII pattern"
+                  },
+                  "position": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Character position where the PII was found"
+                  },
+                  "replacement": {
+                    "type": "string",
+                    "description": "The text that replaced the PII instance"
+                  }
+                }
+              }
+            },
+            "original_length": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Character count of the original input text"
+            },
+            "redacted_length": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Character count of the redacted output text"
+            },
+            "processing_timestamp": {
+              "type": "string",
+              "format": "date-time",
+              "description": "ISO 8601 timestamp when the redaction was performed"
+            }
+          },
+          "required": [
+            "redaction_mode",
+            "categories_processed",
+            "preserve_audio_terms",
+            "custom_patterns_count",
+            "whitelist_size",
+            "redaction_counts",
+            "total_instances_redacted",
+            "detected_pii_instances",
+            "original_length",
+            "redacted_length",
+            "processing_timestamp"
+          ]
+        }
+      },
+      "required": ["redacted_text", "metadata"]
+    },
+    "examples": [
+      {
+        "description": "Redact PII from audio session notes with replace mode",
+        "input": {
+          "text": "Recording session with John Smith at Studio A. Contact: john.smith@email.com or 555-123-4567. Address: 123 Main St, Los Angeles, CA. Used Neumann U87 microphone.",
+          "mode": "replace",
+          "categories": ["names", "emails", "phones", "addresses"],
+          "preserve_audio_terms": true
+        },
+        "output": {
+          "redacted_text": "Recording session with [NAME] at Studio A. Contact: [EMAIL] or [PHONE]. Address: [ADDRESS]. Used Neumann U87 microphone.",
+          "metadata": {
+            "redaction_mode": "replace",
+            "categories_processed": ["names", "emails", "phones", "addresses"],
+            "preserve_audio_terms": true,
+            "custom_patterns_count": 0,
+            "whitelist_size": 40,
+            "redaction_counts": {
+              "names": 1,
+              "emails": 1,
+              "phones": 1,
+              "addresses": 1
+            },
+            "total_instances_redacted": 4,
+            "detected_pii_instances": [
+              {
+                "category": "names",
+                "matched_text": "John Smith",
+                "position": 26,
+                "replacement": "[NAME]"
+              },
+              {
+                "category": "emails",
+                "matched_text": "john.smith@email.com",
+                "position": 60,
+                "replacement": "[EMAIL]"
+              },
+              {
+                "category": "phones",
+                "matched_text": "555-123-4567",
+                "position": 82,
+                "replacement": "[PHONE]"
+              },
+              {
+                "category": "addresses",
+                "matched_text": "123 Main St, Los Angeles, CA",
+                "position": 98,
+                "replacement": "[ADDRESS]"
+              }
+            ],
+            "original_length": 165,
+            "redacted_length": 129,
+            "processing_timestamp": "2025-10-08T10:30:00Z"
+          }
+        }
+      },
+      {
+        "description": "Redact PII with masking mode to preserve some information",
+        "input": {
+          "text": "Client: Sarah Johnson (sarah.j@prostudio.com). Phone: 555-987-6543. Project: Album Mastering.",
+          "mode": "mask",
+          "categories": ["names", "emails", "phones"],
+          "preserve_audio_terms": true
+        },
+        "output": {
+          "redacted_text": "Client: S***** J******* (sa**.@prostudio.com). Phone: 555-***-6543. Project: Album Mastering.",
+          "metadata": {
+            "redaction_mode": "mask",
+            "categories_processed": ["names", "emails", "phones"],
+            "preserve_audio_terms": true,
+            "custom_patterns_count": 0,
+            "whitelist_size": 40,
+            "redaction_counts": {
+              "names": 1,
+              "emails": 1,
+              "phones": 1
+            },
+            "total_instances_redacted": 3,
+            "detected_pii_instances": [
+              {
+                "category": "names",
+                "matched_text": "Sarah Johnson",
+                "position": 8,
+                "replacement": "S***** J*******"
+              },
+              {
+                "category": "emails",
+                "matched_text": "sarah.j@prostudio.com",
+                "position": 22,
+                "replacement": "sa**.@prostudio.com"
+              },
+              {
+                "category": "phones",
+                "matched_text": "555-987-6543",
+                "position": 47,
+                "replacement": "555-***-6543"
+              }
+            ],
+            "original_length": 79,
+            "redacted_length": 75,
+            "processing_timestamp": "2025-10-08T10:30:00Z"
+          }
+        }
+      }
+    ]
+  }
+}

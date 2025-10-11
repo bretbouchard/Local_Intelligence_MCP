@@ -1,0 +1,292 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://apple-mcp.example.com/schemas/text-tools/summarization-tool.json",
+  "title": "Local Intelligence MCP Summarization Tool Schema",
+  "description": "JSON schema for the apple.summarize tool that produces concise summaries of audio session notes, logs, and transcripts",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "const": "apple.summarize",
+      "description": "Tool identifier for the summarization function"
+    },
+    "description": {
+      "type": "string",
+      "const": "Produce concise summary of provided text (notes, logs, transcripts)",
+      "description": "Tool description explaining its purpose"
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "object"
+        },
+        "properties": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "const": "string"
+                },
+                "description": {
+                  "type": "string",
+                  "const": "Text to summarize (notes, logs, transcripts, or other audio-related text)"
+                }
+              },
+              "required": ["type", "description"]
+            },
+            "style": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "const": "string"
+                },
+                "description": {
+                  "type": "string",
+                  "const": "Summary style"
+                },
+                "enum": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "contains": [
+                    "bullet",
+                    "abstract",
+                    "executive"
+                  ],
+                  "uniqueItems": true
+                },
+                "default": {
+                  "type": "string",
+                  "const": "bullet"
+                }
+              },
+              "required": ["type", "description", "enum", "default"]
+            },
+            "max_points": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "const": "integer"
+                },
+                "description": {
+                  "type": "string",
+                  "const": "Maximum number of key points to extract"
+                },
+                "minimum": {
+                  "type": "integer",
+                  "const": 3
+                },
+                "maximum": {
+                  "type": "integer",
+                  "const": 15
+                },
+                "default": {
+                  "type": "integer",
+                  "const": 7
+                }
+              },
+              "required": ["type", "description", "minimum", "maximum", "default"]
+            }
+          },
+          "required": ["text"],
+          "additionalProperties": false
+        },
+        "required": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "contains": [
+            "text"
+          ],
+          "uniqueItems": true
+        }
+      },
+      "required": ["type", "properties", "required"],
+      "additionalProperties": false
+    },
+    "category": {
+      "type": "string",
+      "const": "textProcessing",
+      "description": "Tool category for organization"
+    },
+    "permissions": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["systemInfo", "fileSystemAccess", "networkAccess", "cameraAccess", "microphoneAccess"]
+      },
+      "contains": [
+        "systemInfo"
+      ],
+      "uniqueItems": true,
+      "description": "Required permissions for tool execution"
+    },
+    "offlineCapable": {
+      "type": "boolean",
+      "const": true,
+      "description": "Whether the tool can operate without internet connectivity"
+    },
+    "performance": {
+      "type": "object",
+      "properties": {
+        "maxInputLength": {
+          "type": "integer",
+          "const": 20000,
+          "description": "Maximum input text length in characters"
+        },
+        "defaultMaxOutputTokens": {
+          "type": "integer",
+          "const": 512,
+          "description": "Default maximum output tokens"
+        },
+        "p95LatencyTarget": {
+          "type": "string",
+          "const": "300ms",
+          "description": "95th percentile latency target for short prompts"
+        }
+      },
+      "required": ["maxInputLength", "defaultMaxOutputTokens", "p95LatencyTarget"],
+      "additionalProperties": false
+    },
+    "audioDomain": {
+      "type": "object",
+      "properties": {
+        "specialized": {
+          "type": "boolean",
+          "const": true,
+          "description": "Tool is specialized for audio domain content"
+        },
+        "contentTypes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["sessionNotes", "transcripts", "audioLogs", "trackMetadata", "pluginDocumentation"]
+          },
+          "description": "Supported audio-related content types"
+        },
+        "keywords": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Audio-related keywords that influence content processing",
+          "examples": [
+            "mix", "master", "track", "audio", "sound", "music", "recording",
+            "studio", "production", "engineer", "producer", "session",
+            "DAW", "plugin", "EQ", "compressor", "reverb", "delay"
+          ]
+        }
+      },
+      "required": ["specialized", "contentTypes", "keywords"],
+      "additionalProperties": false
+    },
+    "outputs": {
+      "type": "object",
+      "properties": {
+        "schema": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "object"
+            },
+            "properties": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "const": "string"
+                    },
+                    "description": {
+                      "type": "string",
+                      "const": "Summarized text content"
+                    }
+                  },
+                  "required": ["type", "description"]
+                }
+              },
+              "required": ["text"],
+              "additionalProperties": false
+            },
+            "required": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "contains": [
+                "text"
+              ],
+              "uniqueItems": true
+            }
+          },
+          "required": ["type", "properties", "required"],
+          "additionalProperties": false
+        },
+        "examples": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "input": {
+                "type": "object",
+                "properties": {
+                  "text": {
+                    "type": "string"
+                  },
+                  "style": {
+                    "type": "string",
+                    "enum": ["bullet", "abstract", "executive"]
+                  },
+                  "max_points": {
+                    "type": "integer",
+                    "minimum": 3,
+                    "maximum": 15
+                  }
+                },
+                "required": ["text"]
+              },
+              "output": {
+                "type": "object",
+                "properties": {
+                  "text": {
+                    "type": "string"
+                  }
+                },
+                "required": ["text"]
+              }
+            },
+            "required": ["input", "output"]
+          },
+          "minItems": 1,
+          "description": "Example input/output pairs for documentation"
+        }
+      },
+      "required": ["schema", "examples"],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "name",
+    "description",
+    "inputSchema",
+    "category",
+    "permissions",
+    "offlineCapable",
+    "performance",
+    "audioDomain",
+    "outputs"
+  ],
+  "additionalProperties": false
+}

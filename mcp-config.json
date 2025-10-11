@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "local-intelligence-mcp": {
+      "command": "docker-compose",
+      "args": ["-f", "/Users/bretbouchard/apps/local_intelligence_mcp/docker-compose-desktop.yml", "--profile", "stdio", "run", "--rm", "local-intelligence-mcp-stdio"],
+      "description": "Apple Ecosystem MCP Server - Provides access to Shortcuts, Voice Control, System Information, and Accessibility features"
+    }
+  }
+}

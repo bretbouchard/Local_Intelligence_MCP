@@ -1,0 +1,534 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://apple-mcp.example.com/schemas/text-tools/text-rewrite-tool.json",
+  "title": "Local Intelligence MCP Text Rewrite Tool Schema",
+  "description": "JSON schema for the apple.text.rewrite tool that rewrites text for tone/clarity/length without changing meaning",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "const": "apple.text.rewrite",
+      "description": "Tool identifier for the text rewrite function"
+    },
+    "description": {
+      "type": "string",
+      "const": "Rewrite text for tone/clarity/length without changing meaning",
+      "description": "Tool description explaining its purpose"
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "object"
+        },
+        "properties": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "const": "string"
+                },
+                "description": {
+                  "type": "string",
+                  "const": "Text to rewrite (notes, logs, transcripts, or other audio-related text)"
+                }
+              },
+              "required": ["type", "description"]
+            },
+            "tone": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "const": "string"
+                },
+                "description": {
+                  "type": "string",
+                  "const": "Target tone for the rewritten text"
+                },
+                "enum": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "contains": [
+                    "technical",
+                    "friendly",
+                    "neutral",
+                    "executive"
+                  ],
+                  "uniqueItems": true
+                },
+                "default": {
+                  "type": "string",
+                  "const": "neutral"
+                }
+              },
+              "required": ["type", "description", "enum", "default"]
+            },
+            "length": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "const": "string"
+                },
+                "description": {
+                  "type": "string",
+                  "const": "Target length for the rewritten text"
+                },
+                "enum": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "contains": [
+                    "short",
+                    "medium",
+                    "long"
+                  ],
+                  "uniqueItems": true
+                },
+                "default": {
+                  "type": "string",
+                  "const": "medium"
+                }
+              },
+              "required": ["type", "description", "enum", "default"]
+            }
+          },
+          "required": ["text"],
+          "additionalProperties": false
+        },
+        "required": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "contains": [
+            "text"
+          ],
+          "uniqueItems": true
+        }
+      },
+      "required": ["type", "properties", "required"],
+      "additionalProperties": false
+    },
+    "category": {
+      "type": "string",
+      "const": "textProcessing",
+      "description": "Tool category for organization"
+    },
+    "permissions": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["systemInfo", "fileSystemAccess", "networkAccess", "cameraAccess", "microphoneAccess"]
+      },
+      "contains": [
+        "systemInfo"
+      ],
+      "uniqueItems": true,
+      "description": "Required permissions for tool execution"
+    },
+    "offlineCapable": {
+      "type": "boolean",
+      "const": true,
+      "description": "Whether the tool can operate without internet connectivity"
+    },
+    "performance": {
+      "type": "object",
+      "properties": {
+        "maxInputLength": {
+          "type": "integer",
+          "const": 20000,
+          "description": "Maximum input text length in characters"
+        },
+        "defaultMaxOutputTokens": {
+          "type": "integer",
+          "const": 512,
+          "description": "Default maximum output tokens"
+        },
+        "p95LatencyTarget": {
+          "type": "string",
+          "const": "300ms",
+          "description": "95th percentile latency target for short prompts"
+        }
+      },
+      "required": ["maxInputLength", "defaultMaxOutputTokens", "p95LatencyTarget"],
+      "additionalProperties": false
+    },
+    "toneTransformations": {
+      "type": "object",
+      "properties": {
+        "technical": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string",
+              "const": "Uses formal technical terminology and precise language"
+            },
+            "characteristics": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "contains": [
+                "Formal terminology",
+                "Technical precision",
+                "Objective tone",
+                "Specific terminology"
+              ],
+              "uniqueItems": true
+            },
+            "audioDomainEnhancements": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "examples": [
+                "volume -> signal level",
+                "sound -> audio signal",
+                "recording -> audio capture"
+              ]
+            }
+          },
+          "required": ["description", "characteristics", "audioDomainEnhancements"],
+          "additionalProperties": false
+        },
+        "friendly": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string",
+              "const": "Uses conversational, approachable language"
+            },
+            "characteristics": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "contains": [
+                "Conversational tone",
+                "Simple language",
+                "Approachable",
+                "Encouraging"
+              ],
+              "uniqueItems": true
+            },
+            "transformations": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "examples": [
+                "optimize -> make better",
+                "rectify -> fix",
+                "configure -> set up"
+              ]
+            }
+          },
+          "required": ["description", "characteristics", "transformations"],
+          "additionalProperties": false
+        },
+        "neutral": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string",
+              "const": "Uses objective, unbiased language"
+            },
+            "characteristics": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "contains": [
+                "Objective tone",
+                "Unbiased language",
+                "Factual",
+                "Professional"
+              ],
+              "uniqueItems": true
+            },
+            "biasedTermsRemoved": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "from": {
+                    "type": "string"
+                  },
+                  "to": {
+                    "type": "string"
+                  }
+                },
+                "required": ["from", "to"]
+              },
+              "examples": [
+                {"from": "amazing", "to": "notable"},
+                {"from": "terrible", "to": "problematic"},
+                {"from": "perfect", "to": "acceptable"}
+              ]
+            }
+          },
+          "required": ["description", "characteristics", "biasedTermsRemoved"],
+          "additionalProperties": false
+        },
+        "executive": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string",
+              "const": "Uses concise, business-focused language with outcome orientation"
+            },
+            "characteristics": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "contains": [
+                "Concise language",
+                "Business focus",
+                "Outcome-oriented",
+                "Professional tone"
+              ],
+              "uniqueItems": true
+            },
+            "businessTransformations": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "from": {
+                    "type": "string"
+                  },
+                  "to": {
+                    "type": "string"
+                  }
+                },
+                "required": ["from", "to"]
+              },
+              "examples": [
+                {"from": "fix", "to": "resolve"},
+                {"from": "problem", "to": "challenge"},
+                {"from": "start", "to": "commence"}
+              ]
+            }
+          },
+          "required": ["description", "characteristics", "businessTransformations"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["technical", "friendly", "neutral", "executive"],
+      "additionalProperties": false
+    },
+    "lengthTransformations": {
+      "type": "object",
+      "properties": {
+        "short": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string",
+              "const": "Condenses to 1-2 key sentences focusing on main points"
+            },
+            "targetLength": {
+              "type": "string",
+              "const": "1-2 sentences"
+            },
+            "strategy": {
+              "type": "string",
+              "const": "Prioritize audio-relevant content, summarize key points"
+            }
+          },
+          "required": ["description", "targetLength", "strategy"],
+          "additionalProperties": false
+        },
+        "medium": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string",
+              "const": "Balanced detail with 4-5 sentences prioritizing audio content"
+            },
+            "targetLength": {
+              "type": "string",
+              "const": "4-5 sentences"
+            },
+            "strategy": {
+              "type": "string",
+              "const": "Include all audio content, fill with other key sentences"
+            }
+          },
+          "required": ["description", "targetLength", "strategy"],
+          "additionalProperties": false
+        },
+        "long": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string",
+              "const": "Full detail with expansion and enhanced audio terminology"
+            },
+            "targetLength": {
+              "type": "string",
+              "const": "Expanded with details"
+            },
+            "strategy": {
+              "type": "string",
+              "const": "Add audio technical details, include transitions"
+            }
+          },
+          "required": ["description", "targetLength", "strategy"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["short", "medium", "long"],
+      "additionalProperties": false
+    },
+    "audioDomain": {
+      "type": "object",
+      "properties": {
+        "specialized": {
+          "type": "boolean",
+          "const": true,
+          "description": "Tool is specialized for audio domain content"
+        },
+        "contentTypes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["sessionNotes", "transcripts", "audioLogs", "trackMetadata", "pluginDocumentation"]
+          },
+          "description": "Supported audio-related content types"
+        },
+        "toneAdaptations": {
+          "type": "object",
+          "properties": {
+            "technical": {
+              "type": "string",
+              "const": "Adds audio engineering precision and terminology"
+            },
+            "executive": {
+              "type": "string",
+              "const": "Adds business outcome focus for audio projects"
+            },
+            "long": {
+              "type": "string",
+              "const": "Adds audio technical details and specifications"
+            }
+          },
+          "required": ["technical", "executive", "long"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["specialized", "contentTypes", "toneAdaptations"],
+      "additionalProperties": false
+    },
+    "outputs": {
+      "type": "object",
+      "properties": {
+        "schema": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "object"
+            },
+            "properties": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "const": "string"
+                    },
+                    "description": {
+                      "type": "string",
+                      "const": "Rewritten text content with specified tone and length"
+                    }
+                  },
+                  "required": ["type", "description"]
+                }
+              },
+              "required": ["text"],
+              "additionalProperties": false
+            },
+            "required": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "contains": [
+                "text"
+              ],
+              "uniqueItems": true
+            }
+          },
+          "required": ["type", "properties", "required"],
+          "additionalProperties": false
+        },
+        "examples": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "input": {
+                "type": "object",
+                "properties": {
+                  "text": {
+                    "type": "string"
+                  },
+                  "tone": {
+                    "type": "string",
+                    "enum": ["technical", "friendly", "neutral", "executive"]
+                  },
+                  "length": {
+                    "type": "string",
+                    "enum": ["short", "medium", "long"]
+                  }
+                },
+                "required": ["text"]
+              },
+              "output": {
+                "type": "object",
+                "properties": {
+                  "text": {
+                    "type": "string"
+                  }
+                },
+                "required": ["text"]
+              }
+            },
+            "required": ["input", "output"]
+          },
+          "minItems": 1,
+          "description": "Example input/output pairs for documentation"
+        }
+      },
+      "required": ["schema", "examples"],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "name",
+    "description",
+    "inputSchema",
+    "category",
+    "permissions",
+    "offlineCapable",
+    "performance",
+    "toneTransformations",
+    "lengthTransformations",
+    "audioDomain",
+    "outputs"
+  ],
+  "additionalProperties": false
+}

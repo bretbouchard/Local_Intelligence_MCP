@@ -2,7 +2,7 @@
 
 ## 🔐 Security Overview
 
-The Apple MCP Server implements enterprise-grade security with a comprehensive defense-in-depth strategy. This document outlines security features, threat models, and testing methodologies.
+The Local Intelligence MCP implements enterprise-grade security with a comprehensive defense-in-depth strategy. This document outlines security features, threat models, and testing methodologies.
 
 ## 🛡️ Security Architecture
 

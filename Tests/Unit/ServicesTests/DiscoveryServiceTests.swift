@@ -1,12 +1,12 @@
 //
 //  DiscoveryServiceTests.swift
-//  AppleMCPServer
+//  LocalIntelligenceMCP
 //
 //  Created on 2025-10-07.
 //
 
 import XCTest
-@testable import AppleMCPServer
+@testable import LocalIntelligenceMCP
 
 final class DiscoveryServiceTests: XCTestCase {
 

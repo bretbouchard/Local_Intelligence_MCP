@@ -1,0 +1,66 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+*.md
+docs/
+
+# Tests
+Tests/
+*.test
+
+# Build artifacts
+.build/
+build/
+DerivedData/
+
+# Swift Package Manager
+.swiftpm/
+Package.resolved
+
+# IDE files
+.vscode/
+.idea/
+*.xcworkspace/
+*.xcodeproj/
+*.swiftpm/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Docker
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+
+# Security
+.env
+.env.local
+*.key
+*.pem
+*.crt
+
+# Performance
+*.prof
+benchmark/
+
+# Coverage
+.coverage/
+lcov.info

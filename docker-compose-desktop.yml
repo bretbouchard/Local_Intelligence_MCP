@@ -1,0 +1,52 @@
+services:
+  # Main MCP service for Docker Desktop management
+  local-intelligence-mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: local-intelligence-mcp
+    environment:
+      - LOG_LEVEL=info
+    volumes:
+      - ./logs:/app/logs
+      - ./docs:/app/docs:ro
+    networks:
+      - mcp-network
+    # Keep container running for Docker Desktop management
+    restart: unless-stopped
+    # Use a simple keep-alive command for Docker Desktop
+    command: ["tail", "-f", "/dev/null"]
+    labels:
+      - "mcp.server=true"
+      - "mcp.name=local-intelligence-mcp"
+      - "description=Local Intelligence MCP Server"
+
+  # Interactive MCP service for stdio communication (when needed)
+  local-intelligence-mcp-stdio:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: local-intelligence-mcp-stdio
+    environment:
+      - LOG_LEVEL=info
+    volumes:
+      - ./logs:/app/logs
+      - ./docs:/app/docs:ro
+    networks:
+      - mcp-network
+    restart: "no"
+    profiles:
+      - stdio
+    entrypoint: ["/usr/local/bin/LocalIntelligenceMCP", "start-command", "--log-level", "info", "--mcp-mode"]
+    labels:
+      - "mcp.server=true"
+      - "mcp.name=local-intelligence-mcp-stdio"
+      - "description=Local Intelligence MCP Server (stdio mode)"
+
+networks:
+  mcp-network:
+    driver: bridge
+
+volumes:
+  logs:
+    driver: local

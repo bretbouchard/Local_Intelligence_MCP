@@ -1,0 +1,316 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://apple.com/mcp/schemas/texttools/token-count-utility.json",
+  "title": "Token Count Utility",
+  "description": "Advanced token counting utility for audio domain content with multiple estimation strategies",
+  "type": "object",
+  "tool": {
+    "name": "apple.tokens.count",
+    "description": "Counts and analyzes tokens in audio-related text with specialized estimation strategies",
+    "version": "1.0.0",
+    "category": "utility",
+    "domain": "audio-production",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string",
+          "description": "Text to analyze for token count (session notes, transcripts, technical documentation)",
+          "minLength": 1,
+          "maxLength": 1000000,
+          "examples": [
+            "Applied 3dB boost at 2kHz, used Waves CLA-76 compressor with 4:1 ratio, added Valhalla VintageVerb plate reverb...",
+            "Recording session: Neumann U67 microphone, API 312 preamps, SSL G-Series console, Pro Tools HD system...",
+            "Mix notes: Lead vocal - EQ cut 200Hz, boost 8kHz; Bass - DI with SansAmp; Drums - overheads spaced pair..."
+          ]
+        },
+        "strategy": {
+          "type": "string",
+          "description": "Token estimation strategy to use",
+          "enum": ["character_based", "word_based", "semantic_aware", "audio_optimized", "mixed"],
+          "default": "audio_optimized",
+          "examples": [
+            "character_based - Basic character to token ratio (1 token ≈ 4 characters)",
+            "word_based - Word-based estimation with audio domain adjustments",
+            "semantic_aware - Context-aware semantic token counting",
+            "audio_optimized - Specialized for audio technical terminology",
+            "mixed - Adaptive strategy combining multiple approaches"
+          ]
+        },
+        "content_type": {
+          "type": "string",
+          "description": "Type of content for specialized token calculation",
+          "enum": ["transcript", "session_notes", "plugin_docs", "technical_spec", "general"],
+          "default": "general",
+          "examples": [
+            "transcript - Spoken conversation or interview transcripts",
+            "session_notes - Recording/mixing session documentation",
+            "plugin_docs - Audio software/plugin documentation",
+            "technical_spec - Technical specifications and settings",
+            "general - General text content"
+          ]
+        },
+        "include_breakdown": {
+          "type": "boolean",
+          "description": "Include detailed token breakdown by category",
+          "default": true
+        },
+        "include_chunk_analysis": {
+          "type": "boolean",
+          "description": "Include chunk-based analysis for large texts",
+          "default": false
+        },
+        "chunk_size": {
+          "type": "integer",
+          "description": "Chunk size for analysis when chunk_analysis is enabled",
+          "minimum": 1000,
+          "maximum": 10000,
+          "default": 4000
+        }
+      },
+      "required": ["text"],
+      "additionalProperties": false
+    },
+    "response": {
+      "type": "object",
+      "properties": {
+        "token_count": {
+          "type": "integer",
+          "description": "Estimated total token count"
+        },
+        "analysis": {
+          "type": "object",
+          "description": "Detailed token analysis and breakdown",
+          "properties": {
+            "strategy_used": {
+              "type": "string",
+              "description": "Primary strategy used for counting"
+            },
+            "content_type": {
+              "type": "string",
+              "description": "Detected or specified content type"
+            },
+            "base_tokens": {
+              "type": "integer",
+              "description": "Base token count before adjustments"
+            },
+            "audio_domain_bonus": {
+              "type": "integer",
+              "description": "Additional tokens for audio domain complexity"
+            },
+            "confidence_score": {
+              "type": "number",
+              "description": "Confidence in token estimation (0.0-1.0)",
+              "minimum": 0.0,
+              "maximum": 1.0
+            },
+            "text_statistics": {
+              "type": "object",
+              "properties": {
+                "character_count": {
+                  "type": "integer",
+                  "description": "Total character count"
+                },
+                "word_count": {
+                  "type": "integer",
+                  "description": "Estimated word count"
+                },
+                "line_count": {
+                  "type": "integer",
+                  "description": "Number of lines"
+                },
+                "audio_terms_count": {
+                  "type": "integer",
+                  "description": "Number of audio-specific terms detected"
+                }
+              }
+            }
+          }
+        },
+        "breakdown": {
+          "type": "object",
+          "description": "Detailed breakdown by token categories",
+          "properties": {
+            "standard_tokens": {
+              "type": "integer",
+              "description": "Standard text tokens"
+            },
+            "technical_tokens": {
+              "type": "integer",
+              "description": "Technical/industry-specific tokens"
+            },
+            "numeric_tokens": {
+              "type": "integer",
+              "description": "Numbers and measurements"
+            },
+            "punctuation_tokens": {
+              "type": "integer",
+              "description": "Punctuation and formatting tokens"
+            },
+            "audio_specific_tokens": {
+              "type": "integer",
+              "description": "Audio domain-specific tokens"
+            }
+          }
+        },
+        "chunk_analysis": {
+          "type": "array",
+          "description": "Analysis of text chunks (when enabled)",
+          "items": {
+            "type": "object",
+            "properties": {
+              "chunk_id": {
+                "type": "string"
+              },
+              "token_count": {
+                "type": "integer"
+              },
+              "character_count": {
+                "type": "integer"
+              },
+              "density": {
+                "type": "number",
+                "description": "Token density (tokens per character)"
+              },
+              "complexity_score": {
+                "type": "number",
+                "description": "Complexity score for this chunk"
+              }
+            }
+          }
+        },
+        "audio_domain_insights": {
+          "type": "object",
+          "description": "Audio domain-specific insights",
+          "properties": {
+            "equipment_terms": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Audio equipment terms detected"
+            },
+            "technical_parameters": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Technical parameters and settings"
+            },
+            "plugin_names": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Audio plugin names detected"
+            },
+            "domain_complexity": {
+              "type": "string",
+              "enum": ["low", "medium", "high", "expert"],
+              "description": "Audio domain complexity level"
+            }
+          }
+        }
+      }
+    },
+    "examples": [
+      {
+        "description": "Basic token counting for session notes",
+        "input": {
+          "text": "Applied 3dB boost at 2kHz using API 550A EQ. Used Waves CLA-76 compressor with 4:1 ratio, fastest attack. Added Valhalla VintageVerb plate reverb, 2.2 seconds decay.",
+          "strategy": "audio_optimized",
+          "content_type": "session_notes"
+        }
+      },
+      {
+        "description": "Comprehensive analysis with breakdown",
+        "input": {
+          "text": "Recording session: Neumann U67 microphone through API 312 preamps to SSL G-Series console. Tracking in Pro Tools HD at 96kHz/24-bit. Used UAD plugins for mixing.",
+          "strategy": "semantic_aware",
+          "include_breakdown": true,
+          "content_type": "transcript"
+        }
+      },
+      {
+        "description": "Large text chunk analysis",
+        "input": {
+          "text": "Very long recording session documentation spanning multiple pages...",
+          "strategy": "mixed",
+          "include_chunk_analysis": true,
+          "chunk_size": 5000
+        }
+      }
+    ],
+    "strategy_details": {
+      "character_based": {
+        "description": "Simple character-to-token ratio estimation",
+        "accuracy": "Basic",
+        "speed": "Fastest",
+        "use_case": "Quick estimates, large texts"
+      },
+      "word_based": {
+        "description": "Word-based counting with audio terminology adjustments",
+        "accuracy": "Good",
+        "speed": "Fast",
+        "use_case": "General text, documentation"
+      },
+      "semantic_aware": {
+        "description": "Context-aware semantic analysis",
+        "accuracy": "High",
+        "speed": "Medium",
+        "use_case": "Complex content, mixed topics"
+      },
+      "audio_optimized": {
+        "description": "Specialized for audio technical content",
+        "accuracy": "Highest for audio domain",
+        "speed": "Medium",
+        "use_case": "Session notes, technical documentation"
+      },
+      "mixed": {
+        "description": "Adaptive strategy combining multiple approaches",
+        "accuracy": "Very High",
+        "speed": "Slow",
+        "use_case": "Critical applications, maximum accuracy needed"
+      }
+    },
+    "audio_domain_vocabulary": {
+      "equipment": ["microphone", "preamp", "compressor", "EQ", "reverb", "delay", "DAW", "console", "interface", "converter"],
+      "brands": ["Neumann", "AKG", "Shure", "API", "SSL", "Neve", "Pro Tools", "Waves", "UAD", "Universal Audio"],
+      "technical": ["frequency", "amplitude", "kHz", "dB", "Hz", "bitrate", "sample rate", "latency", "gain", "threshold"],
+      "plugins": ["CLA-76", "VintageVerb", "SSL Channel", "API 550", "Pultec EQ", "1176", "LA-2A", "Fairchild"],
+      "formats": ["WAV", "MP3", "AIFF", "FLAC", "96kHz", "24-bit", "44.1kHz", "16-bit"]
+    },
+    "performance_metrics": {
+      "execution_time": {
+        "target": "<50ms",
+        "description": "Maximum time for token counting"
+      },
+      "memory_usage": {
+        "target": "<1MB",
+        "description": "Maximum memory usage during counting"
+      },
+      "throughput": {
+        "target": ">50000 characters/second",
+        "description": "Processing throughput for large texts"
+      },
+      "accuracy": {
+        "target": ">95%",
+        "description": "Accuracy compared to actual tokenization"
+      }
+    },
+    "version_history": [
+      {
+        "version": "1.0.0",
+        "date": "2025-10-08",
+        "changes": [
+          "Initial implementation with 5 estimation strategies",
+          "Audio domain vocabulary with 200+ terms",
+          "Content type specialization",
+          "Chunk analysis support",
+          "Comprehensive breakdown and insights",
+          "High-performance optimization"
+        ]
+      }
+    ]
+  }
+}

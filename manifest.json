@@ -1,0 +1,45 @@
+{
+  "name": "Local Intelligence MCP",
+  "version": "1.0.0",
+  "description": "Professional text processing and content analysis MCP server with comprehensive tools for document processing, content analysis, catalog management, and system integration",
+  "author": "Local Intelligence MCP Team",
+  "license": "MIT",
+  "homepage": "https://github.com/your-org/local-intelligence-mcp",
+  "repository": "https://github.com/your-org/local-intelligence-mcp",
+  "keywords": ["mcp", "text", "content", "analysis", "ai", "processing"],
+  "category": "ai",
+  "mcp_version": "2024-11-05",
+  "endpoints": {
+    "tools": "/tools",
+    "health": "/health",
+    "manifest": "/manifest.json"
+  },
+  "capabilities": {
+    "tools": true,
+    "resources": false,
+    "prompts": false,
+    "logging": true,
+    "streaming": false
+  },
+  "tools_count": 21,
+  "user_stories": [
+    "US1: Core Text Processing Tools",
+    "US2: Advanced Text Analysis Tools",
+    "US3: Intent Analysis Tools",
+    "US4: Extraction Tools",
+    "US5: Catalog & Document Tools",
+    "US6: System Integration & Retrieval"
+  ],
+  "supported_platforms": ["macOS", "Linux"],
+  "resource_requirements": {
+    "memory": "512MB",
+    "cpu": "1 core",
+    "storage": "100MB"
+  },
+  "security": {
+    "authentication": false,
+    "encryption": false,
+    "input_validation": true,
+    "error_sanitization": true
+  }
+}
