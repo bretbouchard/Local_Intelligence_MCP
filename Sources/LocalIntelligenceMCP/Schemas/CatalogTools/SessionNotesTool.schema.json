@@ -1,0 +1,51 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Session Notes Tool",
+  "description": "Specialized summarization for audio engineering session documentation and notes",
+  "type": "object",
+  "properties": {
+    "content": {
+      "type": "string",
+      "description": "Session notes content to summarize",
+      "minLength": 1
+    },
+    "session_type": {
+      "type": "string",
+      "description": "Type of session being documented",
+      "enum": ["tracking", "mixing", "mastering", "production", "sound_design", "edit", "review", "general"],
+      "default": "general"
+    },
+    "focus_areas": {
+      "type": "array",
+      "description": "Specific areas to focus on in the summary",
+      "items": {
+        "type": "string",
+        "enum": ["settings", "techniques", "issues", "decisions", "equipment", "performance", "arrangement", "mix", "mastering"]
+      },
+      "uniqueItems": true
+    },
+    "detail_level": {
+      "type": "string",
+      "description": "Level of detail in the generated summary",
+      "enum": ["brief", "standard", "detailed", "comprehensive"],
+      "default": "standard"
+    },
+    "include_technical": {
+      "type": "boolean",
+      "description": "Include technical settings and parameters in summary",
+      "default": true
+    },
+    "include_action_items": {
+      "type": "boolean",
+      "description": "Extract and highlight action items and next steps",
+      "default": true
+    },
+    "duration_estimate": {
+      "type": "string",
+      "description": "Estimated session duration (e.g., '2 hours', '90 minutes')",
+      "pattern": "^\\d+\\s*(hours?|hrs?|minutes?|mins?|days?)$"
+    }
+  },
+  "required": ["content"],
+  "additionalProperties": false
+}

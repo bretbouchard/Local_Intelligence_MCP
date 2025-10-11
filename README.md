@@ -1,45 +1,58 @@
-# Apple MCP Server
+# Local Intelligence MCP
 
-A Swift-based Model Context Protocol (MCP) server that exposes Apple ecosystem capabilities (Shortcuts, Voice Control, system information) to AI agents while maintaining strict security and privacy requirements.
+A cross-platform Swift-based Model Context Protocol (MCP) server that provides comprehensive text processing and content analysis tools to AI agents while maintaining strict security and privacy requirements.
 
 ## ✨ Features
 
 - **🔧 MCP Protocol Compliance**: Full implementation of the Model Context Protocol specification
-- **⚡ Apple Shortcuts Integration**: Execute and manage Apple Shortcuts through AI agents
-- **🎤 Voice Control Support**: Issue Voice Control commands for accessibility and hands-free operation
-- **📊 System Information Access**: Provide device and system information to AI agents
+- **📝 Text Processing Tools**: 21 professional tools for text analysis, summarization, and content processing
+- **🔍 Content Analysis**: Advanced PII detection, intent analysis, and content categorization
+- **🛡️ Privacy Preserving**: Built-in PII redaction with audio term preservation
 - **🔒 Enterprise-Grade Security**: Comprehensive security testing and protection against attacks
-- **🛡️ Privacy Preserving**: No persistent storage of sensitive user data
+- **🚀 High Performance**: Concurrent request handling with memory optimization
+- **🐳 Cross-Platform**: Builds and runs on macOS, Linux, and other platforms
 - **📱 Offline Capable**: Core functionality works without network connectivity
-- **⚡ High Performance**: Concurrent request handling with memory optimization
-- **🧪 Comprehensive Testing**: 400+ test methods covering functionality, performance, and security
+- **⚡ Streaming Support**: Handles large documents with efficient streaming processing
 
 ## Requirements
 
-- **macOS**: 12.0 (Monterey) or later
-- **iOS**: 15.0 or later
 - **Swift**: 6.0 or later
-- **Xcode**: 16.0 or later
+- **Platforms**: macOS 12.0+, Linux (Ubuntu 20.04+)
+- **Memory**: 512MB minimum, 1GB recommended
+- **Storage**: 100MB for installation
 
 ## Installation
 
 ### Build from Source
 
 ```bash
-git clone https://github.com/your-org/apple-mcp-server.git
-cd apple-mcp-server
+git clone https://github.com/bretbouchard/Local_Intelligence_MCP.git
+cd Local_Intelligence_MCP
 swift build -c release
+```
+
+### Docker Installation
+
+```bash
+# Build Docker image
+docker build -t local-intelligence-mcp .
+
+# Run the container
+docker run -p 3000:3000 local-intelligence-mcp
+
+# Or use docker-compose
+docker-compose up -d
 ```
 
 ### Run
 
 ```bash
-swift run AppleMCPServer
+swift run LocalIntelligenceMCP
 ```
 
 ## Configuration
 
-Create a configuration file at `~/.config/apple-mcp-server/config.json`:
+Create a configuration file at `~/.config/local-intelligence-mcp-server/config.json`:
 
 ```json
 {
@@ -85,14 +98,48 @@ export MCP_LOG_LEVEL=info
 
 ## 🛠️ Available MCP Tools
 
-| Tool | Description | Permissions | Example Usage |
-|------|-------------|-------------|---------------|
-| `shortcuts_execute` | Execute Apple Shortcuts by name | `.shortcuts` | `{"shortcutName": "Send Message"}` |
-| `shortcuts_list` | List available shortcuts with filtering | `.shortcuts` | `{"includeSystemShortcuts": false, "categories": ["productivity"]}` |
-| `voice_control` | Issue Voice Control commands | `.voiceControl` | `{"command": "Open Safari", "timeout": 30}` |
-| `system_info` | Get comprehensive system information | `.systemInfo` | `{"categories": ["device", "performance"], "includeSensitive": false}` |
-| `health_check` | Server health and status monitoring | `.systemInfo` | `{}` |
-| `permission_tool` | Check and manage permissions | `.systemInfo` | `{"action": "check", "permission": "shortcuts"}` |
+### Text Processing Tools
+| Tool | Description | Example Usage |
+|------|-------------|-------------|
+| `text_normalize` | Clean and standardize text input | `{"text": " messy  text   ", "removeFillers": true}` |
+| `text_chunking` | Split large text into manageable chunks | `{"text": "long document...", "maxChunkSize": 1000}` |
+| `text_rewrite` | Enhance and restructure content | `{"text": "original text", "style": "professional"}` |
+| `pii_redaction` | Detect and redact sensitive information | `{"text": "Contact: john@example.com", "policy": "conservative"}` |
+
+### Content Analysis Tools
+| Tool | Description | Example Usage |
+|------|-------------|-------------|
+| `content_purpose_detector` | Analyze content intent and purpose | `{"text": "meeting notes...", "context": {"domain": "business"}}` |
+| `query_analysis` | Extract keywords and intent from queries | `{"query": "find sales reports from last quarter"}` |
+| `intent_recognition` | Recognize user intent in text | `{"text": "Please schedule a meeting for tomorrow"}` |
+
+### Summarization Tools
+| Tool | Description | Example Usage |
+|------|-------------|-------------|
+| `summarization` | Generate text summaries | `{"text": "long article...", "style": "executive", "maxLength": 200}` |
+| `focused_summarization` | Create targeted summaries | `{"text": "document...", "focus": ["key_decisions", "action_items"]}` |
+| `enhanced_summarization` | Advanced summarization with analysis | `{"text": "complex document...", "analysisDepth": "deep"}` |
+
+### Extraction Tools
+| Tool | Description | Example Usage |
+|------|-------------|-------------|
+| `tag_generation` | Extract relevant keywords and tags | `{"text": "article about AI and machine learning", "maxTags": 10}` |
+| `schema_extraction` | Create structured data from text | `{"text": "contact info...", "schemaType": "person"}` |
+| `feedback_analysis` | Analyze user feedback and sentiment | `{"feedback": "Product is great but needs improvement"}` |
+
+### Catalog Tools
+| Tool | Description | Example Usage |
+|------|-------------|-------------|
+| `catalog_summarization` | Analyze catalog content | `{"catalog": [{"title": "Item 1", "description": "..."}]}` |
+| `session_notes` | Process session transcripts | `{"transcript": "Meeting discussion...", "sessionType": "meeting"}` |
+| `similarity_ranking` | Find similar content | `{"query": "machine learning basics", "documents": [...]}` |
+
+### System Tools
+| Tool | Description | Example Usage |
+|------|-------------|-------------|
+| `health_check` | Server health and status monitoring | `{}` |
+| `system_info` | Get system information | `{"categories": ["device", "performance"]}` |
+| `capabilities_list` | List available tools and capabilities | `{}` |
 
 ### 🔐 Security Features
 
@@ -110,21 +157,30 @@ Add to your AI assistant configuration:
 ```json
 {
   "mcpServers": {
-    "apple-mcp": {
-      "command": "apple-mcp-server",
-      "args": ["--config", "~/.config/apple-mcp-server/config.json"]
+    "local-intelligence-mcp": {
+      "type": "stdio",
+      "command": "swift",
+      "args": [
+        "run",
+        "--package-path",
+        "/your/path/local_intelligence_mcp",
+        "LocalIntelligenceMCP",
+        "start-command",
+        "--mcp-mode"
+      ]
     }
   }
 }
 ```
+
 
 Or use environment variables:
 
 ```json
 {
   "mcpServers": {
-    "apple-mcp": {
-      "command": "apple-mcp-server",
+    "local-intelligence-mcp": {
+      "command": "local-intelligence-mcp-server",
       "env": {
         "MCP_SERVER_PORT": "8050"
       }
@@ -138,7 +194,7 @@ Or use environment variables:
 ### Project Structure
 
 ```
-Sources/AppleMCPServer/
+Sources/LocalIntelligenceMCP/
 ├── Core/                # MCP protocol implementation
 ├── Tools/               # MCP tool implementations
 ├── Services/            # Apple API integrations
@@ -382,7 +438,7 @@ The server includes **22 comprehensive security tests** covering:
 
 ## Constitution
 
-This project follows the [Apple MCP Server Constitution](docs/constitution.md) which defines core principles:
+This project follows the [Local Intelligence MCP Constitution](docs/constitution.md) which defines core principles:
 
 1. **MCP Protocol Compliance** - Strict adherence to MCP standards
 2. **Security & Privacy First** - User data protection as priority
@@ -392,12 +448,12 @@ This project follows the [Apple MCP Server Constitution](docs/constitution.md) w
 
 ## Documentation
 
-- [Implementation Plan](specs/001-apple-mcp-server/plan.md)
-- [Feature Specification](specs/001-apple-mcp-server/spec.md)
-- [Data Model](specs/001-apple-mcp-server/data-model.md)
-- [API Contracts](specs/001-apple-mcp-server/contracts/)
-- [Quickstart Guide](specs/001-apple-mcp-server/quickstart.md)
-- [Tasks](specs/001-apple-mcp-server/tasks.md)
+- [Implementation Plan](specs/001-local-intelligence-mcp-server/plan.md)
+- [Feature Specification](specs/001-local-intelligence-mcp-server/spec.md)
+- [Data Model](specs/001-local-intelligence-mcp-server/data-model.md)
+- [API Contracts](specs/001-local-intelligence-mcp-server/contracts/)
+- [Quickstart Guide](specs/001-local-intelligence-mcp-server/quickstart.md)
+- [Tasks](specs/001-local-intelligence-mcp-server/tasks.md)
 
 ## Contributing
 
@@ -414,6 +470,15 @@ This project follows the [Apple MCP Server Constitution](docs/constitution.md) w
 
 ## Support
 
-- [Issues](https://github.com/your-org/apple-mcp-server/issues)
-- [Discussions](https://github.com/your-org/apple-mcp-server/discussions)
-- [Documentation](https://your-org.github.io/apple-mcp-server/)
+- [Issues](https://github.com/bretbouchard/Local_Intelligence_MCP/issues)
+- [Discussions](https://github.com/bretbouchard/Local_Intelligence_MCP/discussions)
+- [Documentation](https://github.com/bretbouchard/Local_Intelligence_MCP/tree/main/docs)
+
+<p align="center">
+  <a href="https://ko-fi.com/bretbouchard" target="_blank">
+    <img src="https://cdn.ko-fi.com/cdn/kofi3.png?v=3" alt="Support me on Ko-fi" height="45" style="margin-right:10px;">
+  </a>  
+  <a href="https://buymeacoffee.com/bretbouchard" target="_blank">
+    <img src="https://www.buymeacoffee.com/assets/img/custom_images/yellow_img.png" alt="Buy Me a Coffee" height="45">
+  </a>
+</p>

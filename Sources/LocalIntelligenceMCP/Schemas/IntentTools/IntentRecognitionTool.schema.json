@@ -1,0 +1,463 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://apple.com/mcp/schemas/intent-tools/intent-recognition.json",
+  "title": "Intent Recognition Tool",
+  "description": "Natural language intent recognition for audio domain commands with confidence scoring and argument extraction",
+  "type": "object",
+  "tool": {
+    "name": "apple.intent.parse",
+    "description": "Converts natural-language commands into normalized intents for Audio Agent operations with confidence scoring and argument extraction.",
+    "version": "1.0.0",
+    "category": "intent-analysis",
+    "domain": "audio-production",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string",
+          "description": "Natural language command or request for audio operations",
+          "minLength": 5,
+          "maxLength": 500,
+          "examples": [
+            "Start recording the lead vocal track",
+            "Apply EQ to the bass with a boost at 80Hz",
+            "Export the mix as a high-quality WAV file",
+            "What's the best microphone for recording acoustic guitar?",
+            "Create a checklist for the mixing session"
+          ]
+        },
+        "allowed": {
+          "type": "array",
+          "description": "List of allowed intents to restrict recognition scope",
+          "items": {
+            "type": "string",
+            "enum": [
+              "start_recording",
+              "stop_recording",
+              "setup_microphone",
+              "track_instrument",
+              "record_take",
+              "arm_track",
+              "apply_eq",
+              "add_compression",
+              "set_levels",
+              "automate_parameters",
+              "add_reverb",
+              "insert_plugin",
+              "create_send",
+              "pan_track",
+              "trim_audio",
+              "crossfade",
+              "time_stretch",
+              "pitch_correct",
+              "consolidate",
+              "nudge_audio",
+              "apply_effects",
+              "master_track",
+              "export_audio",
+              "analyze_frequency",
+              "remove_noise",
+              "normalize_audio",
+              "create_session",
+              "save_session",
+              "load_session",
+              "manage_tracks",
+              "duplicate_track",
+              "import_audio",
+              "get_info",
+              "analyze_settings",
+              "recommend_settings",
+              "troubleshoot",
+              "compare_settings",
+              "list_plugins",
+              "create_plan",
+              "generate_checklist",
+              "estimate_time",
+              "suggest_workflow",
+              "schedule_session",
+              "calculate",
+              "convert",
+              "measure",
+              "validate",
+              "help"
+            ]
+          },
+          "default": []
+        },
+        "confidence_threshold": {
+          "type": "number",
+          "description": "Minimum confidence threshold for intent recognition",
+          "minimum": 0.1,
+          "maximum": 1.0,
+          "default": 0.6,
+          "examples": [0.5, 0.6, 0.7, 0.8]
+        },
+        "include_alternatives": {
+          "type": "boolean",
+          "description": "Include alternative intents with confidence scores",
+          "default": true
+        },
+        "extract_context": {
+          "type": "boolean",
+          "description": "Extract audio domain context from input",
+          "default": true
+        }
+      },
+      "required": ["text"],
+      "additionalProperties": false
+    },
+    "response": {
+      "type": "object",
+      "properties": {
+        "intent": {
+          "type": "string",
+          "description": "Recognized intent",
+          "enum": [
+            "start_recording",
+            "stop_recording",
+            "setup_microphone",
+            "track_instrument",
+            "record_take",
+            "arm_track",
+            "apply_eq",
+            "add_compression",
+            "set_levels",
+            "automate_parameters",
+            "add_reverb",
+            "insert_plugin",
+            "create_send",
+            "pan_track",
+            "trim_audio",
+            "crossfade",
+            "time_stretch",
+            "pitch_correct",
+            "consolidate",
+            "nudge_audio",
+            "apply_effects",
+            "master_track",
+            "export_audio",
+            "analyze_frequency",
+            "remove_noise",
+            "normalize_audio",
+            "create_session",
+            "save_session",
+            "load_session",
+            "manage_tracks",
+            "duplicate_track",
+            "import_audio",
+            "get_info",
+            "analyze_settings",
+            "recommend_settings",
+            "troubleshoot",
+            "compare_settings",
+            "list_plugins",
+            "create_plan",
+            "generate_checklist",
+            "estimate_time",
+            "suggest_workflow",
+            "schedule_session",
+            "calculate",
+            "convert",
+            "measure",
+            "validate",
+            "help"
+          ]
+        },
+        "confidence": {
+          "type": "number",
+          "description": "Confidence score for intent recognition",
+          "minimum": 0.0,
+          "maximum": 1.0
+        },
+        "arguments": {
+          "type": "object",
+          "description": "Extracted arguments and parameters",
+          "additionalProperties": {
+            "oneOf": [
+              {"type": "string"},
+              {"type": "number"},
+              {"type": "boolean"},
+              {"type": "array"}
+            ]
+          }
+        },
+        "category": {
+          "type": "string",
+          "description": "Intent category",
+          "enum": [
+            "recording",
+            "mixing",
+            "editing",
+            "processing",
+            "session_management",
+            "query",
+            "planning",
+            "utility"
+          ]
+        },
+        "original_text": {
+          "type": "string",
+          "description": "Original text input"
+        },
+        "alternatives": {
+          "type": "array",
+          "description": "Alternative intents with confidence scores",
+          "items": {
+            "type": "object",
+            "properties": {
+              "intent": {
+                "type": "string",
+                "description": "Alternative intent"
+              },
+              "confidence": {
+                "type": "number",
+                "description": "Confidence score for alternative",
+                "minimum": 0.0,
+                "maximum": 1.0
+              },
+              "reason": {
+                "type": "string",
+                "description": "Reason for alternative classification"
+              }
+            },
+            "required": ["intent", "confidence"]
+          }
+        },
+        "audio_context": {
+          "type": "object",
+          "description": "Audio domain context extracted from text",
+          "properties": {
+            "equipment": {
+              "type": "array",
+              "description": "Equipment mentioned in input",
+              "items": {
+                "type": "string"
+              }
+            },
+            "parameters": {
+              "type": "object",
+              "description": "Technical parameters mentioned",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "track_context": {
+              "type": "string",
+              "description": "Track/Session context"
+            },
+            "keywords": {
+              "type": "array",
+              "description": "Audio domain keywords found",
+              "items": {
+                "type": "string"
+              }
+            },
+            "session_phase": {
+              "type": "string",
+              "description": "Session phase (recording, mixing, etc.)"
+            }
+          }
+        },
+        "metadata": {
+          "type": "object",
+          "description": "Processing metadata",
+          "properties": {
+            "patterns_evaluated": {
+              "type": "integer",
+              "description": "Number of patterns evaluated"
+            },
+            "matches_found": {
+              "type": "integer",
+              "description": "Number of matches found"
+            },
+            "confidence_threshold": {
+              "type": "number",
+              "description": "Confidence threshold used"
+            },
+            "audio_domain_confidence": {
+              "type": "number",
+              "description": "Audio domain confidence score"
+            }
+          }
+        }
+      },
+      "required": ["intent", "confidence", "category", "original_text"]
+    },
+    "examples": [
+      {
+        "description": "Recording intent with parameters",
+        "input": {
+          "text": "Start recording the lead vocal track",
+          "confidence_threshold": 0.6,
+          "include_alternatives": true
+        }
+      },
+      {
+        "description": "Technical intent with extracted parameters",
+        "input": {
+          "text": "Apply EQ to the bass with a boost at 80Hz",
+          "extract_context": true
+        }
+      },
+      {
+        "description": "Query intent with alternatives",
+        "input": {
+          "text": "What's the best microphone for recording acoustic guitar?",
+          "confidence_threshold": 0.5,
+          "include_alternatives": true
+        }
+      },
+      {
+        "description": "Export intent with format parameters",
+        "input": {
+          "text": "Export the mix as a high-quality WAV file",
+          "extract_context": true
+        }
+      },
+      {
+        "description": "Planning intent with allowed intents restriction",
+        "input": {
+          "text": "Create a checklist for the mixing session",
+          "allowed": ["create_plan", "generate_checklist"]
+        }
+      }
+    ],
+    "intent_categories": {
+      "recording": {
+        "description": "Audio recording and capture operations",
+        "intents": [
+          "start_recording",
+          "stop_recording",
+          "setup_microphone",
+          "track_instrument",
+          "record_take",
+          "arm_track"
+        ]
+      },
+      "mixing": {
+        "description": "Mixing and signal processing operations",
+        "intents": [
+          "apply_eq",
+          "add_compression",
+          "set_levels",
+          "automate_parameters",
+          "add_reverb",
+          "insert_plugin",
+          "create_send",
+          "pan_track"
+        ]
+      },
+      "editing": {
+        "description": "Audio editing and manipulation operations",
+        "intents": [
+          "trim_audio",
+          "crossfade",
+          "time_stretch",
+          "pitch_correct",
+          "consolidate",
+          "nudge_audio"
+        ]
+      },
+      "processing": {
+        "description": "Audio processing and effects operations",
+        "intents": [
+          "apply_effects",
+          "master_track",
+          "export_audio",
+          "analyze_frequency",
+          "remove_noise",
+          "normalize_audio"
+        ]
+      },
+      "session_management": {
+        "description": "Session and track management operations",
+        "intents": [
+          "create_session",
+          "save_session",
+          "load_session",
+          "manage_tracks",
+          "duplicate_track",
+          "import_audio"
+        ]
+      },
+      "query": {
+        "description": "Information and analysis queries",
+        "intents": [
+          "get_info",
+          "analyze_settings",
+          "recommend_settings",
+          "troubleshoot",
+          "compare_settings",
+          "list_plugins"
+        ]
+      },
+      "planning": {
+        "description": "Planning and workflow operations",
+        "intents": [
+          "create_plan",
+          "generate_checklist",
+          "estimate_time",
+          "suggest_workflow",
+          "schedule_session"
+        ]
+      },
+      "utility": {
+        "description": "Utility and helper operations",
+        "intents": [
+          "calculate",
+          "convert",
+          "measure",
+          "validate",
+          "help"
+        ]
+      }
+    },
+    "audio_context_examples": {
+      "equipment": ["neumann", "api", "ssl", "pro tools", "waves", "fabfilter"],
+      "parameters": {
+        "frequency": "80Hz",
+        "gain": "+3dB",
+        "ratio": "4:1",
+        "threshold": "-18dB"
+      },
+      "track_context": "lead vocal",
+      "keywords": ["microphone", "recording", "eq", "compression", "reverb"],
+      "session_phase": "mixing"
+    },
+    "performance_metrics": {
+      "execution_time": {
+        "target": "<100ms",
+        "description": "Maximum time for intent recognition"
+      },
+      "memory_usage": {
+        "target": "<1MB",
+        "description": "Maximum memory usage during processing"
+      },
+      "accuracy": {
+        "target": ">90%",
+        "description": "Intent recognition accuracy"
+      }
+    },
+    "audio_domain_features": [
+      "Audio domain vocabulary recognition",
+      "Equipment brand identification",
+      "Technical parameter extraction",
+      "Workflow context understanding",
+      "Confidence scoring with audio domain weighting",
+      "Multi-intent classification with alternatives"
+    ],
+    "version_history": [
+      {
+        "version": "1.0.0",
+        "date": "2025-10-09",
+        "changes": [
+          "Initial implementation with 40+ audio intents",
+          "Confidence scoring and alternative suggestions",
+          "Audio domain context extraction",
+          "Parameter extraction and validation",
+          "Multi-category intent classification"
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,582 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://apple-mcp.example.com/schemas/text-tools/text-normalize-tool.json",
+  "title": "Local Intelligence MCP Text Normalize Tool Schema",
+  "description": "JSON schema for the apple.text.normalize tool that cleans formatting: fixes spacing, quotes, lists, headings",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "const": "apple.text.normalize",
+      "description": "Tool identifier for the text normalization function"
+    },
+    "description": {
+      "type": "string",
+      "const": "Clean formatting: fix spacing, quotes, lists, headings",
+      "description": "Tool description explaining its purpose"
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "object"
+        },
+        "properties": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "const": "string"
+                },
+                "description": {
+                  "type": "string",
+                  "const": "Text to normalize and clean formatting (notes, logs, transcripts, or other audio-related text)"
+                }
+              },
+              "required": ["type", "description"]
+            }
+          },
+          "required": ["text"],
+          "additionalProperties": false
+        },
+        "required": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "contains": [
+            "text"
+          ],
+          "uniqueItems": true
+        }
+      },
+      "required": ["type", "properties", "required"],
+      "additionalProperties": false
+    },
+    "category": {
+      "type": "string",
+      "const": "textProcessing",
+      "description": "Tool category for organization"
+    },
+    "permissions": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["systemInfo", "fileSystemAccess", "networkAccess", "cameraAccess", "microphoneAccess"]
+      },
+      "contains": [
+        "systemInfo"
+      ],
+      "uniqueItems": true,
+      "description": "Required permissions for tool execution"
+    },
+    "offlineCapable": {
+      "type": "boolean",
+      "const": true,
+      "description": "Whether the tool can operate without internet connectivity"
+    },
+    "performance": {
+      "type": "object",
+      "properties": {
+        "maxInputLength": {
+          "type": "integer",
+          "const": 20000,
+          "description": "Maximum input text length in characters"
+        },
+        "defaultMaxOutputTokens": {
+          "type": "integer",
+          "const": 512,
+          "description": "Default maximum output tokens"
+        },
+        "p95LatencyTarget": {
+          "type": "string",
+          "const": "300ms",
+          "description": "95th percentile latency target for short prompts"
+        }
+      },
+      "required": ["maxInputLength", "defaultMaxOutputTokens", "p95LatencyTarget"],
+      "additionalProperties": false
+    },
+    "normalizationFeatures": {
+      "type": "object",
+      "properties": {
+        "spacing": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string",
+              "const": "Fixes spacing issues including extra spaces, punctuation spacing, and quote spacing"
+            },
+            "operations": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "contains": [
+                "Remove leading/trailing whitespace",
+                "Replace multiple spaces with single space",
+                "Fix spacing around punctuation",
+                "Fix spacing around brackets and quotes",
+                "Ensure single space after punctuation"
+              ],
+              "uniqueItems": true
+            }
+          },
+          "required": ["description", "operations"],
+          "additionalProperties": false
+        },
+        "quotes": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string",
+              "const": "Normalizes quotation marks and fixes unpaired quotes"
+            },
+            "operations": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "contains": [
+                "Convert smart quotes to straight quotes",
+                "Fix unpaired quotation marks",
+                "Ensure proper quote pairing"
+              ],
+              "uniqueItems": true
+            }
+          },
+          "required": ["description", "operations"],
+          "additionalProperties": false
+        },
+        "lists": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string",
+              "const": "Normalizes list formatting including bullets, numbers, and indentation"
+            },
+            "operations": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "contains": [
+                "Normalize bullet points (•, -, *, ▪, ▫, etc.)",
+                "Normalize numbered lists (1., 1), (1))",
+                "Normalize lettered lists (a., a))",
+                "Fix inconsistent list indentation"
+              ],
+              "uniqueItems": true
+            }
+          },
+          "required": ["description", "operations"],
+          "additionalProperties": false
+        },
+        "headings": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string",
+              "const": "Normalizes heading formatting including markdown and underlined headings"
+            },
+            "operations": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "contains": [
+                "Normalize markdown headings (#, ##, ###)",
+                "Convert ALL CAPS headings to markdown",
+                "Normalize underlined headings (=, -, ~)",
+                "Determine proper heading levels"
+              ],
+              "uniqueItems": true
+            }
+          },
+          "required": ["description", "operations"],
+          "additionalProperties": false
+        },
+        "punctuation": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string",
+              "const": "Fixes common punctuation issues"
+            },
+            "operations": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "contains": [
+                "Fix multiple consecutive punctuation",
+                "Normalize ellipses to ...",
+                "Fix comma spacing",
+                "Remove duplicate punctuation"
+              ],
+              "uniqueItems": true
+            }
+          },
+          "required": ["description", "operations"],
+          "additionalProperties": false
+        },
+        "lineBreaks": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string",
+              "const": "Normalizes line endings and removes excessive blank lines"
+            },
+            "operations": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "contains": [
+                "Convert Windows line endings (\\r\\n) to Unix (\\n)",
+                "Remove excessive consecutive blank lines",
+                "Ensure single newline at end of file"
+              ],
+              "uniqueItems": true
+            }
+          },
+          "required": ["description", "operations"],
+          "additionalProperties": false
+        },
+        "specialCharacters": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string",
+              "const": "Normalizes special characters and audio-specific notation"
+            },
+            "operations": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "contains": [
+                "Remove transcription artifacts ([inaudible], [laughter])",
+                "Remove parenthetical notes",
+                "Normalize timestamps (00:00:00)",
+                "Normalize track name formatting",
+                "Normalize DAW terminology"
+              ],
+              "uniqueItems": true
+            }
+          },
+          "required": ["description", "operations"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["spacing", "quotes", "lists", "headings", "punctuation", "lineBreaks", "specialCharacters"],
+      "additionalProperties": false
+    },
+    "audioDomainNormalization": {
+      "type": "object",
+      "properties": {
+        "transcriptionArtifacts": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string",
+              "const": "Removes common transcription artifacts and notes"
+            },
+            "patterns": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "examples": [
+                "[inaudible]",
+                "[laughter]",
+                "[coughs]",
+                "(phone rings)",
+                "*background noise*"
+              ]
+            }
+          },
+          "required": ["description", "patterns"],
+          "additionalProperties": false
+        },
+        "timestamps": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string",
+              "const": "Normalizes timestamp formatting"
+            },
+            "formats": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "from": {
+                    "type": "string"
+                  },
+                  "to": {
+                    "type": "string"
+                  }
+                },
+                "required": ["from", "to"]
+              },
+              "examples": [
+                {"from": "00:00:00", "to": "[00:00:00]"},
+                {"from": "0:00", "to": "[0:00]"},
+                {"from": "00:00", "to": "[00:00]"}
+              ]
+            }
+          },
+          "required": ["description", "formats"],
+          "additionalProperties": false
+        },
+        "trackNames": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string",
+              "const": "Normalizes track name formatting in session notes"
+            },
+            "patterns": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "from": {
+                    "type": "string"
+                  },
+                  "to": {
+                    "type": "string"
+                  }
+                },
+                "required": ["from", "to"]
+              },
+              "examples": [
+                {"from": "\"Vocals\" -", "to": "Track: Vocals -"},
+                {"from": "\"Drums\":", "to": "Track: Drums -"},
+                {"from": "Bass |", "to": "Track: Bass -"}
+              ]
+            }
+          },
+          "required": ["description", "patterns"],
+          "additionalProperties": false
+        },
+        "dawTerminology": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string",
+              "const": "Normalizes DAW-specific terminology and abbreviations"
+            },
+            "mappings": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "abbreviation": {
+                    "type": "string"
+                  },
+                  "fullTerm": {
+                    "type": "string"
+                  },
+                  "context": {
+                    "type": "string",
+                    "enum": ["audioEngineering", "technicalSpecs", "general"]
+                  }
+                },
+                "required": ["abbreviation", "fullTerm", "context"]
+              },
+              "examples": [
+                {"abbreviation": "EQ", "fullTerm": "equalizer", "context": "audioEngineering"},
+                {"abbreviation": "FX", "fullTerm": "effects", "context": "audioEngineering"},
+                {"abbreviation": "VST", "fullTerm": "plugin", "context": "technicalSpecs"},
+                {"abbreviation": "DAW", "fullTerm": "digital audio workstation", "context": "general"},
+                {"abbreviation": "dBFS", "fullTerm": "decibels relative to full scale", "context": "technicalSpecs"}
+              ]
+            }
+          },
+          "required": ["description", "mappings"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["transcriptionArtifacts", "timestamps", "trackNames", "dawTerminology"],
+      "additionalProperties": false
+    },
+    "processingOrder": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Order in which normalization operations are applied",
+      "items": {
+        "type": "string",
+        "enum": [
+          "spacing",
+          "quotes",
+          "lists",
+          "headings",
+          "punctuation",
+          "lineBreaks",
+          "specialCharacters"
+        ]
+      },
+      "contains": [
+        "spacing",
+        "quotes",
+        "lists",
+        "headings",
+        "punctuation",
+        "lineBreaks",
+        "specialCharacters"
+      ],
+      "uniqueItems": true
+    },
+    "audioDomain": {
+      "type": "object",
+      "properties": {
+        "specialized": {
+          "type": "boolean",
+          "const": true,
+          "description": "Tool is specialized for audio domain content"
+        },
+        "contentTypes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["sessionNotes", "transcripts", "audioLogs", "trackMetadata", "pluginDocumentation"]
+          },
+          "description": "Supported audio-related content types"
+        },
+        "specialFeatures": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Audio-specific normalization features",
+          "contains": [
+            "Transcription artifact removal",
+            "DAW terminology normalization",
+            "Track name formatting",
+            "Timestamp normalization"
+          ],
+          "uniqueItems": true
+        }
+      },
+      "required": ["specialized", "contentTypes", "specialFeatures"],
+      "additionalProperties": false
+    },
+    "outputs": {
+      "type": "object",
+      "properties": {
+        "schema": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "object"
+            },
+            "properties": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "const": "string"
+                    },
+                    "description": {
+                      "type": "string",
+                      "const": "Normalized text content with cleaned formatting"
+                    }
+                  },
+                  "required": ["type", "description"]
+                }
+              },
+              "required": ["text"],
+              "additionalProperties": false
+            },
+            "required": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "contains": [
+                "text"
+              ],
+              "uniqueItems": true
+            }
+          },
+          "required": ["type", "properties", "required"],
+          "additionalProperties": false
+        },
+        "examples": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "input": {
+                "type": "object",
+                "properties": {
+                  "text": {
+                    "type": "string"
+                  }
+                },
+                "required": ["text"]
+              },
+              "output": {
+                "type": "object",
+                "properties": {
+                  "text": {
+                    "type": "string"
+                  }
+                },
+                "required": ["text"]
+              },
+              "normalizations": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "spacing",
+                    "quotes",
+                    "lists",
+                    "headings",
+                    "punctuation",
+                    "lineBreaks",
+                    "specialCharacters"
+                  ]
+                },
+                "description": "Types of normalization applied to this example"
+              }
+            },
+            "required": ["input", "output", "normalizations"]
+          },
+          "minItems": 1,
+          "description": "Example input/output pairs for documentation"
+        }
+      },
+      "required": ["schema", "examples"],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "name",
+    "description",
+    "inputSchema",
+    "category",
+    "permissions",
+    "offlineCapable",
+    "performance",
+    "normalizationFeatures",
+    "audioDomainNormalization",
+    "processingOrder",
+    "audioDomain",
+    "outputs"
+  ],
+  "additionalProperties": false
+}

@@ -1,7 +1,7 @@
 import XCTest
-@testable import AppleMCPServer
+@testable import LocalIntelligenceMCP
 
-/// Test suite for Apple MCP Server tools
+/// Test suite for Local Intelligence MCP tools
 final class ToolsTests: XCTestCase {
 
     override func setUp() {

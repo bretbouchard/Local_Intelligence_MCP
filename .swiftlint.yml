@@ -1,4 +1,4 @@
-# SwiftLint Configuration for Apple MCP Server
+# SwiftLint Configuration for Local Intelligence MCP
 # Aligns with Swift 6.0+ and constitutional requirements
 
 disabled_rules:

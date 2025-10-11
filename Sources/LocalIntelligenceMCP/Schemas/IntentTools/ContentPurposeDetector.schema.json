@@ -1,0 +1,801 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://apple.com/mcp/schemas/intent-tools/content-purpose-detector.json",
+  "title": "Content Purpose Detector",
+  "description": "Advanced content analysis tool for detecting purpose, intent, and context behind audio session content",
+  "type": "object",
+  "tool": {
+    "name": "apple.content.purpose",
+    "description": "Detects purpose, intent, and context behind audio session content with comprehensive classification and analysis.",
+    "version": "1.0.0",
+    "category": "content-analysis",
+    "domain": "audio-production",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "content": {
+          "type": "string",
+          "description": "Audio session content to analyze (notes, transcripts, logs, documentation)",
+          "minLength": 50,
+          "maxLength": 50000,
+          "examples": [
+            "Session Notes: Today we recorded lead vocals using Neumann U87 through API 312 preamp. Client was happy with take 3. Applied gentle EQ with 2kHz boost.",
+            "Technical Log: SSL G+ Console, Pro Tools HD, 96kHz/24-bit. Used Waves CLA-76 compressor with 4:1 ratio, -18dB threshold.",
+            "Client Email: Hi team, I've reviewed the latest mix and overall it sounds great. Could we add a bit more presence to the vocals?"
+          ]
+        },
+        "content_hint": {
+          "type": "string",
+          "description": "Hint about the content type to improve classification accuracy",
+          "enum": [
+            "session_notes",
+            "transcript",
+            "technical_log",
+            "client_communication",
+            "project_documentation",
+            "troubleshooting",
+            "reference",
+            "tutorial",
+            "checklist",
+            "meeting_notes",
+            "email",
+            "chat_log",
+            "specification",
+            "review",
+            "feedback",
+            "other"
+          ]
+        },
+        "context": {
+          "type": "object",
+          "description": "Additional context about the content",
+          "properties": {
+            "author_role": {
+              "type": "string",
+              "description": "Role of the content author (engineer, producer, client, etc.)",
+              "enum": [
+                "engineer",
+                "producer",
+                "client",
+                "musician",
+                "student",
+                "technician",
+                "manager",
+                "general",
+                "legal",
+                "archivist"
+              ]
+            },
+            "project_type": {
+              "type": "string",
+              "description": "Type of audio project",
+              "enum": [
+                "music_production",
+                "post_production",
+                "live_sound",
+                "broadcast",
+                "corporate",
+                "educational",
+                "game_audio",
+                "film_audio",
+                "podcast",
+                "commercial",
+                "personal",
+                "archival"
+              ]
+            },
+            "workflow_stage": {
+              "type": "string",
+              "enum": [
+                "pre_production",
+                "recording",
+                "editing",
+                "mixing",
+                "mastering",
+                "delivery",
+                "archival",
+                "review",
+                "planning",
+                "troubleshooting"
+              ],
+              "description": "Current workflow stage of the project"
+            },
+            "audience": {
+              "type": "string",
+              "description": "Intended audience for the content",
+              "enum": [
+                "engineer",
+                "producer",
+                "client",
+                "musician",
+                "student",
+                "technician",
+                "manager",
+                "general",
+                "legal",
+                "archivist"
+              ]
+            },
+            "business_context": {
+              "type": "object",
+              "description": "Business context information",
+              "properties": {
+                "commercial_nature": {
+                  "type": "string",
+                  "enum": ["commercial", "non_profit", "personal", "educational", "research", "internal"],
+                  "description": "Commercial nature of the project"
+                },
+                "client_involvement": {
+                  "type": "string",
+                  "enum": ["none", "low", "medium", "high", "critical"],
+                  "description": "Level of client involvement"
+                },
+                "budget_constraints": {
+                  "type": "string",
+                  "description": "Budget constraints or financial considerations"
+                },
+                "timeline_constraints": {
+                  "type": "string",
+                  "description": "Timeline or deadline constraints"
+                }
+              }
+            }
+          }
+        },
+        "analysis_depth": {
+          "type": "string",
+          "description": "Depth of analysis to perform",
+          "enum": ["basic", "standard", "comprehensive"],
+          "default": "standard",
+          "examples": ["basic", "standard", "comprehensive"]
+        },
+        "include_quality_assessment": {
+          "type": "boolean",
+          "description": "Include quality assessment of the content",
+          "default": true
+        },
+        "include_business_context": {
+          "type": "boolean",
+          "description": "Include business context analysis",
+          "default": true
+        },
+        "include_sentiment_analysis": {
+          "type": "boolean",
+          "description": "Include sentiment analysis of the content",
+          "default": true
+        },
+        "include_urgency_assessment": {
+          "type": "boolean",
+          "description": "Include urgency assessment of the content",
+          "default": true
+        },
+        "extract_entities": {
+          "type": "boolean",
+          "description": "Extract entities and key information from content",
+          "default": true
+        }
+      },
+      "required": ["content"],
+      "additionalProperties": false
+    },
+    "response": {
+      "type": "object",
+      "properties": {
+        "content_type": {
+          "type": "string",
+          "description": "Detected content type",
+          "enum": [
+            "session_notes",
+            "transcript",
+            "technical_log",
+            "client_communication",
+            "project_documentation",
+            "troubleshooting",
+            "reference",
+            "tutorial",
+            "checklist",
+            "meeting_notes",
+            "email",
+            "chat_log",
+            "specification",
+            "review",
+            "feedback"
+          ]
+        },
+        "purpose": {
+          "type": "string",
+          "description": "Primary purpose of the content",
+          "enum": [
+            "informative",
+            "instructional",
+            "troubleshooting",
+            "reference",
+            "archival",
+            "decision_making",
+            "communication",
+            "planning",
+            "evaluation",
+            "documentation"
+          ]
+        },
+        "actionability": {
+          "type": "string",
+          "description": "Actionability level of the content",
+          "enum": [
+            "immediate_action",
+            "scheduled_action",
+            "conditional_action",
+            "reference_only",
+            "archival",
+            "informational"
+          ]
+        },
+        "audience": {
+          "type": "string",
+          "description": "Target audience for the content",
+          "enum": [
+            "engineer",
+            "producer",
+            "client",
+            "musician",
+            "student",
+            "technician",
+            "manager",
+            "general",
+            "legal",
+            "archivist"
+          ]
+        },
+        "workflow_stage": {
+          "type": "string",
+          "description": "Workflow stage identified in content",
+          "enum": [
+            "pre_production",
+            "recording",
+            "editing",
+            "mixing",
+            "mastering",
+            "delivery",
+            "archival",
+            "review",
+            "planning",
+            "troubleshooting"
+          ]
+        },
+        "technical_complexity": {
+          "type": "object",
+          "description": "Technical complexity assessment",
+          "properties": {
+            "level": {
+              "type": "string",
+              "description": "Complexity level",
+              "enum": ["basic", "intermediate", "advanced", "professional", "expert"]
+            },
+            "technical_terms": {
+              "type": "array",
+              "description": "Technical terms found",
+              "items": {
+                "type": "string"
+              }
+            },
+            "equipment": {
+              "type": "array",
+              "description": "Equipment mentioned",
+              "items": {
+                "type": "string"
+              }
+            },
+            "software": {
+              "type": "array",
+              "description": "Software mentioned",
+              "items": {
+                "type": "string"
+              }
+            },
+            "parameters": {
+              "type": "object",
+              "description": "Technical parameters mentioned",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "complexity_score": {
+              "type": "number",
+              "description": "Overall complexity score (0.0-1.0)",
+              "minimum": 0.0,
+              "maximum": 1.0
+            }
+          }
+        },
+        "business_context": {
+          "type": "object",
+          "description": "Business context analysis",
+          "properties": {
+            "project_type": {
+              "type": "string",
+              "description": "Project type",
+              "enum": [
+                "music_production",
+                "post_production",
+                "live_sound",
+                "broadcast",
+                "corporate",
+                "educational",
+                "game_audio",
+                "film_audio",
+                "podcast",
+                "commercial",
+                "personal",
+                "archival"
+              ]
+            },
+            "commercial_nature": {
+              "type": "string",
+              "description": "Commercial vs. personal nature",
+              "enum": ["commercial", "non_profit", "personal", "educational", "research", "internal"]
+            },
+            "client_involvement": {
+              "type": "string",
+              "description": "Client involvement level",
+              "enum": ["none", "low", "medium", "high", "critical"]
+            },
+            "budget_mentions": {
+              "type": "array",
+              "description": "Budget mentions found",
+              "items": {
+                "type": "string"
+              }
+            },
+            "timeline_mentions": {
+              "type": "array",
+              "description": "Timeline mentions found",
+              "items": {
+                "type": "string"
+              }
+            },
+            "decision_points": {
+              "type": "array",
+              "description": "Decision points identified",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "description": {
+                    "type": "string",
+                    "description": "Decision description"
+                  },
+                  "urgency": {
+                    "type": "string",
+                    "description": "Decision urgency"
+                  },
+                  "stakeholders": {
+                    "type": "array",
+                    "description": "Stakeholders involved",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "status": {
+                    "type": "string",
+                    "description": "Decision status",
+                    "enum": ["pending", "approved", "rejected", "deferred", "under_review"]
+                  }
+                },
+                "required": ["description", "status"]
+              }
+            },
+            "stakeholders": {
+              "type": "array",
+              "description": "Stakeholders mentioned",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "quality_indicators": {
+          "type": "object",
+          "description": "Content quality indicators",
+          "properties": {
+            "completeness": {
+              "type": "number",
+              "description": "Completeness score (0.0-1.0)",
+              "minimum": 0.0,
+              "maximum": 1.0
+            },
+            "clarity": {
+              "type": "number",
+              "description": "Clarity score (0.0-1.0)",
+              "minimum": 0.0,
+              "maximum": 1.0
+            },
+            "organization": {
+              "type": "number",
+              "description": "Organization score (0.0-1.0)",
+              "minimum": 0.0,
+              "maximum": 1.0
+            },
+            "technical_accuracy": {
+              "type": "number",
+              "description": "Technical accuracy score (0.0-1.0)",
+              "minimum": 0.0,
+              "maximum": 1.0
+            },
+            "action_items": {
+              "type": "array",
+              "description": "Action items identified",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "description": {
+                    "type": "string",
+                    "description": "Action item description"
+                  },
+                  "assignee": {
+                    "type": "string",
+                    "description": "Action item assignee"
+                  },
+                  "deadline": {
+                    "type": "string",
+                    "description": "Action item deadline"
+                  },
+                  "priority": {
+                    "type": "string",
+                    "description": "Action item priority",
+                    "enum": ["low", "medium", "high", "urgent", "critical"]
+                  },
+                  "category": {
+                    "type": "string",
+                    "description": "Action item category"
+                  }
+                },
+                "required": ["description", "priority"]
+              }
+            },
+            "follow_up_requirements": {
+              "type": "array",
+              "description": "Follow-up requirements",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "entities": {
+          "type": "array",
+          "description": "Extracted entities and context",
+          "items": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string",
+                "description": "Entity text"
+              },
+              "type": {
+                "type": "string",
+                "description": "Entity type",
+                "enum": [
+                  "person",
+                  "equipment",
+                  "software",
+                  "project",
+                  "location",
+                  "organization",
+                  "date",
+                  "time",
+                  "money",
+                  "technical_term",
+                  "action_item",
+                  "decision",
+                  "deadline"
+                ]
+              },
+              "confidence": {
+                "type": "number",
+                "description": "Entity confidence score",
+                "minimum": 0.0,
+                "maximum": 1.0
+              },
+              "context": {
+                "type": "string",
+                "description": "Entity context"
+              }
+            },
+            "required": ["text", "type", "confidence"]
+          }
+        },
+        "key_phrases": {
+          "type": "array",
+          "description": "Key phrases and topics",
+          "items": {
+            "type": "string"
+          }
+        },
+        "sentiment": {
+          "type": "object",
+          "description": "Sentiment analysis",
+          "properties": {
+            "sentiment": {
+              "type": "number",
+              "description": "Overall sentiment (-1.0 to 1.0)",
+              "minimum": -1.0,
+              "maximum": 1.0
+            },
+            "confidence": {
+              "type": "number",
+              "description": "Confidence in sentiment analysis (0.0-1.0)",
+              "minimum": 0.0,
+              "maximum": 1.0
+            },
+            "emotional_tone": {
+              "type": "string",
+              "description": "Emotional tone",
+              "enum": [
+                "neutral",
+                "positive",
+                "negative",
+                "excited",
+                "concerned",
+                "frustrated",
+                "satisfied",
+                "confused",
+                "confident",
+                "anxious"
+              ]
+            },
+            "professionalism": {
+              "type": "string",
+              "description": "Professionalism level",
+              "enum": [
+                "highly_professional",
+                "professional",
+                "semi_formal",
+                "casual",
+                "informal"
+              ]
+            }
+          }
+        },
+        "urgency": {
+          "type": "object",
+          "description": "Urgency assessment",
+          "properties": {
+            "urgency_level": {
+              "type": "number",
+              "description": "Urgency level (0.0-1.0)",
+              "minimum": 0.0,
+              "maximum": 1.0
+            },
+            "time_sensitivity": {
+              "type": "string",
+              "description": "Time sensitivity",
+              "enum": [
+                "immediate",
+                "same_day",
+                "this_week",
+                "next_week",
+                "this_month",
+                "routine",
+                "no_deadline"
+              ]
+            },
+            "response_timeframe": {
+              "type": "string",
+              "description": "Response timeframe"
+            },
+            "critical_issues": {
+              "type": "array",
+              "description": "Critical issues identified",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "metadata": {
+          "type": "object",
+          "description": "Processing metadata",
+          "properties": {
+            "analysis_depth": {
+              "type": "string",
+              "description": "Analysis depth performed"
+            },
+            "content_length": {
+              "type": "integer",
+              "description": "Content character count"
+            },
+            "word_count": {
+              "type": "integer",
+              "description": "Content word count"
+            },
+            "content_hint": {
+              "type": "string",
+              "description": "Content hint used"
+            },
+            "analysis_timestamp": {
+              "type": "number",
+              "description": "Analysis timestamp"
+            }
+          }
+        }
+      },
+      "required": ["content_type", "purpose", "actionability", "audience", "technical_complexity"]
+    },
+    "examples": [
+      {
+        "description": "Session notes analysis",
+        "input": {
+          "content": "Session Notes: Today we recorded lead vocals using Neumann U87 through API 312 preamp. Client was happy with take 3. Applied gentle EQ with 2kHz boost.",
+          "content_hint": "session_notes",
+          "context": {
+            "author_role": "engineer",
+            "project_type": "music_production",
+            "workflow_stage": "recording"
+          },
+          "analysis_depth": "standard"
+        }
+      },
+      {
+        "description": "Technical log analysis",
+        "input": {
+          "content": "Technical Log: SSL G+ Console, Pro Tools HD, 96kHz/24-bit. Used Waves CLA-76 compressor with 4:1 ratio, -18dB threshold.",
+          "content_hint": "technical_log",
+          "include_quality_assessment": true,
+          "include_business_context": false
+        }
+      },
+      {
+        "description": "Client communication analysis",
+        "input": {
+          "content": "Hi team, I've reviewed the latest mix and overall it sounds great. Could we add a bit more presence to the vocals? Also, we need to finish by Friday as we have a deadline.",
+          "content_hint": "client_communication",
+          "context": {
+            "author_role": "client",
+            "business_context": {
+              "commercial_nature": "commercial",
+              "client_involvement": "high"
+            }
+          },
+          "include_sentiment_analysis": true,
+          "include_urgency_assessment": true
+        }
+      },
+      {
+        "description": "Comprehensive troubleshooting analysis",
+        "input": {
+          "content": "Problem: The vocal track has a lot of background noise. I've tried using noise reduction plugins but the vocal sounds unnatural. The recording was done in a treated room with a Neumann TLM 103. Need to fix this before client review tomorrow.",
+          "content_hint": "troubleshooting",
+          "analysis_depth": "comprehensive",
+          "include_quality_assessment": true,
+          "include_business_context": true
+        }
+      }
+    ],
+    "content_types": {
+      "session_notes": {
+        "description": "Informal notes taken during recording or mixing sessions",
+        "common_purposes": ["informative", "documentation", "reference"],
+        "typical_audience": ["engineer", "producer"],
+        "technical_complexity": "intermediate"
+      },
+      "transcript": {
+        "description": "Word-for-word transcription of audio content or conversations",
+        "common_purposes": ["documentation", "reference", "archival"],
+        "typical_audience": ["general", "producer", "engineer"],
+        "technical_complexity": "basic"
+      },
+      "technical_log": {
+        "description": "Detailed technical specifications, settings, and parameters",
+        "common_purposes": ["documentation", "reference", "troubleshooting"],
+        "typical_audience": ["engineer", "technician"],
+        "technical_complexity": "advanced"
+      },
+      "client_communication": {
+        "description": "Communication with clients about project progress and decisions",
+        "common_purposes": ["communication", "decision_making", "evaluation"],
+        "typical_audience": ["client", "producer", "engineer"],
+        "technical_complexity": "basic"
+      },
+      "project_documentation": {
+        "description": "Formal project documentation and specifications",
+        "common_purposes": ["documentation", "reference", "planning"],
+        "typical_audience": ["engineer", "producer", "manager"],
+        "technical_complexity": "professional"
+      },
+      "troubleshooting": {
+        "description": "Problem-solving logs and issue resolution documentation",
+        "common_purposes": ["troubleshooting", "reference", "documentation"],
+        "typical_audience": ["engineer", "technician"],
+        "technical_complexity": "advanced"
+      }
+    },
+    "purpose_categories": {
+      "informative": {
+        "description": "Provides information and updates about status or progress",
+        "actionability": "informational",
+        "response_style": "informative"
+      },
+      "instructional": {
+        "description": "Teaches or explains how to perform specific tasks",
+        "actionability": "conditional_action",
+        "response_style": "instructional"
+      },
+      "troubleshooting": {
+        "description": "Addresses problems and provides solutions",
+        "actionability": "immediate_action",
+        "response_style": "troubleshooting"
+      },
+      "decision_making": {
+        "description": "Supports decision-making processes",
+        "actionability": "scheduled_action",
+        "response_style": "advisory"
+      },
+      "communication": {
+        "description": "Facilitates communication between stakeholders",
+        "actionability": "informational",
+        "response_style": "conversational"
+      }
+    },
+    "actionability_levels": {
+      "immediate_action": {
+        "description": "Requires immediate action or response",
+        "priority_score": 1.0,
+        "response_timeframe": "Within 1 hour"
+      },
+      "scheduled_action": {
+        "description": "Requires action at a specific future time",
+        "priority_score": 0.8,
+        "response_timeframe": "Scheduled"
+      },
+      "conditional_action": {
+        "description": "Action required if certain conditions are met",
+        "priority_score": 0.6,
+        "response_timeframe": "When triggered"
+      },
+      "reference_only": {
+        "description": "For reference only, no action required",
+        "priority_score": 0.3,
+        "response_timeframe": "No action needed"
+      },
+      "archival": {
+        "description": "For archival purposes only",
+        "priority_score": 0.1,
+        "response_timeframe": "No action needed"
+      }
+    },
+    "performance_metrics": {
+      "execution_time": {
+        "target": "<200ms",
+        "description": "Maximum time for comprehensive content analysis"
+      },
+      "memory_usage": {
+        "target": "<3MB",
+        "description": "Maximum memory usage during processing"
+      },
+      "accuracy": {
+        "target": ">90%",
+        "description": "Content type and purpose detection accuracy"
+      }
+    },
+    "audio_domain_features": [
+      "Workflow stage detection for audio production phases",
+      "Technical complexity assessment for audio engineering content",
+      "Business context analysis for commercial projects",
+      "Quality assessment for audio documentation",
+      "Action item extraction from session notes",
+      "Urgency assessment for time-sensitive content"
+    ],
+    "version_history": [
+      {
+        "version": "1.0.0",
+        "date": "2025-10-09",
+        "changes": [
+          "Initial implementation with comprehensive content analysis",
+          "15 content types with detailed classification",
+          "Business context analysis with project types",
+          "Quality assessment with action item extraction",
+          "Sentiment and urgency analysis integration"
+        ]
+      }
+    ]
+  }
+}

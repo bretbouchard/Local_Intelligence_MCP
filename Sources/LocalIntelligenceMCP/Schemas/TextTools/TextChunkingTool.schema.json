@@ -1,0 +1,267 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://apple.com/mcp/schemas/texttools/text-chunking.json",
+  "title": "Text Chunking Tool",
+  "description": "Intelligent text chunking with multiple strategies optimized for audio domain content",
+  "type": "object",
+  "tool": {
+    "name": "apple.text.chunk",
+    "description": "Chunks large text into manageable pieces while preserving context and audio session structure",
+    "version": "1.0.0",
+    "category": "text-processing",
+    "domain": "audio-production",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string",
+          "description": "Large text to be chunked (session notes, transcripts, documentation)",
+          "minLength": 500,
+          "maxLength": 1000000,
+          "examples": [
+            "Long recording session transcript with multiple tracks and takes...",
+            "Comprehensive mixing session notes spanning several hours...",
+            "Technical documentation for audio equipment setup and calibration..."
+          ]
+        },
+        "strategy": {
+          "type": "string",
+          "description": "Chunking strategy to use",
+          "enum": ["fixed", "sentence", "paragraph", "semantic", "audio_session"],
+          "default": "paragraph",
+          "examples": [
+            "fixed - Fixed-size chunks for uniform processing",
+            "sentence - Chunk by sentence boundaries for readability",
+            "paragraph - Chunk by paragraph for logical grouping",
+            "semantic - Chunk by semantic units for context preservation",
+            "audio_session - Audio session-aware chunking preserving structure"
+          ]
+        },
+        "max_chunk_size": {
+          "type": "integer",
+          "description": "Maximum chunk size in characters",
+          "minimum": 100,
+          "maximum": 10000,
+          "default": 2000,
+          "examples": [1000, 2000, 4000]
+        },
+        "overlap": {
+          "type": "integer",
+          "description": "Overlap between chunks in characters for context preservation",
+          "minimum": 0,
+          "maximum": 500,
+          "default": 100,
+          "examples": [0, 100, 200]
+        },
+        "preserve_audio_structure": {
+          "type": "boolean",
+          "description": "Preserve audio session structure (track info, timestamps, markers)",
+          "default": true
+        },
+        "include_metadata": {
+          "type": "boolean",
+          "description": "Include chunking metadata and statistics",
+          "default": true
+        },
+        "min_chunk_size": {
+          "type": "integer",
+          "description": "Minimum chunk size in characters",
+          "minimum": 50,
+          "maximum": 1000,
+          "default": 200
+        }
+      },
+      "required": ["text"],
+      "additionalProperties": false
+    },
+    "response": {
+      "type": "object",
+      "properties": {
+        "chunks": {
+          "type": "array",
+          "description": "Array of text chunks",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Unique identifier for the chunk"
+              },
+              "text": {
+                "type": "string",
+                "description": "The chunk text content"
+              },
+              "index": {
+                "type": "integer",
+                "description": "Sequential index of the chunk"
+              },
+              "metadata": {
+                "type": "object",
+                "description": "Chunk-specific metadata",
+                "properties": {
+                  "character_count": {
+                    "type": "integer",
+                    "description": "Number of characters in this chunk"
+                  },
+                  "word_count": {
+                    "type": "integer",
+                    "description": "Estimated word count"
+                  },
+                  "strategy": {
+                    "type": "string",
+                    "description": "Strategy used for this chunk"
+                  },
+                  "context preserved": {
+                    "type": "boolean",
+                    "description": "Whether audio context was preserved"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "statistics": {
+          "type": "object",
+          "description": "Chunking statistics and metadata",
+          "properties": {
+            "total_chunks": {
+              "type": "integer",
+              "description": "Total number of chunks created"
+            },
+            "original_length": {
+              "type": "integer",
+              "description": "Character count of original text"
+            },
+            "average_chunk_length": {
+              "type": "number",
+              "description": "Average chunk size in characters"
+            },
+            "strategy_used": {
+              "type": "string",
+              "description": "Primary chunking strategy used"
+            },
+            "compression_ratio": {
+              "type": "number",
+              "description": "Size reduction ratio (metadata overhead)"
+            },
+            "audio_structure_preserved": {
+              "type": "boolean",
+              "description": "Whether audio session structure was preserved"
+            }
+          }
+        },
+        "chunk_map": {
+          "type": "array",
+          "description": "Mapping of chunks to original text positions",
+          "items": {
+            "type": "object",
+            "properties": {
+              "chunk_id": {
+                "type": "string"
+              },
+              "start_position": {
+                "type": "integer"
+              },
+              "end_position": {
+                "type": "integer"
+              },
+              "overlap_next": {
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      }
+    },
+    "examples": [
+      {
+        "description": "Basic paragraph chunking for session notes",
+        "input": {
+          "text": "Today's session focused on vocal recording. Set up Neumann U87 with API 312 preamp. Recorded lead vocal for 3 hours. Client was happy with the takes. Moving on to backing vocals tomorrow.",
+          "strategy": "paragraph",
+          "max_chunk_size": 500
+        }
+      },
+      {
+        "description": "Audio session-aware chunking with structure preservation",
+        "input": {
+          "text": "[TRACK 1 - LEAD VOCAL] Take 1: Good performance, slight pitch issues. Take 2: Better, emotional delivery. Take 3: Perfect! [TRACK 2 - ACOUSTIC GUITAR] Recorded with Martin D-28, Neumann KM184 mics. [TRACK 3 - BASS] Direct input with SansAmp pedal.",
+          "strategy": "audio_session",
+          "preserve_audio_structure": true
+        }
+      },
+      {
+        "description": "Semantic chunking for long transcript",
+        "input": {
+          "text": "Long recording session transcript spanning multiple sections and topics...",
+          "strategy": "semantic",
+          "max_chunk_size": 3000,
+          "overlap": 200
+        }
+      }
+    ],
+    "strategy_details": {
+      "fixed": {
+        "description": "Creates chunks of exactly the specified size",
+        "best_for": ["Uniform processing", "API limits", "Batch operations"],
+        "preserves": ["None", just splits at character boundaries"]
+      },
+      "sentence": {
+        "description": "Chunks at sentence boundaries to maintain readability",
+        "best_for": ["Transcripts", "Documentation", "Natural language processing"],
+        "preserves": ["Sentence structure", "Grammatical integrity"]
+      },
+      "paragraph": {
+        "description": "Chunks at paragraph boundaries for logical grouping",
+        "best_for": ["Session notes", "Emails", "Written content"],
+        "preserves": ["Logical flow", "Topic grouping"]
+      },
+      "semantic": {
+        "description": "Groups related content semantically",
+        "best_for": ["Complex documents", "Mixed content", "Technical writing"],
+        "preserves": ["Context", "Topic relationships", "Meaning"]
+      },
+      "audio_session": {
+        "description": "Preserves audio session structure (tracks, takes, markers)",
+        "best_for": ["Recording session logs", "DAW exports", "Studio documentation"],
+        "preserves": ["Track information", "Take numbers", "Timestamps", "Markers"]
+      }
+    },
+    "performance_metrics": {
+      "execution_time": {
+        "target": "<100ms",
+        "description": "Maximum time for chunking processing"
+      },
+      "memory_usage": {
+        "target": "<5MB",
+        "description": "Maximum memory usage during chunking"
+      },
+      "throughput": {
+        "target": ">10000 characters/second",
+        "description": "Processing throughput for large texts"
+      }
+    },
+    "audio_domain_features": [
+      "Track boundary detection and preservation",
+      "Take number and marker recognition",
+      "Audio equipment terminology awareness",
+      "Studio workflow pattern detection",
+      "Timecode and timestamp preservation",
+      "Musical section identification (verse, chorus, bridge)",
+      "Technical parameter grouping (EQ, compression, reverb settings)"
+    ],
+    "version_history": [
+      {
+        "version": "1.0.0",
+        "date": "2025-10-08",
+        "changes": [
+          "Initial implementation with 5 chunking strategies",
+          "Audio domain awareness and structure preservation",
+          "Overlap support for context maintenance",
+          "Comprehensive metadata and statistics",
+          "Performance optimization for large texts"
+        ]
+      }
+    ]
+  }
+}

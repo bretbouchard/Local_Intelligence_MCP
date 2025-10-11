@@ -1,0 +1,103 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Catalog Summarization Tool",
+  "description": "Summarize plugin catalog entries generically (vendor-neutral)",
+  "type": "object",
+  "properties": {
+    "items": {
+      "type": "array",
+      "description": "Array of plugin items to summarize",
+      "items": {
+        "type": "object",
+        "description": "Individual plugin item",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the plugin"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the plugin"
+          },
+          "vendor": {
+            "type": "string",
+            "description": "Vendor/manufacturer of the plugin"
+          },
+          "tags": {
+            "type": "array",
+            "description": "Tags associated with the plugin",
+            "items": {
+              "type": "string"
+            }
+          },
+          "desc": {
+            "type": "string",
+            "description": "Description of the plugin (alternative to 'description')"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the plugin"
+          },
+          "price": {
+            "type": "string",
+            "description": "Price information for the plugin"
+          },
+          "category": {
+            "type": "string",
+            "description": "Category of the plugin (e.g., EQ, Compressor, Reverb)"
+          },
+          "features": {
+            "type": "array",
+            "description": "List of plugin features",
+            "items": {
+              "type": "string"
+            }
+          },
+          "compatibility": {
+            "type": "array",
+            "description": "Compatibility information (formats, platforms)",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": ["id", "name", "vendor"],
+        "additionalProperties": true
+      }
+    },
+    "focus": {
+      "type": "array",
+      "description": "Specific areas to focus on in summarization",
+      "items": {
+        "type": "string",
+        "enum": ["vintage", "analog", "digital", "modern", "professional", "budget", "experimental", "vocal", "drums", "mastering", "mixing"]
+      }
+    },
+    "grouping": {
+      "type": "string",
+      "description": "Strategy for grouping plugins in clusters",
+      "enum": ["category", "vendor", "price_range", "compatibility", "feature_similarity", "use_case", "hierarchical", "none"],
+      "default": "category"
+    },
+    "max_overviews": {
+      "type": "integer",
+      "description": "Maximum number of plugin overviews to generate",
+      "minimum": 5,
+      "maximum": 50,
+      "default": 20
+    },
+    "summary_length": {
+      "type": "string",
+      "description": "Length of summary for each plugin",
+      "enum": ["brief", "detailed", "comprehensive"],
+      "default": "detailed"
+    },
+    "include_clusters": {
+      "type": "boolean",
+      "description": "Whether to include clustering analysis",
+      "default": true
+    }
+  },
+  "required": ["items"],
+  "additionalProperties": false
+}

@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "local-intelligence-mcp": {
+      "command": "/Users/bretbouchard/apps/local_intelligence_mcp/.build/arm64-apple-macosx/release/LocalIntelligenceMCP",
+      "args": ["start-command", "--mcp-mode"],
+      "description": "Apple Ecosystem MCP Server - Provides access to Shortcuts, Voice Control, System Information, and Accessibility features"
+    }
+  }
+}

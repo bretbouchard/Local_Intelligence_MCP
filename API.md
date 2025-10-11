@@ -1,8 +1,8 @@
-# Apple MCP Server API Documentation
+# Local Intelligence MCP API Documentation
 
 ## 📚 API Overview
 
-The Apple MCP Server implements the Model Context Protocol (MCP) specification to expose Apple ecosystem capabilities to AI agents. This document provides comprehensive API documentation, examples, and integration guidance.
+The Local Intelligence MCP implements the Model Context Protocol (MCP) specification to expose Apple ecosystem capabilities to AI agents. This document provides comprehensive API documentation, examples, and integration guidance.
 
 ## 🔧 MCP Protocol Implementation
 
@@ -53,7 +53,7 @@ The Apple MCP Server implements the Model Context Protocol (MCP) specification t
       }
     },
     "serverInfo": {
-      "name": "Apple MCP Server",
+      "name": "Local Intelligence MCP",
       "version": "1.0.0"
     }
   },
@@ -572,7 +572,7 @@ The Apple MCP Server implements the Model Context Protocol (MCP) specification t
 {
   "mcpServers": {
     "apple-mcp": {
-      "command": "/path/to/apple-mcp-server",
+      "command": "/path/to/local-intelligence-mcp",
       "args": [
         "--config", "/path/to/config.json",
         "--log-level", "info"
@@ -810,7 +810,7 @@ export MCP_LOG_LEVEL=info
   },
   "logging": {
     "level": "info",
-    "file": "/var/log/apple-mcp-server.log",
+    "file": "/var/log/local-intelligence-mcp.log",
     "maxFileSize": "10MB",
     "maxFiles": 5
   }
@@ -842,10 +842,10 @@ curl -X POST http://localhost:8050/mcp \
 ### Debug Mode
 ```bash
 # Start server with debug logging
-apple-mcp-server --log-level debug --config debug.json
+local-intelligence-mcp --log-level debug --config debug.json
 
 # Enable verbose output
-apple-mcp-server --verbose --debug
+local-intelligence-mcp --verbose --debug
 ```
 
 ---

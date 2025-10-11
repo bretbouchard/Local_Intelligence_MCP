@@ -1,0 +1,167 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://apple.com/mcp/schemas/texttools/index.json",
+  "title": "Local Intelligence MCP Advanced Text Tools Schema Index",
+  "description": "Catalog of JSON schemas for Local Intelligence MCP advanced text processing tools",
+  "version": "1.0.0",
+  "category": "text-processing",
+  "domain": "audio-production",
+  "tools": [
+    {
+      "name": "Focused Summarization Tool",
+      "schema_file": "FocusedSummarizationTool.schema.json",
+      "tool_name": "apple.summarize.focus",
+      "description": "AI-powered focused summarization with coverage tracking and focus area selection",
+      "version": "1.0.0",
+      "capabilities": [
+        "Focus area selection (10 categories)",
+        "Multiple summary styles (bullet, paragraph, executive, technical)",
+        "Coverage tracking and statistics",
+        "Audio domain terminology preservation",
+        "Configurable summary length"
+      ],
+      "use_cases": [
+        "Session note summarization",
+        "Meeting transcript summarization",
+        "Technical documentation summarization",
+        "Creative brief summarization"
+      ],
+      "performance_targets": {
+        "execution_time": "<200ms",
+        "throughput": ">1000 words/second",
+        "memory_usage": "<2MB"
+      }
+    },
+    {
+      "name": "Enhanced PII Redaction Tool",
+      "schema_file": "EnhancedPIIRedactionTool.schema.json",
+      "tool_name": "apple.text.redact",
+      "description": "Advanced PII detection and redaction with configurable policies and audio domain awareness",
+      "version": "2.0.0",
+      "capabilities": [
+        "60+ PII detection patterns across 11 categories",
+        "7 redaction strategies (replace, mask, hash, partial, tokenize, fuzzy, remove)",
+        "Configurable sensitivity levels (low, medium, high, strict)",
+        "Audio domain awareness with 40+ term whitelist",
+        "Custom pattern support",
+        "Comprehensive audit logging"
+      ],
+      "use_cases": [
+        "Client communication privacy",
+        "Documentation cleaning for sharing",
+        "Compliance and data protection",
+        "Collaboration with sensitive information"
+      ],
+      "performance_targets": {
+        "execution_time": "<150ms",
+        "pattern_accuracy": ">95%",
+        "memory_usage": "<2MB"
+      }
+    },
+    {
+      "name": "Text Chunking Tool",
+      "schema_file": "TextChunkingTool.schema.json",
+      "tool_name": "apple.text.chunk",
+      "description": "Intelligent text chunking with multiple strategies optimized for audio domain content",
+      "version": "1.0.0",
+      "capabilities": [
+        "5 chunking strategies (fixed, sentence, paragraph, semantic, audio_session)",
+        "Audio session structure preservation",
+        "Configurable overlap for context maintenance",
+        "Performance optimization for large texts",
+        "Comprehensive metadata and mapping"
+      ],
+      "use_cases": [
+        "Large transcript processing",
+        "Documentation chunking for APIs",
+        "Batch processing of session notes",
+        "Context preservation across chunks"
+      ],
+      "performance_targets": {
+        "execution_time": "<100ms",
+        "throughput": ">10000 chars/second",
+        "memory_usage": "<5MB"
+      }
+    },
+    {
+      "name": "Token Count Utility",
+      "schema_file": "TokenCountUtility.schema.json",
+      "tool_name": "apple.tokens.count",
+      "description": "Advanced token counting utility for audio domain content with multiple estimation strategies",
+      "version": "1.0.0",
+      "capabilities": [
+        "5 estimation strategies (character, word, semantic, audio_optimized, mixed)",
+        "Content type specialization",
+        "Audio domain vocabulary (200+ terms)",
+        "Chunk-based analysis for large texts",
+        "Detailed breakdown and insights"
+      ],
+      "use_cases": [
+        "API token limit management",
+        "Content optimization for LLMs",
+        "Cost estimation for processing",
+        "Performance analysis and planning"
+      ],
+      "performance_targets": {
+        "execution_time": "<50ms",
+        "throughput": ">50000 chars/second",
+        "accuracy": ">95%",
+        "memory_usage": "<1MB"
+      }
+    }
+  ],
+  "common_parameters": {
+    "audio_domain_features": {
+      "technical_term_preservation": true,
+      "brand_name_recognition": true,
+      "equipment_terminology": true,
+      "studio_workflow_awareness": true
+    },
+    "security_features": {
+      "local_processing": true,
+      "no_data_retention": true,
+      "audit_logging": true,
+      "pii_protection": true
+    },
+    "performance_optimizations": {
+      "swift_6_concurrency": true,
+      "actor_isolation": true,
+      "memory_efficiency": true,
+      "async_processing": true
+    }
+  },
+  "audio_domain_specialization": {
+    "vocabulary_categories": {
+      "equipment": ["microphone", "preamp", "compressor", "EQ", "reverb", "DAW"],
+      "brands": ["Neumann", "AKG", "API", "SSL", "Waves", "Pro Tools"],
+      "technical": ["frequency", "amplitude", "kHz", "dB", "latency"],
+      "workflow": ["tracking", "mixing", "mastering", "editing"]
+    },
+    "content_types": [
+      "recording_session_notes",
+      "mixing_session_logs", 
+      "technical_documentation",
+      "transcripts",
+      "equipment_manuals",
+      "creative_briefs"
+    ]
+  },
+  "validation_and_testing": {
+    "schema_validation": true,
+    "parameter_validation": true,
+    "type_safety": true,
+    "error_handling": true
+  },
+  "version_history": [
+    {
+      "version": "1.0.0",
+      "date": "2025-10-08",
+      "changes": [
+        "Initial release with 4 advanced text tools",
+        "Comprehensive JSON schemas for all tools",
+        "Audio domain specialization",
+        "Performance optimization specifications"
+      ]
+    }
+  ]
+}

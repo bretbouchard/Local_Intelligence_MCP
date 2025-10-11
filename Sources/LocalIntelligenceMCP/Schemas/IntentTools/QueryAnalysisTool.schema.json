@@ -1,0 +1,557 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://apple.com/mcp/schemas/intent-tools/query-analysis.json",
+  "title": "Query Analysis Tool",
+  "description": "Comprehensive analysis and classification of user queries in audio domain contexts",
+  "type": "object",
+  "tool": {
+    "name": "apple.query.analyze",
+    "description": "Analyzes and classifies user queries in audio domain contexts with comprehensive categorization, expertise assessment, and response guidance.",
+    "version": "1.0.0",
+    "category": "query-analysis",
+    "domain": "audio-production",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "query": {
+          "type": "string",
+          "description": "User query or question to analyze",
+          "minLength": 10,
+          "maxLength": 1000,
+          "examples": [
+            "What's the best microphone for recording vocals under $500?",
+            "How do I set up compression for a bass guitar?",
+            "Why is my mix sounding muddy and what can I do about it?",
+            "Compare Pro Tools vs Logic Pro for professional mixing",
+            "Is it safe to use 48V phantom power with ribbon microphones?"
+          ]
+        },
+        "context": {
+          "type": "object",
+          "description": "Additional context about the user's situation or environment",
+          "properties": {
+            "expertise": {
+              "type": "string",
+              "enum": ["beginner", "intermediate", "advanced", "professional", "expert"],
+              "description": "User's expertise level in audio production"
+            },
+            "environment": {
+              "type": "string",
+              "description": "User's working environment (home studio, professional studio, etc.)"
+            },
+            "budget": {
+              "type": "string",
+              "description": "Budget constraints or financial considerations"
+            },
+            "project_type": {
+              "type": "string",
+              "description": "Type of audio project (music, podcast, film, etc.)"
+            },
+            "equipment": {
+              "type": "array",
+              "description": "Equipment currently available to the user",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "analysis_depth": {
+          "type": "string",
+          "description": "Depth of analysis to perform",
+          "enum": ["basic", "standard", "comprehensive"],
+          "default": "standard",
+          "examples": ["basic", "standard", "comprehensive"]
+        },
+        "include_safety": {
+          "type": "boolean",
+          "description": "Include safety assessment for equipment-related queries",
+          "default": true
+        },
+        "response_guidance": {
+          "type": "boolean",
+          "description": "Include response recommendations and guidance",
+          "default": true
+        },
+        "domain_focus": {
+          "type": "string",
+          "description": "Specific audio domain to focus on",
+          "enum": [
+            "recording",
+            "mixing",
+            "mastering",
+            "editing",
+            "live_sound",
+            "post_production",
+            "sound_design",
+            "broadcast",
+            "game_audio",
+            "film_audio",
+            "music_production",
+            "podcasting",
+            "streaming"
+          ]
+        }
+      },
+      "required": ["query"],
+      "additionalProperties": false
+    },
+    "response": {
+      "type": "object",
+      "properties": {
+        "category": {
+          "type": "string",
+          "description": "Query classification category",
+          "enum": [
+            "factual",
+            "technical",
+            "procedural",
+            "comparative",
+            "creative",
+            "troubleshooting",
+            "recommendation",
+            "safety",
+            "cost",
+            "workflow"
+          ]
+        },
+        "subdomain": {
+          "type": "string",
+          "description": "Audio subdomain classification",
+          "enum": [
+            "recording",
+            "mixing",
+            "mastering",
+            "editing",
+            "live_sound",
+            "post_production",
+            "sound_design",
+            "broadcast",
+            "game_audio",
+            "film_audio",
+            "music_production",
+            "podcasting",
+            "streaming",
+            "audio_forensics",
+            "audio_restoration"
+          ]
+        },
+        "expertise_level": {
+          "type": "string",
+          "description": "Required expertise level for query",
+          "enum": ["beginner", "intermediate", "advanced", "professional", "expert"]
+        },
+        "complexity_score": {
+          "type": "number",
+          "description": "Query complexity score (0.0-1.0)",
+          "minimum": 0.0,
+          "maximum": 1.0
+        },
+        "domain_relevance": {
+          "type": "number",
+          "description": "Audio domain relevance score (0.0-1.0)",
+          "minimum": 0.0,
+          "maximum": 1.0
+        },
+        "entities": {
+          "type": "array",
+          "description": "Identified entities and concepts",
+          "items": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string",
+                "description": "Entity text"
+              },
+              "type": {
+                "type": "string",
+                "description": "Entity type",
+                "enum": [
+                  "equipment",
+                  "brand",
+                  "technique",
+                  "parameter",
+                  "format",
+                  "software",
+                  "genre",
+                  "location",
+                  "person",
+                  "measurement",
+                  "currency",
+                  "time",
+                  "safety"
+                ]
+              },
+              "confidence": {
+                "type": "number",
+                "description": "Entity confidence score",
+                "minimum": 0.0,
+                "maximum": 1.0
+              },
+              "context": {
+                "type": "string",
+                "description": "Entity context"
+              }
+            },
+            "required": ["text", "type", "confidence"]
+          }
+        },
+        "technical_terms": {
+          "type": "array",
+          "description": "Technical terminology found",
+          "items": {
+            "type": "string"
+          }
+        },
+        "equipment": {
+          "type": "array",
+          "description": "Equipment mentioned",
+          "items": {
+            "type": "string"
+          }
+        },
+        "response_guidance": {
+          "type": "object",
+          "description": "Response recommendations",
+          "properties": {
+            "recommended_length": {
+              "type": "string",
+              "description": "Recommended response length",
+              "enum": ["brief", "short", "medium", "detailed", "comprehensive"]
+            },
+            "technical_detail": {
+              "type": "string",
+              "description": "Required technical detail level",
+              "enum": ["basic", "moderate", "technical", "expert"]
+            },
+            "suggested_tools": {
+              "type": "array",
+              "description": "Suggested tools to reference",
+              "items": {
+                "type": "string"
+              }
+            },
+            "response_style": {
+              "type": "string",
+              "description": "Recommended response style",
+              "enum": [
+                "informative",
+                "instructional",
+                "comparative",
+                "advisory",
+                "troubleshooting",
+                "creative",
+                "formal",
+                "conversational"
+              ]
+            },
+            "follow_up_questions": {
+              "type": "array",
+              "description": "Follow-up question suggestions",
+              "items": {
+                "type": "string"
+              }
+            },
+            "warnings": {
+              "type": "array",
+              "description": "Warning or disclaimer recommendations",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "required": ["recommended_length", "technical_detail", "response_style"]
+        },
+        "safety_assessment": {
+          "type": "object",
+          "description": "Safety and risk assessment",
+          "properties": {
+            "risk_level": {
+              "type": "number",
+              "description": "Risk level (0.0-1.0)",
+              "minimum": 0.0,
+              "maximum": 1.0
+            },
+            "concerns": {
+              "type": "array",
+              "description": "Safety concerns identified",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "description": "Concern type",
+                    "enum": [
+                      "hearing_protection",
+                      "electrical_safety",
+                      "equipment_damage",
+                      "structural",
+                      "ergonomic",
+                      "data_loss",
+                      "legal",
+                      "health"
+                    ]
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Concern description"
+                  }
+                },
+                "required": ["type", "description"]
+              }
+            },
+            "required_warnings": {
+              "type": "array",
+              "description": "Required warnings",
+              "items": {
+                "type": "string"
+              }
+            },
+            "precautions": {
+              "type": "array",
+              "description": "Recommended precautions",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "metadata": {
+          "type": "object",
+          "description": "Processing metadata",
+          "properties": {
+            "analysis_depth": {
+              "type": "string",
+              "description": "Analysis depth performed"
+            },
+            "query_length": {
+              "type": "integer",
+              "description": "Query character count"
+            },
+            "word_count": {
+              "type": "integer",
+              "description": "Query word count"
+            },
+            "analysis_timestamp": {
+              "type": "number",
+              "description": "Analysis timestamp"
+            }
+          }
+        }
+      },
+      "required": ["category", "expertise_level", "complexity_score", "domain_relevance", "response_guidance"]
+    },
+    "examples": [
+      {
+        "description": "Equipment recommendation query",
+        "input": {
+          "query": "What's the best microphone for recording vocals under $500?",
+          "context": {
+            "expertise": "intermediate",
+            "budget": "under $500",
+            "environment": "home studio"
+          },
+          "analysis_depth": "standard"
+        }
+      },
+      {
+        "description": "Technical setup question",
+        "input": {
+          "query": "How do I set up compression for a bass guitar?",
+          "context": {
+            "expertise": "beginner",
+            "equipment": ["interface", "bass guitar"],
+            "project_type": "music"
+          },
+          "include_safety": false,
+          "response_guidance": true
+        }
+      },
+      {
+        "description": "Troubleshooting query",
+        "input": {
+          "query": "Why is my mix sounding muddy and what can I do about it?",
+          "analysis_depth": "comprehensive",
+          "include_safety": false
+        }
+      },
+      {
+        "description": "Comparative query with safety considerations",
+        "input": {
+          "query": "Is it safe to use 48V phantom power with ribbon microphones?",
+          "include_safety": true,
+          "response_guidance": true
+        }
+      },
+      {
+        "description": "Domain-focused query",
+        "input": {
+          "query": "Compare Pro Tools vs Logic Pro for professional mixing",
+          "domain_focus": "mixing",
+          "context": {
+            "expertise": "professional",
+            "project_type": "music"
+          }
+        }
+      }
+    ],
+    "query_categories": {
+      "factual": {
+        "description": "Simple factual questions about equipment, terms, or concepts",
+        "keywords": ["what is", "define", "explain", "tell me about"],
+        "recommended_response": "brief to short",
+        "technical_detail": "basic to moderate"
+      },
+      "technical": {
+        "description": "Technical questions about settings, parameters, or specifications",
+        "keywords": ["how to", "settings", "parameters", "configure"],
+        "recommended_response": "medium to detailed",
+        "technical_detail": "moderate to technical"
+      },
+      "procedural": {
+        "description": "Questions about processes, workflows, or step-by-step instructions",
+        "keywords": ["steps", "process", "workflow", "how do i"],
+        "recommended_response": "detailed",
+        "technical_detail": "moderate to technical"
+      },
+      "comparative": {
+        "description": "Questions comparing equipment, techniques, or approaches",
+        "keywords": ["compare", "versus", "vs", "difference", "better"],
+        "recommended_response": "medium to detailed",
+        "technical_detail": "moderate"
+      },
+      "creative": {
+        "description": "Subjective questions about creativity, opinion, or artistic choices",
+        "keywords": ["creative", "opinion", "feel", "sound", "style"],
+        "recommended_response": "medium",
+        "technical_detail": "basic to moderate"
+      },
+      "troubleshooting": {
+        "description": "Problem-solving questions about issues or malfunctions",
+        "keywords": ["problem", "issue", "not working", "fix", "troubleshoot"],
+        "recommended_response": "detailed to comprehensive",
+        "technical_detail": "technical to expert",
+        "include_safety": true
+      },
+      "recommendation": {
+        "description": "Questions seeking advice or recommendations",
+        "keywords": ["recommend", "suggest", "what should", "best"],
+        "recommended_response": "medium to detailed",
+        "technical_detail": "moderate"
+      },
+      "safety": {
+        "description": "Questions about safety, precautions, or potential risks",
+        "keywords": ["safe", "dangerous", "risk", "warning", "precaution"],
+        "recommended_response": "detailed",
+        "technical_detail": "moderate to technical",
+        "include_safety": true
+      },
+      "cost": {
+        "description": "Questions about pricing, budget, or financial considerations",
+        "keywords": ["price", "cost", "budget", "cheap", "expensive"],
+        "recommended_response": "short to medium",
+        "technical_detail": "basic"
+      },
+      "workflow": {
+        "description": "Questions about session organization, planning, or project management",
+        "keywords": ["workflow", "session", "project", "organize", "manage"],
+        "recommended_response": "medium to detailed",
+        "technical_detail": "moderate"
+      }
+    },
+    "expertise_levels": {
+      "beginner": {
+        "description": "Basic concepts, simple terminology, fundamental operations",
+        "technical_detail": "basic",
+        "response_style": "instructional",
+        "recommended_length": "short to medium"
+      },
+      "intermediate": {
+        "description": "Some technical knowledge, common equipment familiarity",
+        "technical_detail": "moderate",
+        "response_style": "informative",
+        "recommended_length": "medium"
+      },
+      "advanced": {
+        "description": "Deep technical knowledge, professional equipment experience",
+        "technical_detail": "technical",
+        "response_style": "informative",
+        "recommended_length": "medium to detailed"
+      },
+      "professional": {
+        "description": "Industry-level expertise, commercial studio experience",
+        "technical_detail": "technical to expert",
+        "response_style": "formal",
+        "recommended_length": "detailed"
+      },
+      "expert": {
+        "description": "Specialized knowledge, rare or advanced techniques",
+        "technical_detail": "expert",
+        "response_style": "formal",
+        "recommended_length": "detailed to comprehensive"
+      }
+    },
+    "safety_concerns": {
+      "hearing_protection": {
+        "description": "Risk of hearing damage from high sound levels",
+        "warnings": ["Always use hearing protection when working with high sound levels"],
+        "precautions": ["Start with low monitoring levels and gradually increase"]
+      },
+      "electrical_safety": {
+        "description": "Electrical hazards, shock risk, power safety",
+        "warnings": ["Ensure all electrical equipment is properly grounded and inspected"],
+        "precautions": ["Turn off power before making connections"]
+      },
+      "equipment_damage": {
+        "description": "Risk of damaging audio equipment",
+        "warnings": ["Incorrect settings or connections may damage equipment"],
+        "precautions": ["Consult equipment manuals before making changes"]
+      },
+      "structural": {
+        "description": "Physical safety, mounting, weight distribution",
+        "warnings": ["Ensure all equipment is properly mounted and secured"],
+        "precautions": ["Check weight limits and mounting specifications"]
+      },
+      "ergonomic": {
+        "description": "Physical strain, repetitive stress, posture",
+        "warnings": ["Take regular breaks and maintain proper posture"],
+        "precautions": ["Adjust chair and monitor heights for ergonomics"]
+      }
+    },
+    "performance_metrics": {
+      "execution_time": {
+        "target": "<150ms",
+        "description": "Maximum time for comprehensive query analysis"
+      },
+      "memory_usage": {
+        "target": "<2MB",
+        "description": "Maximum memory usage during processing"
+      },
+      "accuracy": {
+        "target": ">85%",
+        "description": "Query classification accuracy"
+      }
+    },
+    "audio_domain_features": [
+      "Equipment and brand recognition with context",
+      "Technical terminology complexity assessment",
+      "Workflow stage identification",
+      "Expertise level requirements analysis",
+      "Safety and risk assessment",
+      "Response guidance with technical detail levels"
+    ],
+    "version_history": [
+      {
+        "version": "1.0.0",
+        "date": "2025-10-09",
+        "changes": [
+          "Initial implementation with comprehensive query analysis",
+          "10 query categories with detailed classification",
+          "Expertise level assessment and complexity scoring",
+          "Safety assessment with risk evaluation",
+          "Response guidance with detailed recommendations"
+        ]
+      }
+    ]
+  }
+}

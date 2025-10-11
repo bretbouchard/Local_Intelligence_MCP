@@ -1,0 +1,264 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://apple.com/mcp/schemas/texttools/enhanced-pii-redaction.json",
+  "title": "Enhanced PII Redaction Tool",
+  "description": "Advanced PII detection and redaction with configurable policies and audio domain awareness",
+  "type": "object",
+  "tool": {
+    "name": "apple.text.redact",
+    "description": "Redacts personally identifiable information from audio session notes and transcripts while preserving audio-specific technical content",
+    "version": "2.0.0",
+    "category": "security",
+    "domain": "audio-production",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string",
+          "description": "Audio session notes, transcripts, or technical documentation containing potential PII",
+          "minLength": 10,
+          "maxLength": 100000,
+          "examples": [
+            "Client: John Smith, email: john@email.com, phone: 555-123-4567. Session notes: Used Neumann U87 microphone through API 312 preamp...",
+            "Studio contact: info@recordingstudio.com, address: 123 Music Street. Equipment: SSL console, Pro Tools HD..."
+          ]
+        },
+        "mode": {
+          "type": "string",
+          "description": "Redaction strategy to apply",
+          "enum": ["replace", "hash", "mask", "partial", "tokenize", "fuzzy", "remove"],
+          "default": "replace",
+          "examples": [
+            "replace - Replace PII with generic placeholders (e.g., [NAME], [PHONE])",
+            "hash - Replace PII with SHA256 hash values",
+            "mask - Replace all characters with mask character (e.g., ****)",
+            "partial - Partially mask PII (e.g., J*** D*****, 555-***-1234)",
+            "tokenize - Replace with token indicating length (e.g., [TOKEN_8CHARS])",
+            "fuzzy - Apply fuzzy masking with variable obfuscation",
+            "remove - Completely remove PII instances"
+          ]
+        },
+        "categories": {
+          "type": "array",
+          "description": "PII categories to detect and redact",
+          "items": {
+            "type": "string",
+            "enum": [
+              "email",
+              "phone", 
+              "ssn",
+              "creditCard",
+              "address",
+              "dateOfBirth",
+              "id",
+              "financial",
+              "medical",
+              "custom",
+              "audioDomain"
+            ]
+          },
+          "default": ["email", "phone", "ssn", "creditCard", "address", "dateOfBirth", "id", "financial"],
+          "examples": [
+            ["email", "phone", "names"],
+            ["ssn", "creditCard", "financial"],
+            ["email", "phone", "address", "id"]
+          ]
+        },
+        "sensitivity": {
+          "type": "string",
+          "description": "Detection sensitivity level",
+          "enum": ["low", "medium", "high", "strict"],
+          "default": "medium",
+          "examples": [
+            "low - Fewer false positives, may miss some PII",
+            "medium - Balanced approach",
+            "high - Catches more potential PII, more false positives", 
+            "strict - Only high-confidence detections"
+          ]
+        },
+        "preserve_audio_terms": {
+          "type": "boolean",
+          "description": "Preserve audio-specific terms even if they might be mistaken for PII",
+          "default": true
+        },
+        "custom_patterns": {
+          "type": "array",
+          "description": "Custom regex patterns for PII detection",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Pattern name for reference"
+              },
+              "pattern": {
+                "type": "string", 
+                "description": "Regex pattern to match"
+              },
+              "replacement": {
+                "type": "string",
+                "description": "Custom replacement text (optional)"
+              }
+            },
+            "required": ["name", "pattern"]
+          },
+          "default": []
+        },
+        "whitelist": {
+          "type": "array",
+          "description": "Terms that should never be redacted (e.g., studio names, common audio terms)",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        }
+      },
+      "required": ["text"],
+      "additionalProperties": false
+    },
+    "response": {
+      "type": "object",
+      "properties": {
+        "redacted_text": {
+          "type": "string",
+          "description": "Text with PII redacted according to specified policies"
+        },
+        "statistics": {
+          "type": "object",
+          "properties": {
+            "original_length": {
+              "type": "integer",
+              "description": "Character count of original text"
+            },
+            "redacted_length": {
+              "type": "integer", 
+              "description": "Character count after redaction"
+            },
+            "instances_redacted": {
+              "type": "integer",
+              "description": "Total number of PII instances redacted"
+            },
+            "categories_processed": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "PII categories that were processed"
+            },
+            "redaction_rate": {
+              "type": "number",
+              "description": "Percentage of text that was redacted"
+            }
+          }
+        },
+        "detections_found": {
+          "type": "array",
+          "description": "Details of PII detections that were redacted",
+          "items": {
+            "type": "object",
+            "properties": {
+              "category": {
+                "type": "string",
+                "description": "PII category type"
+              },
+              "matched_text": {
+                "type": "string",
+                "description": "The PII text that was detected"
+              },
+              "replacement": {
+                "type": "string",
+                "description": "What the PII was replaced with"
+              },
+              "confidence": {
+                "type": "number",
+                "description": "Detection confidence score (0.0-1.0)"
+              },
+              "severity": {
+                "type": "string",
+                "description": "Severity level of the PII detection",
+                "enum": ["low", "medium", "high", "critical"]
+              }
+            }
+          }
+        }
+      }
+    },
+    "examples": [
+      {
+        "description": "Basic PII redaction with default settings",
+        "input": {
+          "text": "Client John Smith (john.smith@email.com, 555-123-4567) arrived at 2PM for recording session. Used Neumann U87 microphone.",
+          "mode": "replace"
+        }
+      },
+      {
+        "description": "High sensitivity redaction with masking",
+        "input": {
+          "text": "Producer Jane Doe (jane@producer.com) discussed budget $5000 with client. Session at Studio A, 123 Music St.",
+          "mode": "mask", 
+          "sensitivity": "high",
+          "categories": ["email", "phone", "address", "financial"]
+        }
+      },
+      {
+        "description": "Audio domain aware redaction with custom whitelist",
+        "input": {
+          "text": "Engineer Bob Wilson (bob@studiopro.com) setup SSL console with Waves plugins. Client: Major Record Label.",
+          "preserve_audio_terms": true,
+          "whitelist": ["SSL", "Waves", "Major Record Label"]
+        }
+      }
+    ],
+    "performance_metrics": {
+      "execution_time": {
+        "target": "<150ms",
+        "description": "Maximum time for PII detection and redaction"
+      },
+      "memory_usage": {
+        "target": "<2MB",
+        "description": "Maximum memory usage during processing"
+      },
+      "pattern_accuracy": {
+        "target": ">95%",
+        "description": "Accuracy of PII detection patterns"
+      }
+    },
+    "security_considerations": [
+      "All PII detection and redaction happens locally with no external data transmission",
+      "Audio domain terms are preserved to maintain technical accuracy",
+      "Configurable sensitivity levels allow for different security requirements",
+      "Comprehensive audit logging for compliance requirements",
+      "HIPAA compliance for medical information in audio contexts"
+    ],
+    "audio_domain_features": [
+      "40+ audio terms whitelist (EQ, compressor, reverb, DAW, plugin names)",
+      "Studio brand preservation (Neumann, AKG, SSL, Waves, Universal Audio)",
+      "Technical terminology protection (frequency, amplitude, mix, master)",
+      "Session context awareness (artist names vs brand names)",
+      "Music industry pattern recognition (label contracts, performance rights)"
+    ],
+    "version_history": [
+      {
+        "version": "2.0.0",
+        "date": "2025-10-08",
+        "changes": [
+          "Enhanced PII detection with 60+ patterns across 11 categories",
+          "Configurable redaction policies with 7 strategies",
+          "Audio domain awareness with whitelist preservation",
+          "Multiple sensitivity levels with confidence scoring",
+          "Custom pattern support and validation",
+          "Comprehensive audit logging and statistics"
+        ]
+      },
+      {
+        "version": "1.0.0",
+        "date": "2025-10-07",
+        "changes": [
+          "Initial basic PII redaction implementation",
+          "Standard pattern matching for common PII types",
+          "Simple replace/remove strategies"
+        ]
+      }
+    ]
+  }
+}

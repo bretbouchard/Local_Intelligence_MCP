@@ -1,0 +1,398 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://apple.com/mcp/schemas/extraction/SchemaExtractionTool.schema.json",
+  "title": "Schema Extraction Tool",
+  "description": "Extract structured fields from free text according to provided schema for audio domain content",
+  "type": "object",
+  "version": "1.0.0",
+  "tool_name": "apple.schema.extract",
+  "category": "extraction",
+  "domain": "audio-production",
+
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "text": {
+        "type": "string",
+        "description": "Text content to extract structured data from",
+        "minLength": 1,
+        "maxLength": 20000,
+        "examples": [
+          "Recorded lead vocals using Neumann U87 through API 312 preamp at 24-bit/96kHz",
+          "Mixed the bass track with SSL console, applied 3dB boost at 80Hz",
+          "Session notes: Client needs the project mastered by Friday, budget $500"
+        ]
+      },
+      "schema": {
+        "type": "object",
+        "description": "JSON schema defining the structure of data to extract",
+        "properties": {
+          "type": {
+            "type": "object",
+            "description": "Schema type definition"
+          },
+          "required": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "List of required fields"
+          },
+          "properties": {
+            "type": "object",
+            "description": "Field definitions with types and constraints"
+          }
+        },
+        "required": ["type"],
+        "examples": [
+          {
+            "type": "object",
+            "properties": {
+              "equipment": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "technical_specs": {
+                "type": "object",
+                "properties": {
+                  "sample_rate": {"type": "number"},
+                  "bit_depth": {"type": "number"}
+                }
+              }
+            },
+            "required": ["equipment"]
+          }
+        ]
+      },
+      "audio_context": {
+        "type": "object",
+        "description": "Audio domain context for improved extraction accuracy",
+        "properties": {
+          "domain": {
+            "type": "string",
+            "enum": ["recording", "mixing", "mastering", "live_sound", "post_production", "general"],
+            "default": "general",
+            "description": "Audio domain specialization"
+          },
+          "document_type": {
+            "type": "string",
+            "enum": ["session_notes", "technical_specs", "client_communication", "equipment_list", "invoice", "general"],
+            "default": "general",
+            "description": "Type of document being processed"
+          },
+          "confidence_threshold": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0,
+            "default": 0.7,
+            "description": "Minimum confidence threshold for extracted entities"
+          },
+          "extract_entities": {
+            "type": "boolean",
+            "default": true,
+            "description": "Whether to extract audio domain entities"
+          }
+        }
+      }
+    },
+    "required": ["text", "schema"],
+    "additionalProperties": false
+  },
+
+  "output_schema": {
+    "type": "object",
+    "properties": {
+      "extractedObject": {
+        "type": "object",
+        "description": "Structured object extracted from text according to schema",
+        "examples": [
+          {
+            "equipment": ["Neumann U87", "API 312"],
+            "technical_specs": {
+              "sample_rate": 96000,
+              "bit_depth": 24
+            },
+            "microphone": "Neumann U87",
+            "frequency": 80,
+            "decibel": 3
+          }
+        ]
+      },
+      "validity": {
+        "type": "number",
+        "minimum": 0.0,
+        "maximum": 1.0,
+        "description": "How well the extracted object matches the required schema (1.0 = perfect match)",
+        "examples": [0.85, 1.0, 0.6]
+      },
+      "confidence": {
+        "type": "number",
+        "minimum": 0.0,
+        "maximum": 1.0,
+        "description": "Overall confidence in the extraction results",
+        "examples": [0.92, 0.78, 0.65]
+      },
+      "missingFields": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "Required fields that could not be extracted from the text",
+        "examples": [["client_name", "deadline"], []]
+      },
+      "extractedEntities": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "microphone", "preamplifier", "console", "plugin", "daw", "interface",
+                "frequency", "decibel", "bitrate", "samplerate", "bitdepth", "format", "codec",
+                "duration", "timestamp", "tempo", "timesignature",
+                "recording", "mixing", "mastering", "editing", "processing",
+                "client", "project", "session", "price", "date",
+                "rating", "sentiment", "urgency"
+              ],
+              "description": "Type of extracted entity"
+            },
+            "text": {
+              "type": "string",
+              "description": "Original text that was matched"
+            },
+            "value": {
+              "description": "Normalized value of the entity"
+            },
+            "confidence": {
+              "type": "number",
+              "minimum": 0.0,
+              "maximum": 1.0,
+              "description": "Confidence score for this entity extraction"
+            },
+            "startIndex": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Character position where entity starts in original text"
+            },
+            "endIndex": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Character position where entity ends in original text"
+            },
+            "context": {
+              "type": "string",
+              "description": "Surrounding text context for the entity"
+            }
+          },
+          "required": ["type", "text", "value", "confidence", "startIndex", "endIndex", "context"]
+        },
+        "description": "All entities extracted from the text with their metadata"
+      },
+      "metadata": {
+        "type": "object",
+        "properties": {
+          "processingTime": {
+            "type": "number",
+            "description": "Time taken to process the extraction (seconds)"
+          },
+          "textLength": {
+            "type": "integer",
+            "description": "Length of the input text"
+          },
+          "entityCount": {
+            "type": "integer",
+            "description": "Total number of entities extracted"
+          },
+          "audioDomain": {
+            "type": "string",
+            "description": "Detected audio domain for the content"
+          },
+          "extractionStrategy": {
+            "type": "string",
+            "description": "Strategy used for extraction"
+          }
+        }
+      }
+    },
+    "required": ["extractedObject", "validity"],
+    "additionalProperties": false
+  },
+
+  "examples": [
+    {
+      "description": "Extract equipment and technical specs from session notes",
+      "input": {
+        "text": "Setup for today's session: Neumann U87 microphone through API 312 preamp, recording at 24-bit/96kHz into Pro Tools. Client wants warm vocal sound.",
+        "schema": {
+          "type": "object",
+          "properties": {
+            "microphone": {"type": "string"},
+            "preamplifier": {"type": "string"},
+            "sample_rate": {"type": "number"},
+            "bit_depth": {"type": "number"},
+            "software": {"type": "string"}
+          },
+          "required": ["microphone", "preamplifier"]
+        },
+        "audio_context": {
+          "domain": "recording",
+          "document_type": "session_notes"
+        }
+      },
+      "output": {
+        "extractedObject": {
+          "microphone": "Neumann U87",
+          "preamplifier": "API 312",
+          "sample_rate": 96000,
+          "bit_depth": 24,
+          "software": "Pro Tools"
+        },
+        "validity": 1.0,
+        "confidence": 0.92,
+        "missingFields": [],
+        "extractedEntities": [
+          {
+            "type": "microphone",
+            "text": "Neumann U87",
+            "value": "Neumann U87",
+            "confidence": 0.95,
+            "startIndex": 24,
+            "endIndex": 35,
+            "context": "Setup for today's session: Neumann U87 microphone through API 312 preamp"
+          },
+          {
+            "type": "preamplifier",
+            "text": "API 312",
+            "value": "API 312",
+            "confidence": 0.9,
+            "startIndex": 46,
+            "endIndex": 53,
+            "context": "Neumann U87 microphone through API 312 preamp, recording at"
+          }
+        ],
+        "metadata": {
+          "processingTime": 0.034,
+          "textLength": 142,
+          "entityCount": 4,
+          "audioDomain": "recording",
+          "extractionStrategy": "hybrid_pattern_ml"
+        }
+      }
+    },
+    {
+      "description": "Extract mixing parameters from technical notes",
+      "input": {
+        "text": "Bass track processing: Applied compression with 4:1 ratio, threshold at -18dB. Added 3dB boost at 80Hz using SSL channel EQ.",
+        "schema": {
+          "type": "object",
+          "properties": {
+            "instrument": {"type": "string"},
+            "compression_ratio": {"type": "string"},
+            "threshold": {"type": "number"},
+            "eq_frequency": {"type": "number"},
+            "eq_gain": {"type": "number"},
+            "console": {"type": "string"}
+          }
+        }
+      },
+      "output": {
+        "extractedObject": {
+          "instrument": "bass",
+          "compression_ratio": "4:1",
+          "threshold": -18,
+          "eq_frequency": 80,
+          "eq_gain": 3,
+          "console": "SSL"
+        },
+        "validity": 0.83,
+        "confidence": 0.88,
+        "missingFields": [],
+        "extractedEntities": [
+          {
+            "type": "decibel",
+            "text": "-18dB",
+            "value": -18,
+            "confidence": 0.85,
+            "startIndex": 63,
+            "endIndex": 68,
+            "context": "threshold at -18dB. Added 3dB boost at 80Hz using"
+          },
+          {
+            "type": "frequency",
+            "text": "80Hz",
+            "value": 80,
+            "confidence": 0.9,
+            "startIndex": 85,
+            "endIndex": 89,
+            "context": "Added 3dB boost at 80Hz using SSL channel EQ"
+          }
+        ],
+        "metadata": {
+          "processingTime": 0.028,
+          "textLength": 118,
+          "entityCount": 6,
+          "audioDomain": "mixing",
+          "extractionStrategy": "hybrid_pattern_ml"
+        }
+      }
+    }
+  ],
+
+  "performance_targets": {
+    "execution_time": "<200ms",
+    "memory_usage": "<5MB",
+    "accuracy": ">85% for standard entities, >70% for complex entities"
+  },
+
+  "entity_types": {
+    "equipment": {
+      "microphone": ["Neumann", "AKG", "Shure", "Sennheiser", "Audio-Technica", "Rode"],
+      "console": ["SSL", "Neve", "API", "Focusrite", "Universal Audio"],
+      "plugin": ["Waves", "Fabfilter", "UAD", "Native Instruments", "Soundtoys"],
+      "daw": ["Pro Tools", "Logic Pro", "Ableton Live", "Cubase", "FL Studio"]
+    },
+    "technical": {
+      "frequency": {"patterns": ["\\d+(\\.\\d+)?\\s*(Hz|kHz)"], "unit": "Hz"},
+      "decibel": {"patterns": ["-?\\d+(\\.\\d+)?\\s*dB"], "unit": "dB"},
+      "samplerate": {"patterns": ["\\d+(\\.\\d+)?\\s*(Hz|kHz)"], "unit": "Hz"},
+      "bitdepth": {"patterns": ["\\d+-?bit"], "unit": "bit"}
+    },
+    "workflow": {
+      "actions": ["record", "mix", "master", "edit", "process", "capture", "enhance"],
+      "stages": ["tracking", "overdubbing", "editing", "mixing", "mastering", "delivery"]
+    }
+  },
+
+  "error_handling": {
+    "invalid_schema": {
+      "code": "E_SCHEMA",
+      "message": "Provided schema is invalid or malformed"
+    },
+    "extraction_failed": {
+      "code": "E_EXTRACT",
+      "message": "Failed to extract data according to schema"
+    },
+    "confidence_too_low": {
+      "code": "E_CONFIDENCE",
+      "message": "Extraction confidence below threshold"
+    }
+  },
+
+  "integration_notes": {
+    "best_practices": [
+      "Provide specific schemas with clear field types for better accuracy",
+      "Use audio_context to improve domain-specific extraction",
+      "Set appropriate confidence thresholds based on use case requirements",
+      "Handle missing required fields in validity scoring"
+    ],
+    "use_cases": [
+      "Extract equipment lists from session documentation",
+      "Parse technical specifications from equipment manuals",
+      "Structure client requirements from communication logs",
+      "Extract project metadata from file names and folders"
+    ]
+  }
+}

@@ -1,0 +1,164 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://apple.com/mcp/schemas/texttools/schema-validation.json",
+  "title": "Schema Validation Configuration",
+  "description": "Validation configuration and testing schemas for Local Intelligence MCP text tools",
+  "type": "object",
+  "version": "1.0.0",
+  "validation_rules": {
+    "required_fields": {
+      "tool_schema": [
+        "$schema",
+        "$id",
+        "title",
+        "description",
+        "tool.name",
+        "tool.description",
+        "tool.version",
+        "tool.parameters",
+        "tool.response"
+      ],
+      "parameters": [
+        "type",
+        "properties"
+      ],
+      "response": [
+        "type",
+        "properties"
+      ]
+    },
+    "format_requirements": {
+      "json_schema_version": "draft-07",
+      "id_format": "https://apple.com/mcp/schemas/texttools/{tool-name}.json",
+      "version_format": "semantic.versioning",
+      "description_max_length": 500
+    },
+    "audio_domain_requirements": {
+      "must_include_audio_examples": true,
+      "must_have_audio_domain_features": true,
+      "must_include_performance_metrics": true,
+      "must_specify_audio_content_types": true
+    }
+  },
+  "test_suites": {
+    "parameter_validation": {
+      "description": "Test parameter validation against schemas",
+      "test_cases": [
+        {
+          "tool": "apple.summarize.focus",
+          "valid_input": {
+            "text": "Recording session with Neumann U87 microphone, SSL console, Pro Tools HD",
+            "focus_areas": ["recording", "technical"],
+            "style": "bullet",
+            "max_points": 10
+          },
+          "invalid_input": {
+            "text": "",
+            "focus_areas": ["invalid_category"],
+            "style": "invalid_style",
+            "max_points": 25
+          }
+        },
+        {
+          "tool": "apple.text.redact",
+          "valid_input": {
+            "text": "Contact: John Smith (john@email.com, 555-123-4567)",
+            "mode": "replace",
+            "categories": ["email", "phone"],
+            "sensitivity": "medium"
+          },
+          "invalid_input": {
+            "text": "",
+            "mode": "invalid_mode",
+            "categories": ["invalid_category"],
+            "sensitivity": "invalid_sensitivity"
+          }
+        }
+      ]
+    },
+    "response_validation": {
+      "description": "Test response format validation",
+      "expected_structure": {
+        "apple.summarize.focus": {
+          "summary": "string",
+          "coverage_analysis": "object",
+          "statistics": "object"
+        },
+        "apple.text.redact": {
+          "redacted_text": "string",
+          "statistics": "object",
+          "detections_found": "array"
+        },
+        "apple.text.chunk": {
+          "chunks": "array",
+          "statistics": "object",
+          "chunk_map": "array"
+        },
+        "apple.tokens.count": {
+          "token_count": "integer",
+          "analysis": "object",
+          "breakdown": "object"
+        }
+      }
+    }
+  },
+  "performance_benchmarks": {
+    "execution_time_limits": {
+      "apple.summarize.focus": 200,
+      "apple.text.redact": 150,
+      "apple.text.chunk": 100,
+      "apple.tokens.count": 50
+    },
+    "memory_limits": {
+      "apple.summarize.focus": 3,
+      "apple.text.redact": 2,
+      "apple.text.chunk": 5,
+      "apple.tokens.count": 1
+    },
+    "throughput_minimums": {
+      "apple.summarize.focus": 1000,
+      "apple.text.redact": 5000,
+      "apple.text.chunk": 10000,
+      "apple.tokens.count": 50000
+    }
+  },
+  "schema_compliance": {
+    "json_schema_compliance": {
+      "standard": "JSON Schema Draft-07",
+      "validation_level": "strict",
+      "additional_properties": "controlled"
+    },
+    "mcp_protocol_compliance": {
+      "tool_registration": true,
+      "parameter_handling": true,
+      "response_formatting": true,
+      "error_reporting": true
+    },
+    "apple_guidelines": {
+      "naming_conventions": true,
+      "documentation_standards": true,
+      "accessibility_requirements": true,
+      "security_guidelines": true
+    }
+  },
+  "validation_reports": {
+    "schema_health_check": {
+      "description": "Comprehensive health check for all schemas",
+      "checks": [
+        "schema_validity",
+        "parameter_completeness",
+        "response_structure",
+        "example_validity",
+        "audio_domain_compliance",
+        "performance_specifications"
+      ],
+      "report_format": {
+        "overall_status": "enum: [healthy, warning, error]",
+        "schema_count": "integer",
+        "issues_found": "array",
+        "recommendations": "array",
+        "last_checked": "datetime"
+      }
+    }
+  }
+}
