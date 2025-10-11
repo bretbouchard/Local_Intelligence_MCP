@@ -1,24 +1,54 @@
-# apple_mpc Development Guidelines
+# Local Intelligence MCP Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2025-10-07
+Auto-generated from all feature plans. Last updated: 2025-10-10
 
 ## Active Technologies
-- Swift 6.0+ (official MCP SDK requirement) + SwiftNIO, Foundation, AppKit/UIKit, modelcontextprotocol/swift-sdk, AnyCodable (001-local-intelligence-mcp)
+- Swift 6.0+ with MCP SDK + SwiftNIO, Foundation, AppKit/UIKit, modelcontextprotocol/swift-sdk, AnyCodable
 
 ## Project Structure
 ```
-src/
-tests/
+Sources/LocalIntelligenceMCP/
+├── Core/                # MCP protocol implementation
+├── Tools/               # MCP tool implementations  
+├── Services/            # Service integrations
+├── Security/            # Privacy and security features
+├── Models/              # Data models
+└── Utils/               # Common utilities
+
+Tests/LocalIntelligenceMCPTests/
+├── Integration/         # End-to-end workflow testing
+├── Tools/               # Individual tool testing
+└── Unit/                # Component testing
 ```
 
 ## Commands
-# Add commands for Swift 6.0+ (official MCP SDK requirement)
+
+### Build and Run
+```bash
+swift build -c release
+swift run LocalIntelligenceMCP
+```
+
+### Testing
+```bash
+swift test
+swift test --filter SecurityAuditTests
+```
+
+### Docker
+```bash
+docker-compose up -d
+./docker-manager.sh start
+```
 
 ## Code Style
-Swift 6.0+ (official MCP SDK requirement): Follow standard conventions
+Swift 6.0+ with strict concurrency: Follow standard conventions with actor-based design
 
 ## Recent Changes
-- 001-local-intelligence-mcp: Added Swift 6.0+ (official MCP SDK requirement) + SwiftNIO, Foundation, AppKit/UIKit, modelcontextprotocol/swift-sdk, AnyCodable
+- Major refactor: Transition from AppleMCPServer to LocalIntelligenceMCP
+- Added comprehensive text processing and audio domain tools
+- Implemented Docker containerization support
+- Enhanced security and PII redaction capabilities
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->
