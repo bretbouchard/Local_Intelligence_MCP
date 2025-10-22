@@ -301,89 +301,57 @@ body {
     width: 100%;
 }
 
-.tool-category {
+/* Hero Tool Categories - distinct from main tools section */
+.hero-tool-category {
     background: var(--color-background);
     padding: var(--spacing-md);
     border-radius: var(--radius-md);
     border: 1px solid var(--color-border);
     box-shadow: var(--shadow-sm);
+    transition: var(--transition-fast);
 }
 
-.tool-category h4 {
+.hero-tool-category:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+/* Hero Tool Category styling */
+.hero-tool-category h4 {
     display: flex;
     align-items: center;
     gap: var(--spacing-xs);
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 600;
     color: var(--color-text-primary);
     margin-bottom: var(--spacing-sm);
 }
 
-.category-icon {
-    font-size: 18px;
+.hero-tool-category .category-icon {
+    font-size: 16px;
     color: var(--color-accent);
 }
 
-.tool-list {
+.hero-tool-category .tool-list {
     display: flex;
     flex-wrap: wrap;
     gap: var(--spacing-xs);
 }
 
-.tool-tag {
+.hero-tool-category .tool-tag {
     display: inline-block;
     background: var(--color-background-alt);
     color: var(--color-text-secondary);
-    padding: var(--spacing-xs) var(--spacing-sm);
+    padding: 2px var(--spacing-xs);
     border-radius: var(--radius-sm);
-    font-size: 12px;
+    font-size: 10px;
     font-weight: 500;
     font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
     border: 1px solid var(--color-border-light);
     transition: var(--transition-fast);
 }
 
-.tool-tag:hover {
-    background: var(--color-accent-light);
-    color: var(--color-accent);
-    border-color: var(--color-accent);
-}
-
-.tool-category h4 {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-xs);
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--color-text-primary);
-    margin-bottom: var(--spacing-sm);
-}
-
-.category-icon {
-    font-size: 18px;
-    color: var(--color-accent);
-}
-
-.tool-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--spacing-xs);
-}
-
-.tool-tag {
-    display: inline-block;
-    background: var(--color-background-alt);
-    color: var(--color-text-secondary);
-    padding: var(--spacing-xs) var(--spacing-sm);
-    border-radius: var(--radius-sm);
-    font-size: 12px;
-    font-weight: 500;
-    font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
-    border: 1px solid var(--color-border-light);
-    transition: var(--transition-fast);
-}
-
-.tool-tag:hover {
+.hero-tool-category .tool-tag:hover {
     background: var(--color-accent-light);
     color: var(--color-accent);
     border-color: var(--color-accent);
