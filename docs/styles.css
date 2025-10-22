@@ -223,13 +223,12 @@ body {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: var(--spacing-xl);
-    align-items: start;
+    align-items: stretch;
     position: relative;
     z-index: 1;
 }
 
 .hero-left {
-    max-width: 600px;
     display: flex;
     flex-direction: column;
     gap: var(--spacing-lg);
@@ -309,6 +308,9 @@ body {
     border: 1px solid var(--color-border);
     box-shadow: var(--shadow-sm);
     transition: var(--transition-fast);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
 }
 
 .hero-tool-category:hover {
@@ -333,22 +335,22 @@ body {
 }
 
 .hero-tool-category .tool-list {
-    display: flex;
-    flex-wrap: wrap;
+    display: block;
     gap: var(--spacing-xs);
 }
 
 .hero-tool-category .tool-tag {
-    display: inline-block;
+    display: block;
     background: var(--color-background-alt);
     color: var(--color-text-secondary);
-    padding: 2px var(--spacing-xs);
+    padding: var(--spacing-xs);
     border-radius: var(--radius-sm);
     font-size: 10px;
     font-weight: 500;
     font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
     border: 1px solid var(--color-border-light);
     transition: var(--transition-fast);
+    margin-bottom: var(--spacing-xs);
 }
 
 .hero-tool-category .tool-tag:hover {
