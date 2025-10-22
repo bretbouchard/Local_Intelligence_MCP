@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Local Intelligence MCP - Apple Intelligence for Local AI</title>
+    <meta name="description" content="A Swift-based MCP server extending Apple's on-device Intelligence features to local AI agents with privacy-preserving text processing and analysis tools.">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <i data-lucide="brain" class="logo-icon"></i>
+                <span class="logo-text">Local Intelligence MCP</span>
+            </div>
+            <div class="nav-links">
+                <a href="#features">Features</a>
+                <a href="#tools">Tools</a>
+                <a href="#installation">Installation</a>
+                <a href="#platforms">Platforms</a>
+                <a href="https://github.com/bretbouchard/Local_Intelligence_MCP" class="nav-github" target="_blank">GitHub</a>
+            </div>
+            <button class="nav-menu-toggle" id="menuToggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-container">
+            <div class="hero-left fade-in-element">
+                <h1 class="hero-title">
+                    Local Intelligence<br>
+                    <span class="gradient-text">MCP Server</span>
+                </h1>
+                <p class="hero-description">
+                    Professional text analysis and processing tools that run locally with enterprise-grade security and zero data externalization.
+                </p>
+
+                <div class="hero-stats">
+                    <div class="stat">
+                        <span class="stat-number">25</span>
+                        <span class="stat-label">Tools</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number">400+</span>
+                        <span class="stat-label">Test Methods</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number">100%</span>
+                        <span class="stat-label">Local</span>
+                    </div>
+                </div>
+
+                <div class="hero-actions">
+                    <a href="#installation" class="btn btn-primary">Get Started</a>
+                    <a href="https://github.com/bretbouchard/Local_Intelligence_MCP" class="btn btn-secondary" target="_blank">
+                        <i data-lucide="package" class="btn-icon"></i>
+                        View on GitHub
+                    </a>
+                </div>
+
+                <!-- Summarization and Extraction cards at bottom of left column -->
+                <div class="hero-tools-grid">
+                    <div class="tool-category">
+                        <h4><i data-lucide="file-down" class="category-icon"></i>Summarization</h4>
+                        <div class="tool-list">
+                            <span class="tool-tag">summarize</span>
+                            <span class="tool-tag">summarize_focus</span>
+                            <span class="tool-tag">focused_summarization</span>
+                            <span class="tool-tag">enhanced_summarization</span>
+                        </div>
+                    </div>
+
+                    <div class="tool-category">
+                        <h4><i data-lucide="download" class="category-icon"></i>Extraction</h4>
+                        <div class="tool-list">
+                            <span class="tool-tag">tag_generation</span>
+                            <span class="tool-tag">schema_extract</span>
+                            <span class="tool-tag">similarity_ranking</span>
+                            <span class="tool-tag">catalog_summarize</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hero-right fade-in-element">
+                <div class="hero-badge">
+                    <i data-lucide="cpu" class="badge-icon"></i>
+                    <span class="badge-text">Built for Modern AI Platforms</span>
+                </div>
+                <!-- Text Processing and Analysis & AI categories in right column -->
+                <div class="hero-tools-grid">
+                    <div class="tool-category">
+                        <h4><i data-lucide="file-text" class="category-icon"></i>Text Processing</h4>
+                        <div class="tool-list">
+                            <span class="tool-tag">text_normalize</span>
+                            <span class="tool-tag">text_chunking</span>
+                            <span class="tool-tag">text_rewrite</span>
+                            <span class="tool-tag">text_redaction</span>
+                            <span class="tool-tag">tokens_count</span>
+                            <span class="tool-tag">text_normal</span>
+                            <span class="tool-tag">text_chunk</span>
+                        </div>
+                    </div>
+
+                    <div class="tool-category">
+                        <h4><i data-lucide="brain" class="category-icon"></i>Analysis & AI</h4>
+                        <div class="tool-list">
+                            <span class="tool-tag">content_purpose_detector</span>
+                            <span class="tool-tag">query_analysis</span>
+                            <span class="tool-tag">intent_parse</span>
+                            <span class="tool-tag">intent_recognition</span>
+                            <span class="tool-tag">feedback_analyze</span>
+                            <span class="tool-tag">session_summarize</span>
+                            <span class="tool-tag">embedding_generation</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <div class="container">
+            <div class="section-header fade-in-element">
+                <h2 class="section-title">Built for Apple Intelligence</h2>
+                <p class="section-subtitle">Privacy-preserving tools that extend Apple's on-device capabilities</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card fade-in-element">
+                    <i data-lucide="shield-check" class="feature-icon"></i>
+                    <h3>Privacy First</h3>
+                    <p>All analysis runs locally with PII redaction and zero-knowledge architecture</p>
+                </div>
+                <div class="feature-card fade-in-element">
+                    <i data-lucide="file-text" class="feature-icon"></i>
+                    <h3>Text Processing</h3>
+                    <p>21 professional tools for analysis, summarization, and content processing</p>
+                </div>
+                <div class="feature-card fade-in-element">
+                    <i data-lucide="shield" class="feature-icon"></i>
+                    <h3>Enterprise Security</h3>
+                    <p>Comprehensive security testing with OWASP-aligned protection</p>
+                </div>
+                <div class="feature-card fade-in-element">
+                    <i data-lucide="zap" class="feature-icon"></i>
+                    <h3>High Performance</h3>
+                    <p>Swift 6 concurrency with 100+ concurrent request handling</p>
+                </div>
+                <div class="feature-card fade-in-element">
+                    <i data-lucide="layers" class="feature-icon"></i>
+                    <h3>Cross-Platform</h3>
+                    <p>Runs on macOS, Linux, and Docker containers</p>
+                </div>
+                <div class="feature-card fade-in-element">
+                    <i data-lucide="wifi-off" class="feature-icon"></i>
+                    <h3>Offline Capable</h3>
+                    <p>Core functionality works without network connectivity</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tools Section -->
+    <section id="tools" class="tools">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">25 Professional Text Processing Tools</h2>
+                <p class="section-subtitle">Enterprise-grade text analysis and processing capabilities</p>
+            </div>
+
+            <div class="tools-overview">
+                <div class="overview-content">
+                    <h3>Complete Text Processing Suite</h3>
+                    <p>
+                        Local Intelligence MCP provides 25 specialized tools for comprehensive text processing, analysis, and content management. From basic text normalization to advanced semantic analysis, these tools run entirely on your local system with enterprise-grade security and zero data externalization.
+                    </p>
+                </div>
+
+                <div class="usage-examples">
+                    <h3>Real-World Usage Examples</h3>
+
+                    <div class="example-card">
+                        <h4>📄 Document Processing Workflow</h4>
+                        <p>
+                            Process incoming documents by first normalizing text formatting, chunking large files into manageable pieces, applying PII redaction to protect sensitive information, then generating executive summaries for quick review while maintaining full document context.
+                        </p>
+                        <div class="tools-used">
+                            <span class="tool-label">Tools used:</span>
+                            <span class="tool-example">text_normalize</span>
+                            <span class="tool-example">text_chunking</span>
+                            <span class="tool-example">pii_redaction</span>
+                            <span class="tool-example">summarization</span>
+                        </div>
+                    </div>
+
+                    <div class="example-card">
+                        <h4>🔍 Customer Intelligence Analysis</h4>
+                        <p>
+                            Analyze customer feedback by detecting content purpose, extracting sentiment and intent, generating relevant tags for categorization, and creating similarity rankings to identify related issues. The system can process thousands of feedback entries while preserving privacy.
+                        </p>
+                        <div class="tools-used">
+                            <span class="tool-label">Tools used:</span>
+                            <span class="tool-example">content_purpose_detector</span>
+                            <span class="tool-example">feedback_analysis</span>
+                            <span class="tool-example">tag_generation</span>
+                            <span class="tool-example">similarity_ranking</span>
+                        </div>
+                    </div>
+
+                    <div class="example-card">
+                        <h4>📊 Research Content Management</h4>
+                        <p>
+                            Transform research materials by rewriting for clarity, extracting structured data schemas, generating focused summaries on specific topics, and cataloging content for easy retrieval. Perfect for academic papers, technical documentation, and market research.
+                        </p>
+                        <div class="tools-used">
+                            <span class="tool-label">Tools used:</span>
+                            <span class="tool-example">text_rewrite</span>
+                            <span class="tool-example">schema_extraction</span>
+                            <span class="tool-example">focused_summarization</span>
+                            <span class="tool-example">catalog_summarization</span>
+                        </div>
+                    </div>
+
+                    <div class="example-card">
+                        <h4>💬 Meeting & Session Processing</h4>
+                        <p>
+                            Convert meeting transcripts into actionable insights by analyzing discussion intent, rewriting disorganized content, generating session summaries with key decisions, and creating token counts for documentation planning. All processing happens locally to maintain confidentiality.
+                        </p>
+                        <div class="tools-used">
+                            <span class="tool-label">Tools used:</span>
+                            <span class="tool-example">intent_recognition</span>
+                            <span class="tool-example">text_normalize</span>
+                            <span class="tool-example">session_summarize</span>
+                            <span class="tool-example">tokens_count</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tools-capabilities">
+                    <h3>Complete Tool Categories</h3>
+                    <div class="capability-grid">
+                        <div class="capability-item">
+                            <h4>📝 Text Processing (7 tools)</h4>
+                            <p>Normalize, chunk, rewrite, and clean text with advanced formatting and redaction capabilities</p>
+                        </div>
+                        <div class="capability-item">
+                            <h4>🧠 Analysis & AI (7 tools)</h4>
+                            <p>Detect intent, analyze content, process feedback, and generate embeddings for semantic understanding</p>
+                        </div>
+                        <div class="capability-item">
+                            <h4>📄 Summarization (4 tools)</h4>
+                            <p>Create standard, focused, and enhanced summaries with configurable depth and style options</p>
+                        </div>
+                        <div class="capability-item">
+                            <h4>📊 Data Extraction (4 tools)</h4>
+                            <p>Extract tags, schemas, and similarity rankings from unstructured text content</p>
+                        </div>
+                        <div class="capability-item">
+                            <h4>⚙️ System Tools (3 tools)</h4>
+                            <p>Monitor health, retrieve system information, and list available capabilities</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Installation Section -->
+    <section id="installation" class="installation">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Quick Installation</h2>
+                <p class="section-subtitle">Get started in minutes with your preferred platform</p>
+            </div>
+            <div class="install-methods">
+                <div class="install-method">
+                    <div class="install-header">
+                        <h3>🚀 Quick Start</h3>
+                        <span class="install-badge">Recommended</span>
+                    </div>
+                    <div class="install-content">
+                        <div class="code-block">
+                            <div class="code-header">
+                                <span>Terminal</span>
+                                <button class="copy-btn" data-copy="git clone https://github.com/bretbouchard/Local_Intelligence_MCP.git&#10;cd Local_Intelligence_MCP&#10;swift run LocalIntelligenceMCP">Copy</button>
+                            </div>
+                            <pre><code>git clone https://github.com/bretbouchard/Local_Intelligence_MCP.git
+cd Local_Intelligence_MCP
+swift run LocalIntelligenceMCP</code></pre>
+                        </div>
+                    </div>
+                </div>
+                <div class="install-method">
+                    <div class="install-header">
+                        <h3>🐳 Docker</h3>
+                        <span class="install-badge">Cross-Platform</span>
+                    </div>
+                    <div class="install-content">
+                        <div class="code-block">
+                            <div class="code-header">
+                                <span>Terminal</span>
+                                <button class="copy-btn" data-copy="docker-compose up -d">Copy</button>
+                            </div>
+                            <pre><code>docker-compose up -d</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="verify-section">
+                <h3>Verify Installation</h3>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span>Terminal</span>
+                        <button class="copy-btn" data-copy='curl -X POST http://localhost:3000 \&#10;  -H "Content-Type: application/json" \&#10;  -d '"'"'{"jsonrpc": "2.0", "id": 1, "method": "tools/list"}'"'"''>Copy</button>
+                    </div>
+                    <pre><code>curl -X POST http://localhost:3000 \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc": "2.0", "id": 1, "method": "tools/list"}'</code></pre>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Platforms Section -->
+    <section id="platforms" class="platforms">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Platform Integration</h2>
+                <p class="section-subtitle">Works with all major AI platforms and development environments</p>
+            </div>
+            <div class="platforms-grid">
+                <div class="platform-card">
+                    <i data-lucide="palette" class="platform-icon"></i>
+                    <h3>Claude Desktop</h3>
+                </div>
+                <div class="platform-card">
+                    <i data-lucide="code" class="platform-icon"></i>
+                    <h3>VS Code + Copilot</h3>
+                </div>
+                <div class="platform-card">
+                    <i data-lucide="mouse-pointer" class="platform-icon"></i>
+                    <h3>Cursor IDE</h3>
+                </div>
+                <div class="platform-card">
+                    <i data-lucide="waves" class="platform-icon"></i>
+                    <h3>Windsurf</h3>
+                </div>
+                <div class="platform-card">
+                    <i data-lucide="bot" class="platform-icon"></i>
+                    <h3>Google AI Studio</h3>
+                </div>
+                <div class="platform-card">
+                    <i data-lucide="brain" class="platform-icon"></i>
+                    <h3>ChatGPT/OpenAI</h3>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta">
+        <div class="container">
+            <div class="cta-content">
+                <h2>Ready to enhance your local AI experience?</h2>
+                <p>Join thousands of developers using Local Intelligence MCP for privacy-preserving text processing.</p>
+                <div class="cta-actions">
+                    <a href="https://github.com/bretbouchard/Local_Intelligence_MCP" class="btn btn-primary" target="_blank">
+                        <i data-lucide="download" class="btn-icon"></i>
+                        Download from GitHub
+                    </a>
+                    <a href="https://github.com/bretbouchard/Local_Intelligence_MCP/issues" class="btn btn-secondary" target="_blank">
+                        <i data-lucide="message-circle" class="btn-icon"></i>
+                        Get Support
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <div class="footer-logo">
+                        <i data-lucide="brain" class="logo-icon"></i>
+                        <span class="logo-text">Local Intelligence MCP</span>
+                    </div>
+                    <p>Extending Apple Intelligence to local AI agents with privacy-preserving tools.</p>
+                </div>
+                <div class="footer-links">
+                    <div class="footer-section">
+                        <h4>Product</h4>
+                        <a href="#features">Features</a>
+                        <a href="#tools">Tools</a>
+                        <a href="#installation">Installation</a>
+                    </div>
+                    <div class="footer-section">
+                        <h4>Resources</h4>
+                        <a href="https://github.com/bretbouchard/Local_Intelligence_MCP/blob/main/PLATFORM_INTEGRATION.md" target="_blank">Platform Integration</a>
+                        <a href="https://github.com/bretbouchard/Local_Intelligence_MCP/blob/main/API.md" target="_blank">API Documentation</a>
+                        <a href="https://github.com/bretbouchard/Local_Intelligence_MCP/blob/main/SECURITY.md" target="_blank">Security</a>
+                    </div>
+                    <div class="footer-section">
+                        <h4>Community</h4>
+                        <a href="https://github.com/bretbouchard/Local_Intelligence_MCP/issues" target="_blank">Issues</a>
+                        <a href="https://github.com/bretbouchard/Local_Intelligence_MCP/discussions" target="_blank">Discussions</a>
+                        <a href="https://github.com/bretbouchard/Local_Intelligence_MCP" target="_blank">GitHub</a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <div class="footer-legal">
+                    <p>&copy; 2024 Local Intelligence MCP. Not affiliated with Apple Inc.</p>
+                    <p>Built with Swift 6 and the Model Context Protocol</p>
+                </div>
+                <div class="footer-badges">
+                    <span class="badge">MIT License</span>
+                    <span class="badge">Swift 6.0+</span>
+                    <span class="badge">Privacy First</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
