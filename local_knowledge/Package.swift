@@ -25,8 +25,10 @@ let package = Package(
             sources: [
                 "LocalKnowledgeApp.swift",
                 "Models/BookDocument.swift",
+                "Models/ProcessedContent.swift",
                 "Views/DocumentListView.swift",
-                "Services/DocumentIngestionService.swift"
+                "Services/DocumentIngestionService.swift",
+                "Services/PDFProcessingService.swift"
             ]
         ),
     ]

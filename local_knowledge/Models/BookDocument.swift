@@ -4,8 +4,8 @@ struct BookDocument: Identifiable, Codable {
     let id: UUID
     let title: String
     let filePath: URL
-    let domain: DocumentDomain
-    let processedAt: Date?
+    var domain: DocumentDomain
+    var processedAt: Date?
     var status: ProcessingStatus = .pending
 
     init(title: String, filePath: URL, domain: DocumentDomain, processedAt: Date? = nil) {
