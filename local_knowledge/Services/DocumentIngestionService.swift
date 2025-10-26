@@ -2,6 +2,7 @@ import Foundation
 import Combine
 
 class DocumentIngestionService: ObservableObject {
+    private let mcpClient = MCPClientService()
 
     @MainActor
     func ingestDocument(at url: URL) async -> BookDocument {
@@ -14,14 +15,24 @@ class DocumentIngestionService: ObservableObject {
         )
 
         do {
+            document.status = .processing
+
             // Extract PDF content
             let processedContent = try await PDFProcessingService().extractText(from: url)
 
-            // Classify document domain (basic implementation)
+            // Classify document domain
             document.domain = classifyDocumentDomain(content: processedContent)
 
-            // TODO: Save to CoreData
-            // TODO: Send to MCP for knowledge extraction
+            // Send to MCP for knowledge extraction (run in background thread)
+            let mcpClient = self.mcpClient
+            let domain = document.domain
+            let knowledgeResult = try await Task.detached {
+                try await mcpClient.processDocumentContent(processedContent, domain: domain)
+            }.value
+
+            // TODO: Save knowledge objects to CoreData
+            print("Extracted \(knowledgeResult.knowledgeObjects.count) knowledge objects")
+            print("Found \(knowledgeResult.relationships.count) relationships")
 
             document.status = .completed
             document.processedAt = Date()

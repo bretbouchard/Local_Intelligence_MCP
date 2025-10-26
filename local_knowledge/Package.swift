@@ -26,9 +26,11 @@ let package = Package(
                 "LocalKnowledgeApp.swift",
                 "Models/BookDocument.swift",
                 "Models/ProcessedContent.swift",
+                "Models/KnowledgeModels.swift",
                 "Views/DocumentListView.swift",
                 "Services/DocumentIngestionService.swift",
-                "Services/PDFProcessingService.swift"
+                "Services/PDFProcessingService.swift",
+                "Services/MCPClientService.swift"
             ]
         ),
     ]
