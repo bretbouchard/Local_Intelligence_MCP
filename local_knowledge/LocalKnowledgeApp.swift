@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-struct BookIntelligenceApp: App {
+struct LocalKnowledgeApp: App {
     var body: some Scene {
         WindowGroup {
             DocumentListView()
