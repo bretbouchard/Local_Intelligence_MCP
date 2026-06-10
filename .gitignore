@@ -40,6 +40,9 @@ roo/
 .assistant/
 .ai/
 .claude/
+!.claude/CLAUDE.md
+!.claude/settings.json
+!.claude/commands/
 .cursor/
 .codeium/
 .tabnine/
@@ -51,7 +54,6 @@ roo/
 
 # Internal Planning and Development Tools (DO NOT COMMIT - keep specs private)
 specs/
-.claude/
 .specify/
 memory/
 
