@@ -40,6 +40,9 @@ roo/
 .assistant/
 .ai/
 .claude/
+!.claude/CLAUDE.md
+!.claude/settings.json
+!.claude/commands/
 .cursor/
 .codeium/
 .tabnine/
@@ -51,7 +54,6 @@ roo/
 
 # Internal Planning and Development Tools (DO NOT COMMIT - keep specs private)
 specs/
-.claude/
 .specify/
 memory/
 
@@ -160,4 +162,5 @@ venv/
 .cursor/rules/byterover-rules.mdc
 .kiro/steering/byterover-rules.md
 .qoder/rules/byterover-rules.md
-.augment/rules/byterover-rules.md
+.augment/rules/byterover-rules.md# Exclude large reference PDFs from git
+reference/**/*.pdf

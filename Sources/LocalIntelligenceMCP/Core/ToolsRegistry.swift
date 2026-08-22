@@ -37,6 +37,9 @@ actor ToolsRegistry {
         try await registerTool(ShortcutsListTool(logger: logger, securityManager: securityManager))
         try await registerTool(VoiceControlTool(logger: logger, securityManager: securityManager))
 
+        // Register Book Intelligence Tool
+        try await registerTool(BookIntelligenceAnalyzerTool(logger: logger, securityManager: securityManager))
+
         await logger.info("MCP tools registry initialized with \(tools.count) tools", category: .server, metadata: [:])
     }
 

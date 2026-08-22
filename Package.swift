@@ -1,4 +1,4 @@
-// swift-tools-version: 6.0
+// swift-tools-version: 5.10
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -48,17 +48,16 @@ let package = Package(
         ),
 
         // Test targets
-        // Note: Tests directory will be created when needed
-        // .testTarget(
-        //     name: "LocalIntelligenceMCPTests",
-        //     dependencies: [
-        //         "LocalIntelligenceMCP",
-        //         .product(name: "Quick", package: "Quick"),
-        //         .product(name: "Nimble", package: "Nimble"),
-        //         .product(name: "NIOCore", package: "swift-nio"),
-        //         .product(name: "NIOEmbedded", package: "swift-nio"),
-        //     ],
-        //     path: "Tests/LocalIntelligenceMCPTests"
-        // ),
+        .testTarget(
+            name: "LocalIntelligenceMCPTests",
+            dependencies: [
+                "LocalIntelligenceMCP",
+                .product(name: "Quick", package: "Quick"),
+                .product(name: "Nimble", package: "Nimble"),
+                .product(name: "NIOCore", package: "swift-nio"),
+                .product(name: "NIOEmbedded", package: "swift-nio"),
+            ],
+            path: "Tests/LocalIntelligenceMCPTests"
+        ),
     ]
 )
