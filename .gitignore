@@ -162,4 +162,5 @@ venv/
 .cursor/rules/byterover-rules.mdc
 .kiro/steering/byterover-rules.md
 .qoder/rules/byterover-rules.md
-.augment/rules/byterover-rules.md
+.augment/rules/byterover-rules.md# Exclude large reference PDFs from git
+reference/**/*.pdf
