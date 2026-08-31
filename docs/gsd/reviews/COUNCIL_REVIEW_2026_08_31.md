@@ -199,7 +199,7 @@ All 29 findings addressed. Suite: **125 LocalIntelligenceMCPTests + 13 BDSTests,
 | SEC-04 P1 | Destructive vocabulary expanded (wipe/destroy/trash/clear/reset/reboot/log out/…); best-effort nature documented in AUTOMATION_BOUNDARIES.md |
 | SEC-05 P1 | Bounded pipe reads (4 MB cap); runaway children hit the timeout kill path |
 | SEC-06 P1 | terminationHandler race removed — polling wait loop |
-| SEC-07 P1 | Dict-form `additionalProperties` rejected explicitly; type-less enum schemas validated; error list capped at 50 |
+| SEC-07 P1 | Dict-form `additionalProperties` rejected explicitly; error list capped at 50. (Type-less enum support landed in the second pass after GAP-01.) |
 | SEC-08 P2 | Type-aware `jsonEqual` (bool≠string≠number) |
 | SEC-09 P2 | Timeout floor (≥1s) in safety gate |
 | SEC-10 P3 | Locale-brittle stderr heuristic removed; all non-zero exits are honest PROVIDER_FAILURE with verbatim stderr |
@@ -221,3 +221,103 @@ All 29 findings addressed. Suite: **125 LocalIntelligenceMCPTests + 13 BDSTests,
 | DOC-03 P3 | PIIRedaction schema enum advertises canonical snake_case values |
 | HYGIENE-01 P3 | `test_pdf_processing.swift` deleted |
 | TEST-01 P2 | `WireLevelTests` (7) exercise `handleToolCall` directly: nested schema survival, allowlist array survival, hostile timeouts, error envelopes, null args |
+
+---
+
+# Re-Verification — commit `70d4f0a` ("fix: remediate all 29 council findings")
+
+**Date:** 2026-08-31 · **Method:** every remediation claim re-checked against source (no claim accepted on faith); fresh `swift build` (exit 0) and `swift test` (**125 LocalIntelligenceMCPTests + 13 BDSTests, 0 failures, 4 hardware-skips** — matches claim). Each fix additionally inspected for regressions it might introduce.
+
+## Remediation verification matrix
+
+| ID | Verified | Evidence |
+|----|----------|----------|
+| ARC-01 | ✅ | `import CryptoKit`; `Data(SHA256.hash(data: self))` (`RedactionPolicies.swift:616-619`); regression test `testRedact_HashMode_NeverEmitsOriginalPII` (`AudioTextToolsTests.swift:171`) |
+| SEC-01 | ✅ | Recursive `StartCommand.toAnyCodable` preserves objects/arrays/null (`Server.swift:458-478`); `AnyCodable` NSNull round-trip (`Types.swift:350,358`); WireLevelTests prove a nested unsupported keyword reaches the validator verbatim |
+| SEC-02 | ✅ | `local_generate` validates `1...600` (`LocalIntelligenceTools.swift:141-142`); automation clamps `1...300` with Int coercion (`:451`); router ignores non-finite/non-positive deadlines (`CapabilityRouter.swift:157`); wire tests for -1 / 1e308 / wrong type all pass |
+| SEC-03 | ✅ (with NEW-01/NEW-02) | Real checks: AX for accessibility, `ShortcutsProvider.isInstalled()` for shortcuts, deny-by-default for unverifiable types (`ToolsRegistry.swift:741-763`); `handleToolCall` now routes through `executeTool` (`Server.swift:505-510`) |
+| SEC-04 | ✅ | wipe/destroy/trash/clear/reset/reboot/log out/logout/sign out/revoke/overwrite added (`AutomationSafety.swift:29-31`); best-effort nature documented |
+| SEC-05 | ✅ | 4 MB bounded pipe reads; over-cap child hits documented timeout-kill path (`ShortcutsProvider.swift:150-153, 183-192`) |
+| SEC-06 | ✅ | terminationHandler removed; 50 ms poll loop to deadline (`ShortcutsProvider.swift:155-160`) |
+| SEC-07 | ⚠️ partial | Dict-form `additionalProperties` rejected (`JSONSchemaValidator.swift:53-57`); error cap 50 (`:74,81`) — **but type-less enum-only schemas still rejected** (default branch, `:167-169`); see GAP-01 |
+| SEC-08 | ✅ | Type-aware `jsonEqual` (bool≠string≠number; arrays/objects/NSNull) |
+| SEC-09 | ✅ | `min(max(timeout, 1), policy.maxTimeout)` (`AutomationSafety.swift:101`) |
+| SEC-10 | ✅ | Heuristic removed; non-zero exit → PROVIDER_FAILURE with verbatim stderr (`ShortcutsProvider.swift:82-88`) |
+| CODE-01 | ✅ | `utf16Offset(in:)` used for NSString ranges (`RedactionPolicies.swift:108-110`) |
+| CODE-02 | ✅ | Catch-all maps to `.providerFailure`, CancellationError preserved, participates in fallback (`CapabilityRouter.swift:83-97`) |
+| CODE-03 | ✅ | `private let configuration` — immutable (`RedactionPolicies.swift:17`) |
+| CODE-04 | ✅ | Regex fenced-JSON extraction → raw parse → brace span (`StructuredOutput.swift:41-58`) |
+| CODE-05 | ✅ | Shared `ShortcutsProvider.isInstalled()` used by snapshot (`RuntimeCapabilities.swift:85`) and provider |
+| CODE-06 | ⚠️ partial | Finite/positive deadline guard added, but the closure body remains misindented (`CapabilityRouter.swift:163-168`); see GAP-03 |
+| CODE-07 | ✅ | Dead `MCPTool` struct, `loadConfiguration`, `waitForShutdownSignal` gone |
+| CODE-08 | ✅ | `AppleFoundationProvider26(router:)` init injection; registration site updated (`ToolsRegistry.swift:44`) |
+| CODE-09 | ✅ | Single collapsed `localMCPError` implementation (`CapabilityContracts.swift:85-96`) |
+| CODE-11 | ✅ | Snapshot encode failure throws PROVIDER_FAILURE (`LocalIntelligenceTools.swift:47-50`) |
+| TRUTH-01 | ✅ | `GenerationOptions` temperature/maximumResponseTokens applied at `respond(to:options:)` (`AppleFoundationProvider26.swift:118-132`) |
+| TRUTH-02 | ✅ | Sentence ranking ties broken by index — byte-deterministic (`DeterministicTextProvider.swift:79-82`) |
+| DOC-01 | ✅ (with NEW-04) | False security claims removed; stale 117 test count remains (NEW-04) |
+| DOC-02 | ✅ (with NEW-03) | Stale sections rewritten; one stale contract claim remains (NEW-03) |
+| DOC-03 | ⚠️ partial | snake_case applied except `audioDomain` still camelCase vs rawValue `audio_domain` (`PIIRedactionTool.swift:115`); GAP-02 |
+| HYGIENE-01 | ✅ | Scratch file deleted; working tree clean |
+| TEST-01 | ✅ | `WireLevelTests` (7) drive `handleToolCall` directly: nested schema survival, hostile timeouts, stable error envelopes, null round-trip |
+
+## New findings introduced by the remediation
+
+**NEW-01 · P1 · `Core/ToolsRegistry.swift:703-711` + `Utils/Types.swift:430` · Live path now enforces the global 10,000-char parameter limit**
+Routing through `executeTool` (SEC-03) newly enforces `validateParameters`, which rejects any top-level string parameter longer than `maxParameterValueLength = 10000`. Consequence over the wire: `local_summarize` / `local_extract` / `local_classify` (`text`), `pii_redaction` (`content`), `text_chunking` (`text`) now fail with `INVALID_PARAMETERS` for any document over ~10k characters — while the audio domain advertises `maxInputLength = 50_000` and chunking exists precisely for long documents. Tests pass because their inputs are small (same tests-pass/wire-broken class as SEC-01).
+**Fix:** raise the global limit to match the advertised 50k input cap (or validate per-tool against each schema's own `maxLength` instead of a global constant), and add a wire-level test with a >10k text.
+
+**NEW-02 · P2 · `Tools/VoiceControlTool.swift:41` + `README.md:43` · `voice_command` now reports PERMISSION_DENIED instead of documented UNSUPPORTED**
+The tool declares `.accessibility`; SEC-03 enforcement denies when `AXIsProcessTrusted()` is false — the common case for this server. The tool's truthful `UNSUPPORTED` path ("no supported API exists") is now unreachable on most machines, and `PERMISSION_DENIED` falsely implies a grant would enable the capability. README still promises `UNSUPPORTED`.
+**Fix:** set `requiresPermission: []` (nothing can make this capability work), or surface unsupported-before-permission; align README.
+
+**NEW-03 · P2 · `README.md:45` · Stale contract claim after SEC-10**
+README still states a missing shortcut "fails with `INVALID_REQUEST`"; SEC-10 removed that heuristic — missing shortcuts now fail with `PROVIDER_FAILURE` (verbatim stderr). Clients coding against the README contract will mis-handle the error.
+**Fix:** update the claim to `PROVIDER_FAILURE`.
+
+**NEW-04 · P3 · `README.md:364, 422` · Stale test counts** — README still says 117 LocalIntelligenceMCPTests; suite is 125.
+**NEW-05 · P3 · Remediation record · SEC-07 row overclaims** — "type-less enum schemas validated" is not implemented (see GAP-01); the record should match shipped code.
+
+## Residual gaps in originally-reviewed items
+
+- **GAP-01 (P2, downgraded from SEC-07):** type-less enum-only schemas (`{"enum": [...]}`) still fail validation at the `default` branch (`JSONSchemaValidator.swift:167-169`) despite passing `validateSupported`. Practical impact low (clean `INVALID_REQUEST`, subset documented as requiring `type`), but the remediation table claims otherwise.
+- **GAP-02 (P3):** `audioDomain` remains camelCase in the PIIRedactionTool schema enum vs canonical `audio_domain` (tolerant matching covers it).
+- **GAP-03 (P3):** `withDeadline` closure body still misindented (`CapabilityRouter.swift:163-168`); cosmetic.
+
+## Final Council Decision (post-remediation)
+
+**Evil Morty's Ruling: ❌ REJECT (narrow) — one P1 and three P2s from the remediation itself; the original 29-finding class is closed.**
+
+| Gate | Result |
+|---|---|
+| Original P0s (ARC-01, SEC-01, SEC-02) | ✅ CLOSED — verified in source + regression/wire tests |
+| Original P1s | ✅ CLOSED (SEC-03 verified; introduced NEW-01/NEW-02) |
+| Original P2/P3s | ✅ CLOSED except GAP-01/02/03 (cosmetic/low) |
+| New regression NEW-01 (P1) | ❌ blocks — flagship text tools reject >10k docs over the wire |
+| NEW-02/NEW-03 (P2) | ❌ blocks — truthfulness/docs contract mismatches |
+| Build + tests | ✅ 125 + 13, 0 failures |
+
+The remediation pass is genuinely high quality: 26/29 verified fixed with real regression tests, and the P0 class (PII leak, boundary mangling, crash trap) is properly closed with wire-level coverage. What remains is one self-inflicted P1 (the newly-enforced 10k string limit), two truthfulness/doc-contract mismatches (NEW-02, NEW-03), and small honest-record corrections (NEW-04/05, GAP-01/02/03). All are small, localized fixes — no re-architecture required.
+
+**Conditions for APPROVE (next pass):**
+1. NEW-01: raise/per-tool the parameter length limit + >10k wire test.
+2. NEW-02: `voice_command` permission semantics aligned with documented `UNSUPPORTED`.
+3. NEW-03/NEW-04/NEW-05/GAP-01: README contract claim, test counts, remediation-record accuracy, enum-only schema handling (implement or correct the claim).
+
+**Council Motto:** "84 specialists. 6 waves. Zero compromises. Every finding is fixed. No appeals."
+
+
+---
+
+# Second Remediation Record — 2026-08-31 (re-review pass)
+
+| ID | Resolution |
+|----|------------|
+| NEW-01 P1 | `maxParameterValueLength` raised 10k → 50k (matches AudioDomainTool's advertised limit); regression `testLongText_Above10k_Processes` |
+| NEW-02 P2 | `voice_command` no longer declares `.accessibility` — the truthful `UNSUPPORTED` path is reachable without implying a grant enables it |
+| NEW-03 P2 | README missing-shortcut claim corrected to `PROVIDER_FAILURE` |
+| GAP-01 P2 | Type-less (enum-only) schemas validate via the enum constraint (`case nil` in the validator) |
+| NEW-04 P3 | Test counts updated to 125 |
+| NEW-05 P3 | SEC-07 remediation row corrected |
+| GAP-02 P3 | Schema enum canonicalized to `audio_domain` |
+| GAP-03 P3 | `withDeadline` closure indentation fixed |

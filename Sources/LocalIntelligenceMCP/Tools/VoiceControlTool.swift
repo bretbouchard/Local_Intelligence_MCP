@@ -38,7 +38,7 @@ class VoiceControlTool: BaseMCPTool, @unchecked Sendable {
             description: "Voice Control command execution. Unavailable: macOS provides no supported API for external Voice Control automation. This tool never executes anything.",
             inputSchema: inputSchema,
             category: .voiceControl,
-            requiresPermission: [.accessibility],
+            requiresPermission: [], // no backend exists; demanding a grant would imply one enables the tool
             offlineCapable: true,
             logger: logger,
             securityManager: securityManager

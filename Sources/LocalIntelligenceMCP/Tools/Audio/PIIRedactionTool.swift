@@ -112,7 +112,7 @@ public final class PIIRedactionTool: AudioDomainTool, @unchecked Sendable {
                     "description": AnyCodable("PII categories to detect and redact"),
                     "items": AnyCodable([
                         "type": AnyCodable("string"),
-                        "enum": AnyCodable(["email", "phone", "ssn", "credit_card", "address", "date_of_birth", "id", "financial", "medical", "custom", "audioDomain"])
+                        "enum": AnyCodable(["email", "phone", "ssn", "credit_card", "address", "date_of_birth", "id", "financial", "medical", "custom", "audio_domain"])
                     ]),
                     "default": AnyCodable(["email", "phone", "ssn", "credit_card", "address", "date_of_birth", "id", "financial"])
                 ]),

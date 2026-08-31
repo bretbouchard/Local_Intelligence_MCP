@@ -427,7 +427,7 @@ struct MCPConstants {
         static let maxShortcutNameLength = 255
         static let maxShortcutDescriptionLength = 1000
         static let maxVoiceCommandLength = 1000
-        static let maxParameterValueLength = 10000
+        static let maxParameterValueLength = 50_000
         static let maxResultSize = 1024 * 1024 // 1MB
         static let maxClientNameLength = 255
     }

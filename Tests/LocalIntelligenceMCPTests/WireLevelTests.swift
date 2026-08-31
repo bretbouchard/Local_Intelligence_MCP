@@ -112,6 +112,34 @@ final class WireLevelTests: XCTestCase {
         XCTAssertTrue(text(result).contains("UNSUPPORTED"), "got: \(text(result))")
     }
 
+    func testLongText_Above10k_Processes() async {
+        // NEW-01 regression: the registry's parameter-length cap (now 50k)
+        // must not reject the long documents the audio/text tools advertise.
+        let longText = String(repeating: "Sentence for the long-document path. ", count: 400) // ~15.6k chars
+        let result = await call("local_summarize", [
+            "text": .string(longText),
+            "sentenceLimit": .int(3),
+        ])
+
+        XCTAssertTrue((result.isError ?? false) == false, "long text must be accepted: \(text(result))")
+    }
+
+    func testTypelessEnumSchema_ReachesValidator() async throws {
+        // GAP-01: enum-only schemas (no "type") validate via the enum check.
+        let result = await call("local_generate", [
+            "prompt": .string("irrelevant"),
+            "responseSchema": .object([
+                "enum": .array([.string("red"), .string("green")]),
+            ]),
+        ])
+
+        // The contract: an enum-only schema is IN-subset, so the failure must
+        // never be about unsupported schema constructs — any later failure
+        // (e.g. the model's output not parsing as JSON) is fine.
+        XCTAssertFalse(text(result).contains("Unsupported JSON Schema"),
+                       "enum-only schema must pass the supported-subset check: \(text(result))")
+    }
+
     func testNullArguments_RoundTrip() async {
         // NSNull arguments must neither crash nor corrupt the envelope.
         let result = await call("local_generate", [

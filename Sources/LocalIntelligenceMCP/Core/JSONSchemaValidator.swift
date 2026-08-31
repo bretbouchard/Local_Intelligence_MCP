@@ -166,8 +166,12 @@ enum JSONSchemaValidator {
             }
             errors.append("\(path): expected null")
 
-        default:
-            errors.append("\(path): schema missing or has unsupported \"type\"")
+        case nil:
+            // Type-less schema (e.g. bare enum): the enum check above applies.
+            break
+
+        case .some(let unknown):
+            errors.append("\(path): unsupported schema type \(unknown)")
         }
     }
 
