@@ -281,6 +281,21 @@ extension Error {
             return capabilityError.localMCPError
         }
 
+        if let registryError = self as? ToolsRegistryError {
+            switch registryError {
+            case .invalidTool(let message):
+                return LocalMCPError(code: "INVALID_TOOL", message: registryError.errorDescription ?? message)
+            case .duplicateTool(let name):
+                return LocalMCPError(code: "DUPLICATE_TOOL", message: registryError.errorDescription ?? name)
+            case .toolNotFound(let name):
+                return LocalMCPError(code: "TOOL_NOT_FOUND", message: registryError.errorDescription ?? name)
+            case .invalidParameters(let message):
+                return LocalMCPError(code: "INVALID_PARAMETERS", message: registryError.errorDescription ?? message)
+            case .permissionDenied(let message):
+                return LocalMCPError(code: "PERMISSION_DENIED", message: registryError.errorDescription ?? message)
+            }
+        }
+
         return LocalMCPError(
             code: "INTERNAL_ERROR",
             message: self.localizedDescription,

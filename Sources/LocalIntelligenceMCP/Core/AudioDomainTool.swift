@@ -63,6 +63,36 @@ public class AudioDomainTool: BaseMCPTool, @unchecked Sendable {
         throw ToolsRegistryError.toolNotFound(name)
     }
 
+    /// Default MCP execution bridge for audio tools.
+    ///
+    /// Subclasses historically implement `processAudioContent` only; without this
+    /// bridge every MCP call hit `BaseMCPTool`'s default and failed with
+    /// "tool not found". Tools with bespoke request handling override
+    /// `performExecution` themselves (e.g. SessionNotes, FeedbackAnalysis).
+    override func performExecution(parameters: [String: AnyCodable], context: MCPExecutionContext) async throws -> MCPResponse {
+        let rawParameters: [String: Any] = parameters.mapValues { $0.value }
+
+        // Audio tools accept either "content" or "text" as the primary input.
+        let primaryInput: String
+        if let content = parameters["content"]?.value as? String {
+            primaryInput = content
+        } else if let text = parameters["text"]?.value as? String {
+            primaryInput = text
+        } else {
+            primaryInput = ""
+        }
+        if !primaryInput.isEmpty {
+            try validateAudioContent(primaryInput)
+        }
+
+        let result = try await processAudioContent(primaryInput, with: rawParameters)
+
+        return MCPResponse(
+            success: true,
+            data: AnyCodable(["result": result])
+        )
+    }
+
     /// Validate audio-related input content
     /// - Parameter content: Content to validate
     /// - Throws: ValidationError if content is invalid

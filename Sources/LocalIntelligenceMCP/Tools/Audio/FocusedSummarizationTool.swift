@@ -138,9 +138,16 @@ public final class FocusedSummarizationTool: AudioDomainTool, @unchecked Sendabl
     /// - Returns: MCP response with processed text
     override func performExecution(parameters: [String: AnyCodable], context: MCPExecutionContext) async throws -> MCPResponse {
         do {
-            // Validate required parameters and extract text
+            // Validate required parameters and extract text.
+            // The published schema (and requiredFields) name the input "text";
+            // also accept "content" for audio-domain consistency.
             try await validateAudioProcessingParameters(parameters, requiredFields: ["text", "focus"])
-            let text = try extractAudioContentParameter(from: parameters)
+            let text: String
+            if let textValue = parameters["text"]?.value as? String {
+                text = textValue
+            } else {
+                text = try extractAudioContentParameter(from: parameters)
+            }
 
             // Convert AnyCodable parameters to [String: Any] for processing
             var processingParameters: [String: Any] = [:]

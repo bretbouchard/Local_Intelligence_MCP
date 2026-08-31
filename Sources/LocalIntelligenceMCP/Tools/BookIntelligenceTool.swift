@@ -123,20 +123,26 @@ public final class BookIntelligenceAnalyzerTool: BaseMCPTool, @unchecked Sendabl
     override func performExecution(parameters: [String: AnyCodable], context: MCPExecutionContext) async throws -> MCPResponse {
         let startTime = Date()
 
-        guard let contentData = parameters["content"]?.value,
+        guard let contentData = parameters["content"]?.value as? [String: Any],
               let domain = parameters["domain"]?.value as? String,
-              let extractionTypesData = parameters["extractionTypes"]?.value else {
+              let extractionTypesData = parameters["extractionTypes"]?.value as? [Any] else {
             throw MCPError.invalidParameters
         }
 
-        // Decode the processed content
-        guard let contentJson = try? JSONSerialization.data(withJSONObject: contentData),
-              let processedContent = try? JSONDecoder().decode(ProcessedContent.self, from: contentJson) else {
+        // Decode the processed content. Dates arrive as ISO8601 strings on the
+        // MCP wire. Both guards use isValidJSONObject first: JSONSerialization
+        // traps (crashing the whole server) on invalid top-level objects.
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        guard JSONSerialization.isValidJSONObject(contentData),
+              let contentJson = try? JSONSerialization.data(withJSONObject: contentData),
+              let processedContent = try? decoder.decode(ProcessedContent.self, from: contentJson) else {
             throw MCPError.decodingFailed
         }
 
         // Decode extraction types
-        guard let extractionTypesJson = try? JSONSerialization.data(withJSONObject: extractionTypesData),
+        guard JSONSerialization.isValidJSONObject(extractionTypesData),
+              let extractionTypesJson = try? JSONSerialization.data(withJSONObject: extractionTypesData),
               let extractionTypes = try? JSONDecoder().decode([BookExtractionType].self, from: extractionTypesJson) else {
             throw MCPError.decodingFailed
         }

@@ -519,9 +519,21 @@ extension StartCommand {
             // Execute tool
             let result = try await tool.execute(parameters: codableArgs, context: context)
 
-            // Extract text content from result
+            // Extract text content from result; surface error envelopes verbatim
+            // instead of hiding failures behind a generic success string.
             let responseText: String
-            if let data = result.data {
+            if let error = result.error {
+                var payload: [String: Any] = ["errorCode": error.code, "message": error.message]
+                if let details = error.details {
+                    payload["details"] = AnyCodable.toAnyDictionary(details)
+                }
+                if let jsonData = try? JSONSerialization.data(withJSONObject: payload),
+                   let jsonString = String(data: jsonData, encoding: .utf8) {
+                    responseText = jsonString
+                } else {
+                    responseText = "Error [\(error.code)]: \(error.message)"
+                }
+            } else if let data = result.data {
                 if let text = data.asText {
                     responseText = text
                 } else if let jsonData = try? JSONSerialization.data(withJSONObject: data.toAnyDictionary()),

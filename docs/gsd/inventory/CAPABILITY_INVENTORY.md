@@ -56,12 +56,44 @@ never falls through after an execution attempt (double side effect unsafe).
 
 ## Known gaps / quarantined work
 
-- **Legacy test corpus quarantined** (Package.swift `sources:` allowlist): 25+ test files
-  written against long-gone APIs (duplicate mocks, non-open subclassing, corrupted
-  array literals). Compile-quarantined, tracked for rewrite; healthy suites:
-  `CapabilityKernelTests` (15), `EngineeringTemplatesTests` (40), BDS feature tests (13).
+- ~~Legacy test corpus quarantined~~ **RESOLVED 2026-08-31** (bead li-mcp-igr): the
+  uncompilable legacy corpus was replaced by consolidated modern suites —
+  `CapabilityKernelTests`, `AudioTextToolsTests` (28), repaired `BookIntelligenceTests`
+  (17), `EngineeringTemplatesTests`; 100 LocalIntelligenceMCPTests + 13 BDSTests pass.
+  Deleted files recoverable in git history.
+
+## Runtime bugs found by the test rewrite (all fixed 2026-08-31)
+
+1. **Six audio tools dead at the MCP boundary** (`apple_text_redact`, `apple_text_chunk`,
+   `apple_tokens_count`, `apple_intent_parse`, `apple_query_analyze`,
+   `apple_content_purpose`): they implemented only `processAudioContent`; no base-class
+   bridge existed, so every call threw "tool not found". Fixed via
+   `AudioDomainTool.performExecution` bridge.
+2. **PIIRedaction crashed on any input** (`RedactionPolicies.swift`): redaction offsets
+   were measured against `matchedText` using full-text `String.Index` values →
+   guaranteed out-of-bounds trap. Now measured against the original text.
+3. **PIIRedaction failed with its own default categories**: default list used camelCase
+   (`creditCard`) while enum raw values are snake_case (`credit_card`). Defaults
+   corrected + matching made spelling-tolerant.
+4. **Email PII never detected mid-text**: email regexes were `^...$`-anchored
+   (validator-style) inside a search engine. Converted to `\b`-anchored search patterns.
+5. **TextChunking silently dropped trailing content** (sentence/semantic/paragraph
+   strategies): final chunks under `minChunkSize` were discarded. Now always emitted.
+6. **book.analyze crashed the server on malformed input** (JSONSerialization trap on
+   non-object payloads) and rejected ISO8601 dates the schema implies. Now validates
+   before serialization, uses `.iso8601` decoding, and returns clean errors.
+7. **CallTool boundary swallowed error details**: failures surfaced as
+   "Tool executed successfully" text. Error envelopes (code/message/details) are now
+   returned verbatim.
+8. `apple_summarize_focus` schema demanded `text` while code demanded `content`;
+   now accepts both.
+
+## Known gaps / remaining
+
 - `MCPConstants.ProtocolInfo.version` string is stale ("2024-11-05"); actual protocol
   negotiation is owned by the MCP Swift SDK (dogfood: negotiated 2025-06-18). Cleanup
   belongs to M1/M2 (MCP 2026-07-28 reconciliation).
 - App Intents (Plan 2.2), Accessibility provider (Plan 2.3), structured generation
   with guided schemas (Plan 3.2), FM tool adapter (Plan 3.3): not started.
+- Address PII pattern requires end-of-line `$` match; mid-sentence street addresses
+  may go undetected (detection-quality follow-up).

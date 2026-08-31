@@ -49,12 +49,10 @@ let package = Package(
 
         // Test targets
         //
-        // NOTE (GSD Plan 0.1 inventory): the legacy test corpus under
-        // Tools/, Integration/, and AdvancedTextTools/ was written against
-        // long-gone APIs (duplicate MockLogger/MockSecurityManager in every
-        // file, subclassing of non-open classes, corrupted array literals)
-        // and does not compile. It is quarantined via explicit `sources:`
-        // until each file is rewritten against current contracts.
+        // NOTE: the former legacy test corpus (Tools/, Integration/) was
+        // written against long-gone APIs and never compiled; it has been
+        // replaced by consolidated modern suites (CapabilityKernelTests,
+        // AudioTextToolsTests). Deleted files remain recoverable in git history.
         .testTarget(
             name: "LocalIntelligenceMCPTests",
             dependencies: [
@@ -66,8 +64,10 @@ let package = Package(
             ],
             path: "Tests/LocalIntelligenceMCPTests",
             sources: [
+                "BookIntelligenceTests.swift",
                 "EngineeringTemplatesTests.swift",
                 "CapabilityKernelTests.swift",
+                "AudioTextToolsTests.swift",
             ]
         ),
 

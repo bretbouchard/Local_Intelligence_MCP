@@ -81,12 +81,14 @@ public class PIIDetectionPatterns: @unchecked Sendable {
 
     /// Email detection patterns with different strictness levels
     private let emailPatterns = [
-        // Standard email pattern
-        #"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"#,
+        // Standard email pattern.
+        // These are SEARCH patterns applied to full documents; they must not
+        // be ^...$-anchored (validators), or mid-sentence emails never match.
+        #"\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\b"#,
         // More permissive email pattern (allows uncommon domains)
-        #"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{1,}$"#,
+        #"\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{1,}\b"#,
         // Strict email pattern (common domains only)
-        #"^[a-zA-Z0-9._%+-]+@(gmail|yahoo|outlook|hotmail|icloud|protonmail)\.(com|org|net|io|gov|edu)$"#
+        #"\b[a-zA-Z0-9._%+-]+@(gmail|yahoo|outlook|hotmail|icloud|protonmail)\.(com|org|net|io|gov|edu)\b"#
     ]
 
     /// Phone number patterns for different formats

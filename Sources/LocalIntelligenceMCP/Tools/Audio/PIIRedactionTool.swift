@@ -184,9 +184,14 @@ public final class PIIRedactionTool: AudioDomainTool, @unchecked Sendable {
         }
 
         // Parse categories
-        let categoryStrings = parameters["categories"] as? [String] ?? ["email", "phone", "ssn", "creditCard", "address", "dateOfBirth", "id", "financial"]
+        let categoryStrings = parameters["categories"] as? [String] ?? ["email", "phone", "ssn", "credit_card", "address", "date_of_birth", "id", "financial"]
         let categories = try categoryStrings.compactMap { categoryString -> PIICategory? in
-            guard let category = PIICategory(rawValue: categoryString.lowercased()) else {
+            // Accept flexible spellings ("creditCard", "Credit Card", "credit_card").
+            func normalized(_ value: String) -> String {
+                value.lowercased().filter { $0.isLetter || $0.isNumber }
+            }
+            let target = normalized(categoryString)
+            guard let category = PIICategory.allCases.first(where: { normalized($0.rawValue) == target }) else {
                 throw AudioProcessingError.invalidInput("Invalid PII category: \(categoryString)")
             }
             return category

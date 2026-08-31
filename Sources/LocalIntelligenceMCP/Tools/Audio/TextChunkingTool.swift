@@ -291,8 +291,10 @@ public final class TextChunkingTool: AudioDomainTool, @unchecked Sendable {
             currentWordCount += sentenceWordCount
         }
 
-        // Add final chunk if there are remaining sentences
-        if !currentChunkSentences.isEmpty && currentWordCount >= minChunkSize {
+        // Add final chunk if there are remaining sentences.
+        // minChunkSize governs merging upstream; it must never silently
+        // discard the trailing content of the input.
+        if !currentChunkSentences.isEmpty {
             let chunkText = currentChunkSentences.joined(separator: " ")
             let startIndex = getChunkStartIndex(chunks: chunks, sentences: sentences, currentIndex: sentences.count - currentChunkSentences.count)
             let endIndex = startIndex + chunkText.count
@@ -415,8 +417,9 @@ public final class TextChunkingTool: AudioDomainTool, @unchecked Sendable {
             currentWordCount += paragraphWordCount
         }
 
-        // Add final chunk
-        if !currentChunkParagraphs.isEmpty && currentWordCount >= minChunkSize {
+        // Add final chunk. minChunkSize governs merging upstream; it must
+        // never silently discard the trailing content of the input.
+        if !currentChunkParagraphs.isEmpty {
             let chunkText = currentChunkParagraphs.joined(separator: "\n\n")
             let startIndex = getChunkStartIndex(chunks: chunks, paragraphs: paragraphs, currentIndex: paragraphs.count - currentChunkParagraphs.count)
 
@@ -542,8 +545,9 @@ public final class TextChunkingTool: AudioDomainTool, @unchecked Sendable {
             currentWordCount += segmentWordCount
         }
 
-        // Add final chunk
-        if !currentSegmentGroup.isEmpty && currentWordCount >= minChunkSize {
+        // Add final chunk. minChunkSize governs merging upstream; it must
+        // never silently discard the trailing content of the input.
+        if !currentSegmentGroup.isEmpty {
             let chunkText = currentSegmentGroup.joined(separator: " ")
             let startIndex = getChunkStartIndex(chunks: chunks, segments: segments, currentIndex: segments.count - currentSegmentGroup.count)
 

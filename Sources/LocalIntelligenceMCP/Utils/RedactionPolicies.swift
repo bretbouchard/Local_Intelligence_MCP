@@ -100,13 +100,16 @@ public class RedactionPolicies: @unchecked Sendable {
             let redactionStrategy = redactionStrategies[strategy] ?? redactionStrategies[.replace]!
             let redactedText = redactionStrategy(detection.matchedText, detection.category, context)
 
-            // Update the text
-            let startIndex = detection.matchedText.distance(
-                from: detection.matchedText.startIndex,
+            // Update the text.
+            // detection.range indexes the ORIGINAL input text (see PIIDetection),
+            // so distances must be measured against that text — measuring against
+            // matchedText walks off its end and crashes (String index out of bounds).
+            let startIndex = text.distance(
+                from: text.startIndex,
                 to: detection.range.lowerBound
             )
-            let endIndex = detection.matchedText.distance(
-                from: detection.matchedText.startIndex,
+            let endIndex = text.distance(
+                from: text.startIndex,
                 to: detection.range.upperBound
             )
 
