@@ -27,6 +27,8 @@ struct AutomationSafetyPolicy: Sendable {
         "delete", "remove", "erase", "format", "shutdown", "restart", "sleep",
         "send", "post", "share", "tweet", "pay", "purchase", "buy", "purge",
         "clean", "drop", "kill", "uninstall", "empty trash",
+        "wipe", "destroy", "trash", "clear", "reset", "reboot", "log out",
+        "logout", "sign out", "revoke", "overwrite",
     ]
 
     static let `default` = AutomationSafetyPolicy(
@@ -96,7 +98,7 @@ final class SafetyGatedAutomationProvider: AutomationProvider, @unchecked Sendab
             try await deny("'\(name)' is on the automation denylist")
         }
 
-        let effectiveTimeout = min(timeout, policy.maxTimeout)
+        let effectiveTimeout = min(max(timeout, 1), policy.maxTimeout)
 
         let destructive = policy.destructivePatterns.contains { lowercasedName.contains($0) }
         if destructive && policy.requireConfirmationForDestructive && !confirm {

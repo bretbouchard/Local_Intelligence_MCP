@@ -171,12 +171,10 @@ export MCP_LOG_LEVEL=info
 
 ### 🔐 Security Features
 
-- **Input Validation**: Comprehensive validation and sanitization of all inputs
-- **Permission Enforcement**: Role-based access control with granular permissions
-- **Attack Protection**: Protection against injection, timing, and memory attacks
-- **Rate Limiting**: Brute force and dictionary attack protection
-- **Audit Logging**: Complete security event logging and monitoring
-- **Session Management**: Secure session handling with hijacking protection
+- **Automation safety policy**: allow/deny lists, destructive-name confirmation, audited decisions
+- **Permission verification**: declared tool permissions verified against real system state (AX, Shortcuts CLI); unverifiable permissions deny by default
+- **Input validation**: per-tool schema validation and structured-output schema checks with explicit rejection of unsupported constructs
+- **Truthful errors**: distinguishable machine-readable error codes; failures never masquerade as success
 
 ## 🔌 Platform Integration
 
@@ -359,14 +357,12 @@ Sources/LocalIntelligenceMCP/
 
 ### 🧪 Testing
 
-This project includes a comprehensive test suite with **400+ test methods** covering:
+The shipped suites cover the capability kernel, routing behavior, automation safety,
+structured-output validation, the audio/text tool family, book intelligence, and
+RuntimeCapabilities feature scenarios:
 
-#### Test Categories
-
-- **Unit Tests**: Individual component testing with 200+ methods
-- **Integration Tests**: End-to-end workflow testing with 20+ methods
-- **Performance Tests**: Concurrent load testing with 10+ methods
-- **Security Tests**: Attack surface analysis with 22+ methods
+- `swift test` — **117 LocalIntelligenceMCPTests + 13 BDSTests**, 0 failures
+- [`examples/01–08`](examples/README.md) — scripted end-to-end stdio scenarios
 
 #### Running Tests
 
@@ -410,35 +406,20 @@ swiftformat .
 
 ## 🔒 Security and Privacy
 
-### 🛡️ Security Features
-- **Comprehensive Input Validation**: Protection against injection attacks
-- **Role-Based Access Control**: Granular permission enforcement
-- **Attack Surface Protection**: Defense against timing, memory, and concurrency attacks
-- **Rate Limiting**: Brute force and dictionary attack prevention
-- **Session Security**: Hijacking and privilege escalation protection
-- **Audit Logging**: Complete security event monitoring and logging
+### 🛡️ What is actually enforced
+- **Automation safety policy** (`SafetyGatedAutomationProvider`): allow/deny name lists via environment, destructive-name classification requiring explicit `confirm: true`, timeout clamping, audit-logged decisions
+- **Real permission verification** at the registry boundary: Accessibility (AX API), Shortcuts CLI presence; unverifiable permission types deny by default
+- **Injection resistance on automation**: shortcut names are passed as direct `Process` arguments (no shell), option-prefixed and control-character names rejected
+- **Schema-validated structured output**: model results must satisfy the requested JSON Schema subset or the call fails
+- **Truthful capability reporting**: `local_capabilities` exposes runtime state only — no machine fingerprinting
 
-### 🛡️ Privacy Features
-- No persistent storage of sensitive user data
-- Apple Keychain integration for secure credential storage
-- Memory-safe Swift 6 implementation with strict concurrency
-- Information disclosure prevention
-- Zero-knowledge architecture for sensitive operations
+### 🛡️ Privacy
+- All processing is local; no data leaves the machine
+- Deterministic tools never persist user content
+- Capability reports contain no identifiers
 
-### 🧪 Security Testing
-The server includes **22 comprehensive security tests** covering:
-- Input validation and sanitization testing
-- Authentication and authorization testing
-- Attack surface analysis and penetration testing
-- Dictionary attack protection verification
-- Timing attack vulnerability detection
-- Memory exhaustion protection testing
-- Concurrency abuse resistance validation
-- Race condition vulnerability detection
-- Information disclosure analysis
-- Protocol abuse prevention
-
-**Total Security Test Coverage**: 300+ security scenarios across all attack vectors
+### 🧪 Testing
+`swift test` runs the shipped suites: capability kernel, router behavior, safety policy, structured-output validation, audio/text tools, book intelligence, and RuntimeCapabilities feature scenarios — **117 LocalIntelligenceMCPTests + 13 BDSTests**. Scripted end-to-end examples live in [`examples/`](examples/README.md).
 
 ## 📚 API Documentation
 
@@ -461,82 +442,25 @@ The server includes **22 comprehensive security tests** covering:
 ```
 
 #### Tool List
-```json
-{
-  "jsonrpc": "2.0",
-  "method": "tools/list",
-  "result": {
-    "tools": [
-      {
-        "name": "shortcuts_execute",
-        "description": "Execute Apple Shortcuts",
-        "inputSchema": {
-          "type": "object",
-          "properties": {
-            "shortcutName": {"type": "string"},
-            "input": {"type": "object"},
-            "timeout": {"type": "number", "default": 30}
-          },
-          "required": ["shortcutName"]
-        }
-      }
-    ]
-  }
-}
-```
+
+Run `examples/01_capability_discovery.sh` or call `tools/list` — the registry emits the
+authoritative list (33 tools) with real input schemas. Headline tools:
+
+| Tool | Purpose |
+|------|---------|
+| `local_capabilities` | Runtime truth: OS tier, model state, permissions, per-capability statuses |
+| `local_generate` | On-device generation (macOS 26+), optional `responseSchema` + `tools` allowlist |
+| `local_summarize` / `local_extract` / `local_classify` | Deterministic text pipeline (Apple engine opt-in) |
+| `local_automation_list` / `local_automation_execute` | Real Shortcuts enumeration/execution with safety policy |
+| `book.analyze` | PDF knowledge extraction |
+| `apple_*` | Deterministic audio/text processing suite |
 
 ### Tool Usage Examples
 
-#### Execute Shortcut
-```json
-{
-  "jsonrpc": "2.0",
-  "method": "tools/call",
-  "params": {
-    "name": "shortcuts_execute",
-    "arguments": {
-      "shortcutName": "Send Email",
-      "input": {
-        "to": "user@example.com",
-        "subject": "Meeting Reminder",
-        "body": "Don't forget our meeting at 2 PM"
-      },
-      "timeout": 60
-    }
-  }
-}
-```
-
-#### Get System Information
-```json
-{
-  "jsonrpc": "2.0",
-  "method": "tools/call",
-  "params": {
-    "name": "system_info",
-    "arguments": {
-      "categories": ["device", "performance", "network"],
-      "includeSensitive": false
-    }
-  }
-}
-```
-
-#### Voice Control Command
-```json
-{
-  "jsonrpc": "2.0",
-  "method": "tools/call",
-  "params": {
-    "name": "voice_control",
-    "arguments": {
-      "command": "Open Safari and go to apple.com",
-      "timeout": 30,
-      "accessibility": true
-    }
-  }
-}
-```
+Scripted, runnable examples for every documented scenario live in
+[`examples/`](examples/README.md) — capability discovery, deterministic text tools,
+real Shortcuts execution with the safety gate, on-device generation, schema-validated
+structured output, model tool calling, and truthful unavailability paths.
 
 ### Response Format
 

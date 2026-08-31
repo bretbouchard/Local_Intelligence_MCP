@@ -112,9 +112,9 @@ public final class PIIRedactionTool: AudioDomainTool, @unchecked Sendable {
                     "description": AnyCodable("PII categories to detect and redact"),
                     "items": AnyCodable([
                         "type": AnyCodable("string"),
-                        "enum": AnyCodable(["email", "phone", "ssn", "creditCard", "address", "dateOfBirth", "id", "financial", "medical", "custom", "audioDomain"])
+                        "enum": AnyCodable(["email", "phone", "ssn", "credit_card", "address", "date_of_birth", "id", "financial", "medical", "custom", "audioDomain"])
                     ]),
-                    "default": AnyCodable(["email", "phone", "ssn", "creditCard", "address", "dateOfBirth", "id", "financial"])
+                    "default": AnyCodable(["email", "phone", "ssn", "credit_card", "address", "date_of_birth", "id", "financial"])
                 ]),
                 "sensitivity": AnyCodable([
                     "type": AnyCodable("string"),
@@ -186,7 +186,7 @@ public final class PIIRedactionTool: AudioDomainTool, @unchecked Sendable {
         // Parse categories
         let categoryStrings = parameters["categories"] as? [String] ?? ["email", "phone", "ssn", "credit_card", "address", "date_of_birth", "id", "financial"]
         let categories = try categoryStrings.compactMap { categoryString -> PIICategory? in
-            // Accept flexible spellings ("creditCard", "Credit Card", "credit_card").
+            // Accept flexible spellings ("credit_card", "Credit Card", "credit_card").
             func normalized(_ value: String) -> String {
                 value.lowercased().filter { $0.isLetter || $0.isNumber }
             }

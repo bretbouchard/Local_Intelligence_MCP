@@ -80,9 +80,20 @@ actor CapabilityRouter {
                 return try await withDeadline(request.deadline) {
                     try await provider.generate(request)
                 }
-            } catch let error as CapabilityError where error.permitsFallback && request.fallbackAllowed {
-                lastError = error
-                continue
+            } catch {
+                let capabilityError: CapabilityError
+                if let capability = error as? CapabilityError {
+                    capabilityError = capability
+                } else if error is CancellationError {
+                    capabilityError = .cancelled
+                } else {
+                    capabilityError = .providerFailure(String(describing: error))
+                }
+                if capabilityError.permitsFallback && request.fallbackAllowed {
+                    lastError = capabilityError
+                    continue
+                }
+                throw capabilityError
             }
         }
 
@@ -152,7 +163,7 @@ actor CapabilityRouter {
 
     /// Deadline propagation: cancel the wrapped work when the deadline elapses.
     private func withDeadline<T: Sendable>(_ seconds: TimeInterval?, _ operation: @escaping @Sendable () async throws -> T) async throws -> T {
-        guard let seconds else {
+        guard let seconds, seconds.isFinite, seconds > 0 else {
             return try await operation()
         }
         return try await withThrowingTaskGroup(of: T.self) { group in

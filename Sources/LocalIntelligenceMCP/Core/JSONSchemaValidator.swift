@@ -50,6 +50,11 @@ enum JSONSchemaValidator {
                     }
                 case "items":
                     walkSchema(value)
+                case "additionalProperties":
+                    // Boolean form is supported; schema form is not implemented.
+                    if !(value is Bool) {
+                        unsupported.insert("additionalProperties (schema form)")
+                    }
                 default:
                     break // literal values (type, required, enum, bounds, ...)
                 }
@@ -66,13 +71,14 @@ enum JSONSchemaValidator {
     static func validate(_ value: Any, against schema: [String: Any]) throws {
         try validateSupported(schema)
         var errors: [String] = []
-        validateValue(value, schema: schema, path: "$", errors: &errors)
+        validateValue(value, schema: schema, path: "$", errors: &errors, limit: 50)
         if !errors.isEmpty {
             throw Failure(errors: errors)
         }
     }
 
-    private static func validateValue(_ value: Any, schema: [String: Any], path: String, errors: inout [String]) {
+    private static func validateValue(_ value: Any, schema: [String: Any], path: String, errors: inout [String], limit: Int) {
+        guard errors.count < limit else { return }
         // enum constraint
         if let allowed = schema["enum"] as? [Any] {
             let matches = allowed.contains { jsonEqual($0, value) }
@@ -102,7 +108,7 @@ enum JSONSchemaValidator {
             }
             for (key, subschema) in properties {
                 if let subvalue = dict[key] {
-                    validateValue(subvalue, schema: subschema as? [String: Any] ?? [:], path: "\(path).\(key)", errors: &errors)
+                    validateValue(subvalue, schema: subschema as? [String: Any] ?? [:], path: "\(path).\(key)", errors: &errors, limit: limit)
                 }
             }
 
@@ -119,7 +125,7 @@ enum JSONSchemaValidator {
             }
             if let itemsSchema = schema["items"] as? [String: Any] {
                 for (index, element) in array.enumerated() {
-                    validateValue(element, schema: itemsSchema, path: "\(path)[\(index)]", errors: &errors)
+                    validateValue(element, schema: itemsSchema, path: "\(path)[\(index)]", errors: &errors, limit: limit)
                 }
             }
 
@@ -181,9 +187,28 @@ enum JSONSchemaValidator {
         return nil
     }
 
-    /// JSON equality: numbers compare numerically, everything else by equality.
+    /// JSON equality with strict types: booleans, strings and numbers are
+    /// distinct JSON types — `true` never equals `"true"`, `1` never equals `"1"`.
     private static func jsonEqual(_ lhs: Any, _ rhs: Any) -> Bool {
-        if let l = asDouble(lhs), let r = asDouble(rhs) { return l == r }
-        return String(describing: lhs) == String(describing: rhs)
+        switch (lhs, rhs) {
+        case (let l as Bool, let r as Bool):
+            return l == r
+        case (let l as String, let r as String):
+            return l == r
+        case (is NSNull, is NSNull):
+            return true
+        case (let l as [Any], let r as [Any]):
+            return l.count == r.count && zip(l, r).allSatisfy(jsonEqual)
+        case (let l as [String: Any], let r as [String: Any]):
+            return l.count == r.count && l.allSatisfy { key, value in
+                (r[key]).map { jsonEqual($0, value) } ?? false
+            }
+        default:
+            if let l = asDouble(lhs), let r = asDouble(rhs),
+               !(lhs is Bool), !(rhs is Bool), !(lhs is String), !(rhs is String) {
+                return l == r
+            }
+            return false
+        }
     }
 }

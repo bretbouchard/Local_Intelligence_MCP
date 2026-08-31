@@ -33,29 +33,28 @@ enum StructuredOutput {
     }
 
     /// Extract the first top-level JSON object from text.
+    /// Order: fenced ```json blocks, then any fence, then a raw parse, then the
+    /// outermost brace span (model may wrap JSON in prose).
     static func extractJSONObject(from text: String) -> [String: Any]? {
-        var candidate = text
-        // Strip markdown fences when present.
-        if let fenceRange = candidate.range(of: "```") {
-            let afterFence = candidate[fenceRange.upperBound...]
-            if let closeRange = afterFence.range(of: "```") {
-                candidate = String(afterFence[..<closeRange.lowerBound])
-            }
-            candidate = candidate.trimmingCharacters(in: .whitespacesAndNewlines)
-            if candidate.hasPrefix("json") {
-                candidate = String(candidate.dropFirst(4)).trimmingCharacters(in: .whitespacesAndNewlines)
+        // ```json ... ``` fences (language tag optional)
+        if let fenceRegex = try? NSRegularExpression(pattern: "```(?:json)?\\s*(\\{[\\s\\S]*?\\})\\s*```") {
+            let range = NSRange(text.startIndex..., in: text)
+            if let match = fenceRegex.firstMatch(in: text, range: range),
+               let span = Range(match.range(at: 1), in: text) {
+                if let object = (try? JSONSerialization.jsonObject(with: Data(String(text[span]).utf8))) as? [String: Any] {
+                    return object
+                }
             }
         }
 
-        let jsonData = Data(candidate.utf8)
-        if let object = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any] {
+        if let object = (try? JSONSerialization.jsonObject(with: Data(text.utf8))) as? [String: Any] {
             return object
         }
-        // Fall back to the outermost brace span (model may add prose around the JSON).
-        guard let start = candidate.firstIndex(of: "{") else { return nil }
-        guard let end = candidate.lastIndex(of: "}") else { return nil }
-        guard start < end else { return nil }
-        let span = String(candidate[start...end])
-        return (try? JSONSerialization.jsonObject(with: Data(span.utf8))) as? [String: Any]
+
+        // Outermost brace span (model may add prose around the JSON).
+        guard let start = text.firstIndex(of: "{"), let end = text.lastIndex(of: "}"), start < end else {
+            return nil
+        }
+        return (try? JSONSerialization.jsonObject(with: Data(String(text[start...end]).utf8))) as? [String: Any]
     }
 }

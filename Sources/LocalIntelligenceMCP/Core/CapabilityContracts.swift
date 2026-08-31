@@ -83,28 +83,17 @@ enum CapabilityError: Error, LocalizedError {
     }
 
     var localMCPError: LocalMCPError {
+        var details: [String: AnyCodable] = [:]
         switch self {
-        case .unsupported(let reason):
-            return LocalMCPError(code: code, message: errorDescription ?? code, details: ["reason": AnyCodable(reason)])
-        case .unavailable(let reason):
-            return LocalMCPError(code: code, message: errorDescription ?? code, details: ["reason": AnyCodable(reason)])
-        case .disabled(let reason):
-            return LocalMCPError(code: code, message: errorDescription ?? code, details: ["reason": AnyCodable(reason)])
-        case .notReady(let reason):
-            return LocalMCPError(code: code, message: errorDescription ?? code, details: ["reason": AnyCodable(reason)])
-        case .permissionDenied(let reason):
-            return LocalMCPError(code: code, message: errorDescription ?? code, details: ["reason": AnyCodable(reason)])
-        case .invalidRequest(let message):
-            return LocalMCPError(code: code, message: errorDescription ?? code)
+        case .unsupported(let reason), .unavailable(let reason), .disabled(let reason),
+             .notReady(let reason), .permissionDenied(let reason), .policyDenied(let reason):
+            details["reason"] = AnyCodable(reason)
         case .timeout(let seconds):
-            return LocalMCPError(code: code, message: errorDescription ?? code, details: ["timeoutSeconds": AnyCodable(seconds)])
-        case .cancelled:
-            return LocalMCPError(code: code, message: errorDescription ?? code)
-        case .providerFailure(let message):
-            return LocalMCPError(code: code, message: errorDescription ?? code)
-        case .policyDenied(let reason):
-            return LocalMCPError(code: code, message: errorDescription ?? code, details: ["reason": AnyCodable(reason)])
+            details["timeoutSeconds"] = AnyCodable(seconds)
+        case .invalidRequest, .cancelled, .providerFailure:
+            break
         }
+        return LocalMCPError(code: code, message: errorDescription ?? code, details: details.isEmpty ? nil : details)
     }
 
     /// Errors that mean "this provider cannot serve this request" and permit routing

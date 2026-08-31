@@ -44,7 +44,11 @@ final class LocalCapabilitiesTool: BaseMCPTool, @unchecked Sendable {
         }
 
         let encoder = JSONEncoder()
-        var response: [String: Any] = (try? JSONSerialization.jsonObject(with: encoder.encode(capabilities)) as? [String: Any]) ?? [:]
+        guard let snapshotJSON = try? encoder.encode(capabilities),
+              let snapshot = try? JSONSerialization.jsonObject(with: snapshotJSON) as? [String: Any] else {
+            throw CapabilityError.providerFailure("Failed to encode runtime capability snapshot")
+        }
+        var response = snapshot
         response["capabilities"] = statuses.sorted { $0.key < $1.key }.reduce(into: [String: Any]()) { $0[$1.key] = $1.value }
 
         return MCPResponse(success: true, data: AnyCodable(response))
@@ -136,6 +140,11 @@ final class LocalGenerateTool: BaseMCPTool, @unchecked Sendable {
             fallbackAllowed: parameters["provider"]?.value == nil,
             toolAllowlist: parameters["tools"]?.value as? [String]
         )
+        // SEC-02: deadline must be a sane positive number before it reaches
+        // nanosecond conversion anywhere downstream.
+        if let deadline = request.deadline, !(1...600).contains(deadline) {
+            throw CapabilityError.invalidRequest("timeout must be between 1 and 600 seconds")
+        }
 
         let result = try await router.execute(request)
 
@@ -435,7 +444,8 @@ final class LocalAutomationExecuteTool: BaseMCPTool, @unchecked Sendable {
             throw CapabilityError.invalidRequest("name is required")
         }
         let input = parameters["input"]?.value as? String
-        let timeout = parameters["timeout"]?.value as? Double ?? 60
+        let rawTimeout = parameters["timeout"]?.value
+        let timeout = min(max((rawTimeout as? Double) ?? (rawTimeout as? Int).map(Double.init) ?? 60, 1), 300)
         let confirm = parameters["confirm"]?.value as? Bool ?? false
 
         let execution = try await router.executeAutomation(name: name, input: input, timeout: timeout, confirm: confirm)

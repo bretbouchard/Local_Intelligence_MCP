@@ -82,7 +82,7 @@ struct RuntimeCapabilities: Codable, Sendable {
         self.appleIntelligenceEligible = RuntimeCapabilities.detectAppleIntelligenceEligibility(osVersion: os)
         self.modelAvailability = RuntimeCapabilities.detectModelAvailability(osVersion: os)
         self.automationPermissions = AutomationPermissions(
-            shortcuts: os.majorVersion >= 12,
+            shortcuts: ShortcutsProvider.isInstalled(),
             accessibility: AXIsProcessTrusted(),
             automation: false
         )

@@ -346,6 +346,8 @@ public struct AnyCodable: Codable, @unchecked Sendable {
             value = array.map { $0.value }
         } else if let dictionary = try? container.decode([String: AnyCodable].self) {
             value = dictionary.mapValues { $0.value }
+        } else if container.decodeNil() {
+            value = NSNull()
         } else {
             throw DecodingError.dataCorrupted(DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Unsupported type"))
         }
@@ -353,7 +355,9 @@ public struct AnyCodable: Codable, @unchecked Sendable {
 
     public func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
-        if let bool = value as? Bool {
+        if value is NSNull {
+            try container.encodeNil()
+        } else if let bool = value as? Bool {
             try container.encode(bool)
         } else if let int = value as? Int {
             try container.encode(int)

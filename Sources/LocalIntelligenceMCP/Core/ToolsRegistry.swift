@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import ApplicationServices
 
 /// Registry for managing MCP tools
 /// Implements Tool-Based Architecture constitutional principle
@@ -40,8 +41,7 @@ actor ToolsRegistry {
         )
         if #available(macOS 26.0, *) {
             #if canImport(FoundationModels)
-            let appleProvider = AppleFoundationProvider26()
-            appleProvider.router = capabilityRouter
+            let appleProvider = AppleFoundationProvider26(router: capabilityRouter)
             await capabilityRouter.register(appleProvider, for: [.localGenerate, .localSummarize, .localExtract, .localClassify], priority: 50)
             await logger.info("Apple Foundation Models provider registered (macOS 26+)", category: .server, metadata: [:])
             #endif
@@ -725,11 +725,30 @@ actor ToolsRegistry {
         return ValidationResult(errors: errors)
     }
 
+    /// Real permission verification (SEC-03). Declared requirements are
+    /// enforced against verifiable system state; permissions with no verifiable
+    /// mechanism deny by default rather than pretending to be checked.
     private func validatePermissions(for tool: any MCPToolProtocol, context: MCPExecutionContext) async throws {
         for permission in tool.requiresPermission {
-            // For now, we'll log permission checks
-            // In a full implementation, you'd check actual system permissions
-            await logger.debug("Checking permission \(permission.rawValue) for tool '\(tool.name)'", category: .security, metadata: [:])
+            switch permission {
+            case .systemInfo:
+                // Baseline convention: no special grant required.
+                continue
+            case .accessibility:
+                guard AXIsProcessTrusted() else {
+                    await logger.warning("Permission DENIED accessibility for '\(tool.name)'", category: .security, metadata: [:])
+                    throw ToolsRegistryError.permissionDenied("Accessibility permission has not been granted (System Settings > Privacy & Security > Accessibility)")
+                }
+            case .shortcuts:
+                guard ShortcutsProvider.isInstalled() else {
+                    await logger.warning("Permission DENIED shortcuts for '\(tool.name)'", category: .security, metadata: [:])
+                    throw ToolsRegistryError.permissionDenied("Shortcuts automation is unavailable on this system")
+                }
+            case .microphone, .network, .voiceControl:
+                await logger.warning("Permission DENIED \(permission.rawValue) for '\(tool.name)': no verifiable mechanism", category: .security, metadata: [:])
+                throw ToolsRegistryError.permissionDenied("Permission '\(permission.rawValue)' cannot be verified for external processes and is denied")
+            }
+            await logger.debug("Permission granted \(permission.rawValue) for tool '\(tool.name)'", category: .security, metadata: [:])
         }
     }
 
@@ -742,20 +761,6 @@ actor ToolsRegistry {
 }
 
 // MARK: - Supporting Types
-
-struct MCPTool {
-    let name: String
-    let description: String
-    let inputSchema: [String: Any]
-    let category: ToolCategory
-    let requiresPermission: [PermissionType]
-    let offlineCapable: Bool
-
-    // Protocol for tool execution
-    var execute: (_ parameters: [String: Any], _ context: MCPExecutionContext) async throws -> MCPResponse {
-        fatalError("execute method must be overridden")
-    }
-}
 
 struct MCPToolInfo: Codable, Sendable {
     let name: String

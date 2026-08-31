@@ -61,9 +61,13 @@ final class AppleFoundationProvider26: IntelligenceProvider, @unchecked Sendable
         modelId: "system_language_model"
     )
 
-    /// Injected at registration (GSD Plan 3.3): model-callable tools re-route
-    /// through the router so policy is re-evaluated on every invocation.
-    weak var router: CapabilityRouter?
+    /// Injected at init (GSD Plan 3.3): model-callable tools re-route through
+    /// the router so policy is re-evaluated on every invocation.
+    let router: CapabilityRouter?
+
+    init(router: CapabilityRouter? = nil) {
+        self.router = router
+    }
 
     /// Capabilities the model may call, and explicitly excluded ones.
     /// local_automation_execute is EXCLUDED: a model must not trigger side
@@ -110,6 +114,11 @@ final class AppleFoundationProvider26: IntelligenceProvider, @unchecked Sendable
             }
         }
 
+        // TRUTH-01: sampling controls are applied, never silently ignored.
+        var options = GenerationOptions()
+        options.temperature = request.temperature
+        options.maximumResponseTokens = request.maxOutputTokens
+
         let started = Date()
         let session = LanguageModelSession(
             model: .default,
@@ -122,7 +131,7 @@ final class AppleFoundationProvider26: IntelligenceProvider, @unchecked Sendable
             : "\(prompt)\n\nInput:\n\(request.input)"
 
         do {
-            let response = try await session.respond(to: Prompt(composedPrompt))
+            let response = try await session.respond(to: Prompt(composedPrompt), options: options)
             return GenerationResult(
                 text: response.content,
                 provider: metadata,

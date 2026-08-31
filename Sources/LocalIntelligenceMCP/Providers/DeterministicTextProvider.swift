@@ -76,7 +76,11 @@ final class DeterministicTextProvider: IntelligenceProvider, @unchecked Sendable
             }
         }
 
-        let topSentences = Set(sentences.sorted { score($0) > score($1) }.prefix(limit))
+        let ranked = sentences.enumerated().sorted { lhs, rhs in
+            let (ls, rs) = (score(lhs.element), score(rhs.element))
+            return ls == rs ? lhs.offset < rhs.offset : ls > rs
+        }.prefix(limit).map(\.element)
+        let topSentences = Set(ranked)
         return sentences.filter { topSentences.contains($0) }.joined(separator: ". ") + "."
     }
 

@@ -168,6 +168,21 @@ final class AudioTextToolsTests: XCTestCase {
         XCTAssertTrue(response.success, "default categories must not fail: \(response.error?.message ?? "")")
     }
 
+    func testRedact_HashMode_NeverEmitsOriginalPII() async {
+        // Regression (ARC-01): the ":hash" strategy previously hex-encoded the
+        // raw PII because Data.sha256() was a placeholder returning self.
+        let tool = PIIRedactionTool(logger: logger, securityManager: securityManager)
+        let response = await run(tool, [
+            "content": "Email bob@secretcorp.com for details.",
+            "mode": "hash",
+            "categories": ["email"],
+        ])
+
+        XCTAssertTrue(response.success, "hash redaction failed: \(response.error?.message ?? "")")
+        let redacted = resultString(response)
+        XCTAssertFalse(redacted.contains("bob@secretcorp.com"), "hash mode leaked original PII: \(redacted)")
+    }
+
     func testChunk_SmallInput_PreservesTrailingContent() async {
         // Regression: chunks under minChunkSize were silently dropped,
         // returning empty output for short inputs.

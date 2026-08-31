@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import CryptoKit
 
 /// Configurable redaction policies for different PII categories and contexts
 /// Provides flexible redaction strategies with audio domain awareness
@@ -13,7 +14,7 @@ public class RedactionPolicies: @unchecked Sendable {
 
     // MARK: - Configuration
 
-    private var configuration: RedactionPolicyConfiguration
+    private let configuration: RedactionPolicyConfiguration
     private let logger: Logger
 
     // MARK: - Redaction Strategies
@@ -101,17 +102,11 @@ public class RedactionPolicies: @unchecked Sendable {
             let redactedText = redactionStrategy(detection.matchedText, detection.category, context)
 
             // Update the text.
-            // detection.range indexes the ORIGINAL input text (see PIIDetection),
-            // so distances must be measured against that text — measuring against
-            // matchedText walks off its end and crashes (String index out of bounds).
-            let startIndex = text.distance(
-                from: text.startIndex,
-                to: detection.range.lowerBound
-            )
-            let endIndex = text.distance(
-                from: text.startIndex,
-                to: detection.range.upperBound
-            )
+            // detection.range indexes the ORIGINAL input text (see PIIDetection).
+            // NSString replacement needs UTF-16 offsets; Character distances would
+            // mis-place redactions whenever multi-byte graphemes precede a match.
+            let startIndex = detection.range.lowerBound.utf16Offset(in: text)
+            let endIndex = detection.range.upperBound.utf16Offset(in: text)
 
             let nsRange = NSRange(location: startIndex, length: endIndex - startIndex)
             modifiedText = (modifiedText as NSString).replacingCharacters(in: nsRange, with: redactedText)
@@ -160,13 +155,6 @@ public class RedactionPolicies: @unchecked Sendable {
     }
 
     /// Update policy for a specific category
-    /// - Parameters:
-    ///   - category: PII category
-    ///   - policy: New policy to apply
-    func updatePolicy(for category: PIICategory, policy: RedactionPolicy) {
-        configuration.updatePolicy(for: category, policy: policy)
-    }
-
     /// Validate redaction policy configuration
     /// - Returns: Validation result with any issues
     func validateConfiguration() -> PolicyValidationResult {
@@ -613,9 +601,9 @@ private extension String {
 }
 
 private extension Data {
-    /// Simple SHA256 implementation (in production, use CryptoKit)
+    /// Real SHA-256 digest (CryptoKit). The previous placeholder returned the
+    /// raw data, so ":hash" mode emitted original PII hex-encoded.
     func sha256() -> Data {
-        // This is a placeholder - in production, use CryptoKit.SHA256
-        return self
+        Data(SHA256.hash(data: self))
     }
 }

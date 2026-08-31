@@ -22,15 +22,16 @@ final class ShortcutsProvider: AutomationProvider, @unchecked Sendable {
 
     // MARK: - CapabilityProvider
 
+    /// Single shared CLI-presence detector (capability snapshot + provider agree).
+    static func isInstalled() -> Bool {
+        ProcessInfo.processInfo.operatingSystemVersion.majorVersion >= 12
+            && FileManager.default.isExecutableFile(atPath: executablePath)
+    }
+
     func availability(for capability: StableCapability) async -> CapabilityStatus {
         switch capability {
         case .localAutomationList, .localAutomationExecute:
-            guard ProcessInfo.processInfo.operatingSystemVersion.majorVersion >= 12 else {
-                return .unsupported
-            }
-            return FileManager.default.isExecutableFile(atPath: Self.executablePath)
-                ? .available
-                : .unavailable
+            return Self.isInstalled() ? .available : .unavailable
         default:
             return .unsupported
         }
@@ -78,12 +79,10 @@ final class ShortcutsProvider: AutomationProvider, @unchecked Sendable {
             )
         }
 
-        // The shortcut itself failed (or was not found) — this is a shortcut
-        // failure, not a transport failure, and must not be reported as success.
+        // The shortcut itself failed — a shortcut failure, not a transport
+        // failure, and never reported as success. (Stderr wording is
+        // locale-dependent, so it is surfaced verbatim rather than parsed.)
         let stderrMessage = result.stderr.trimmingCharacters(in: .whitespacesAndNewlines)
-        if result.exitCode == 1 && stderrMessage.localizedCaseInsensitiveContains("could not be found") {
-            throw CapabilityError.invalidRequest("Shortcut '\(name)' does not exist on this Mac")
-        }
         throw CapabilityError.providerFailure(
             "Shortcut '\(name)' exited with code \(result.exitCode)\(stderrMessage.isEmpty ? "" : ": \(stderrMessage)")"
         )
@@ -148,15 +147,20 @@ final class ShortcutsProvider: AutomationProvider, @unchecked Sendable {
         // No custom environment: do not leak configuration into the child.
         try process.run()
 
-        async let stdoutData = stdoutPipe.fileHandleForReading.readDataToEndOfFile()
-        async let stderrData = stderrPipe.fileHandleForReading.readDataToEndOfFile()
+        // Bounded reads: a runaway child cannot balloon memory (SEC-05).
+        let maxBytes = 4 * 1024 * 1024
+        async let stdoutData = Self.boundedRead(stdoutPipe.fileHandleForReading, maxBytes: maxBytes)
+        async let stderrData = Self.boundedRead(stderrPipe.fileHandleForReading, maxBytes: maxBytes)
 
-        let timedOut = await waitForExit(process, timeout: timeout)
-        if timedOut {
-            if process.isRunning {
-                process.terminate()
-            }
-            // Brief grace period, then hard kill.
+        // Poll for exit (SEC-06): setting terminationHandler after an exit races
+        // a leaked continuation; a small poll interval has no such window.
+        let deadline = Date().addingTimeInterval(timeout)
+        while process.isRunning && Date() < deadline {
+            try? await Task.sleep(nanoseconds: 50_000_000)
+        }
+
+        if process.isRunning {
+            process.terminate()
             try? await Task.sleep(nanoseconds: 500_000_000)
             if process.isRunning {
                 kill(process.processIdentifier, SIGKILL)
@@ -164,6 +168,8 @@ final class ShortcutsProvider: AutomationProvider, @unchecked Sendable {
             throw CapabilityError.timeout(timeout)
         }
 
+        // If output exceeded the cap the child was still writing when we stopped
+        // reading; it then blocks on a full pipe until the timeout path kills it.
         let out = await stdoutData
         let err = await stderrData
         return ProcessResult(
@@ -174,28 +180,14 @@ final class ShortcutsProvider: AutomationProvider, @unchecked Sendable {
         )
     }
 
-    /// Returns true when the process had to be treated as timed out.
-    private func waitForExit(_ process: Process, timeout: TimeInterval) async -> Bool {
-        await withTaskGroup(of: Bool.self) { group in
-            group.addTask {
-                await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
-                    if !process.isRunning {
-                        continuation.resume()
-                        return
-                    }
-                    process.terminationHandler = { _ in
-                        continuation.resume()
-                    }
-                }
-                return false
-            }
-            group.addTask {
-                try? await Task.sleep(nanoseconds: UInt64(timeout * 1_000_000_000))
-                return process.isRunning
-            }
-            let first = await group.next() ?? false
-            group.cancelAll()
-            return first
+    /// Read until EOF or the byte cap. EOF surfaces as empty chunk.
+    private static func boundedRead(_ handle: FileHandle, maxBytes: Int) async -> Data {
+        var data = Data()
+        while data.count < maxBytes {
+            let chunk: Data = await Task.detached { handle.availableData }.value
+            if chunk.isEmpty { break }
+            data.append(chunk)
         }
+        return data
     }
 }

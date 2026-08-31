@@ -456,6 +456,30 @@ extension StartCommand {
         }
     }
 
+    /// Convert an MCP protocol Value to a plain JSON value wrapped in AnyCodable
+    /// (recursive; nulls preserved as NSNull so JSON round-trips).
+    static func toAnyCodable(_ value: Value) -> AnyCodable {
+        switch value {
+        case .null:
+            return AnyCodable(NSNull())
+        case .bool(let bool):
+            return AnyCodable(bool)
+        case .int(let int):
+            return AnyCodable(int)
+        case .double(let double):
+            return AnyCodable(double)
+        case .string(let string):
+            return AnyCodable(string)
+        case .data(_, let data):
+            // Binary has no JSON representation; surface as base64.
+            return AnyCodable(data.base64EncodedString())
+        case .array(let array):
+            return AnyCodable(array.map { toAnyCodable($0).value })
+        case .object(let object):
+            return AnyCodable(object.mapValues { toAnyCodable($0).value })
+        }
+    }
+
     /// Handle tool calls from MCP server
     /// - Parameters:
     ///   - name: Tool name
@@ -464,9 +488,6 @@ extension StartCommand {
     /// - Returns: Tool execution result
     static func handleToolCall(name: String, arguments: [String: Value]?, toolsRegistry: ToolsRegistry) async -> CallTool.Result {
         do {
-            // Create tool instance and execute
-            let tool = try await toolsRegistry.createTool(name: name)
-
             // Create execution context
             let context = MCPExecutionContext(
                 clientId: UUID(),
@@ -475,49 +496,21 @@ extension StartCommand {
                 metadata: [:]
             )
 
-            // Convert Value arguments to AnyCodable - properly extract values from MCP Value enum
-            let codableArgs: [String: AnyCodable] = arguments?.mapValues { value in
-                switch value {
-                case .string(let stringValue):
-                    return AnyCodable(stringValue)
-                case .int(let intValue):
-                    return AnyCodable(intValue)
-                case .double(let doubleValue):
-                    return AnyCodable(doubleValue)
-                case .bool(let boolValue):
-                    return AnyCodable(boolValue)
-                case .array(let arrayValue):
-                    // For arrays, we need to determine the best common type
-                    // For now, assume string arrays since that's most common for tool parameters
-                    let stringArray = arrayValue.map { element in
-                        switch element {
-                        case .string(let stringValue): return stringValue
-                        case .int(let intValue): return String(intValue)
-                        case .double(let doubleValue): return String(doubleValue)
-                        case .bool(let boolValue): return String(boolValue)
-                        default: return String(describing: element)
-                        }
-                    }
-                    return AnyCodable(stringArray)
-                case .object(let objectValue):
-                    // Convert object values to strings for consistency
-                    let stringObject = objectValue.mapValues { element in
-                        switch element {
-                        case .string(let stringValue): return stringValue
-                        case .int(let intValue): return String(intValue)
-                        case .double(let doubleValue): return String(doubleValue)
-                        case .bool(let boolValue): return String(boolValue)
-                        default: return String(describing: element)
-                        }
-                    }
-                    return AnyCodable(stringObject)
-                default:
-                    return AnyCodable(String(describing: value))
-                }
-            } ?? [:]
+            // Convert Value arguments to AnyCodable, preserving nested structure:
+            // flattening objects/arrays to strings destroyed responseSchema and
+            // broke every tool that consumes structured arguments.
+            let codableArgs: [String: AnyCodable] = (arguments ?? [:]).mapValues {
+                StartCommand.toAnyCodable($0)
+            }
 
-            // Execute tool
-            let result = try await tool.execute(parameters: codableArgs, context: context)
+            // Route through the registry so declared permissions are actually
+            // verified before execution (SEC-03) and audit logging applies.
+            let plainArgs: [String: Any] = codableArgs.mapValues { $0.value }
+            let result = try await toolsRegistry.executeTool(
+                name: name,
+                parameters: plainArgs,
+                context: context
+            )
 
             // Extract text content from result; surface error envelopes verbatim
             // instead of hiding failures behind a generic success string.
