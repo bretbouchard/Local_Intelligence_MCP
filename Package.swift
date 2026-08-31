@@ -47,6 +47,17 @@ let package = Package(
             path: "Sources/LocalIntelligenceMCP"
         ),
 
+        // Reference MCP consumer (spawns the server over stdio — GSD Plan 4.7 /
+        // LOCAL_KNOWLEDGE_MCP_CLIENT_REVIEW.md migration reference)
+        .executableTarget(
+            name: "LocalIntelligenceConsumer",
+            dependencies: [
+                .product(name: "MCP", package: "swift-sdk"),
+                .product(name: "ArgumentParser", package: "swift-argument-parser"),
+            ],
+            path: "Sources/LocalIntelligenceConsumer"
+        ),
+
         // Test targets
         //
         // NOTE: the former legacy test corpus (Tools/, Integration/) was

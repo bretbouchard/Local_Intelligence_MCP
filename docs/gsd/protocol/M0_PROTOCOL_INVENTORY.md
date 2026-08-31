@@ -1,7 +1,8 @@
 # M0 — Protocol Inventory and Gap Matrix (MCP 2026-07-28 Reconciliation)
 
-**Date:** 2026-08-31 · **Baseline:** swift-sdk 0.12.1, stdio transport, negotiated
-protocol `2025-06-18` (dogfood evidence). Target: MCP `2026-07-28`.
+**Date:** 2026-08-31 · **Baseline:** swift-sdk 0.12.1, stdio transport. Negotiated
+protocol is client-dependent: `2025-06-18` (scripted JSON-RPC dogfood) and
+`2025-11-25` (Swift SDK client — `LocalIntelligenceConsumer`). Target: MCP `2026-07-28`.
 
 Per `MCP_2026_07_28_RECONCILIATION.md` workstream M0: inventory the current
 protocol surface, locate session-era assumptions, and map each 2026-07-28

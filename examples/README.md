@@ -27,3 +27,17 @@ Expected behavior highlights:
   side-effect tools fails with `POLICY_DENIED`.
 - **08** on an ineligible Mac returns `UNSUPPORTED`/`DISABLED`/`NOT_READY` —
   never a simulated success.
+
+## Reference consumer
+
+`.build/debug/LocalIntelligenceConsumer` is a reference MCP **client** (GSD Plan 4.7 /
+`docs/architecture/LOCAL_KNOWLEDGE_MCP_CLIENT_REVIEW.md`): it spawns the server over
+stdio and exercises it end-to-end — the pattern for the local_knowledge app.
+
+```bash
+swift build
+.build/debug/LocalIntelligenceConsumer demo                 # full journey
+.build/debug/LocalIntelligenceConsumer tools                # tools/list
+.build/debug/LocalIntelligenceConsumer call --name local_capabilities --args '{}'
+.build/debug/LocalIntelligenceConsumer generate "Explain local-first AI in one line"
+```
