@@ -17,7 +17,7 @@ let package = Package(
     ],
     dependencies: [
         // MCP Protocol SDK
-        .package(url: "https://github.com/modelcontextprotocol/swift-sdk.git", from: "0.10.0"),
+        .package(url: "https://github.com/modelcontextprotocol/swift-sdk.git", from: "0.12.0"),
 
         // Networking
         .package(url: "https://github.com/apple/swift-nio.git", from: "2.40.0"),
