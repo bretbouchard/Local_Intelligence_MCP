@@ -26,7 +26,7 @@ enum JSONSchemaValidator {
     }
 
     private static let supportedKeywords: Set<String> = [
-        "type", "properties", "required", "items", "enum",
+        "$schema", "type", "properties", "required", "items", "enum",
         "minimum", "maximum", "minLength", "maxLength", "minItems", "maxItems",
         "additionalProperties", "description",
     ]

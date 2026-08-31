@@ -16,6 +16,9 @@ actor CapabilityRouter {
     private struct IntelligenceEntry {
         let priority: Int
         let provider: any IntelligenceProvider
+        /// Pinned-only providers (e.g. Private Cloud Compute) are excluded from
+        /// ordinary candidate lists; a request must name them explicitly.
+        let pinnedOnly: Bool
     }
 
     private struct AutomationEntry {
@@ -25,18 +28,48 @@ actor CapabilityRouter {
 
     private var intelligenceProviders: [StableCapability: [IntelligenceEntry]] = [:]
     private var automationProviders: [AutomationEntry] = []
+    private var imageProviders: [(priority: Int, provider: any ImageUnderstandingProvider)] = []
 
     /// Register an intelligence provider for capabilities. Higher priority wins.
     /// Ties break deterministically by provider type name.
-    func register(_ provider: any IntelligenceProvider, for capabilities: [StableCapability], priority: Int) {
+    func register(_ provider: any IntelligenceProvider, for capabilities: [StableCapability], priority: Int, pinnedOnly: Bool = false) {
         for capability in capabilities {
-            intelligenceProviders[capability, default: []].append(IntelligenceEntry(priority: priority, provider: provider))
+            intelligenceProviders[capability, default: []].append(
+                IntelligenceEntry(priority: priority, provider: provider, pinnedOnly: pinnedOnly)
+            )
         }
     }
 
     /// Register an automation provider. Higher priority wins; ties break by provider type name.
     func registerAutomation(_ provider: any AutomationProvider, priority: Int) {
         automationProviders.append(AutomationEntry(priority: priority, provider: provider))
+    }
+
+    /// Register an image-understanding provider. Higher priority wins.
+    func registerImage(_ provider: any ImageUnderstandingProvider, priority: Int) {
+        imageProviders.append((priority, provider))
+    }
+
+    /// Route an image-understanding request. Deterministic order; providers
+    /// skipped only for status failures; a real attempt never falls through.
+    /// `pinnedProvider` restricts to one engine (e.g. "vision_ocr").
+    func understandImage(_ request: ImageUnderstandingRequest, pinnedProvider: String? = nil) async throws -> ImageUnderstandingResult {
+        var sorted = imageProviders.sorted {
+            if $0.priority != $1.priority { return $0.priority > $1.priority }
+            return String(describing: type(of: $0.provider)) < String(describing: type(of: $1.provider))
+        }.map { $0.provider }
+        if let pinnedProvider {
+            sorted = sorted.filter { $0.metadata.id == pinnedProvider }
+            if sorted.isEmpty {
+                throw CapabilityError.unsupported(reason: "Provider '\(pinnedProvider)' is not registered for image understanding")
+            }
+        }
+        for provider in sorted {
+            let status = await provider.availability(for: .localImageUnderstand)
+            guard status == .available else { continue }
+            return try await provider.understand(request)
+        }
+        throw CapabilityError.unavailable(reason: "No available image-understanding provider")
     }
 
     /// Providers visible to the runtime snapshot (for `local_capabilities`).
@@ -48,6 +81,9 @@ actor CapabilityRouter {
         }
         for entry in automationProviders {
             if seen.insert(entry.provider.metadata.id).inserted { result.append(entry.provider.metadata) }
+        }
+        for (_, provider) in imageProviders {
+            if seen.insert(provider.metadata.id).inserted { result.append(provider.metadata) }
         }
         return result.sorted { $0.id < $1.id }
     }
@@ -61,13 +97,24 @@ actor CapabilityRouter {
             throw CapabilityError.unsupported(reason: "No provider registered for capability '\(request.capability.rawValue)'")
         }
 
-        var selected = Self.sorted(candidates.map { ($0.priority, $0.provider) })
+        let candidatesForRequest: [any IntelligenceProvider]
         if let pinned = request.pinnedProvider {
-            selected = selected.filter { $0.metadata.id == pinned }
-            if selected.isEmpty {
+            candidatesForRequest = Self.sorted(
+                candidates.filter { $0.provider.metadata.id == pinned }.map { ($0.priority, $0.provider) }
+            )
+            if candidatesForRequest.isEmpty {
                 throw CapabilityError.unsupported(reason: "Provider '\(pinned)' is not registered for '\(request.capability.rawValue)'")
             }
+        } else {
+            // Ordinary requests never reach pinned-only providers.
+            candidatesForRequest = Self.sorted(
+                candidates.filter { !$0.pinnedOnly }.map { ($0.priority, $0.provider) }
+            )
+            if candidatesForRequest.isEmpty {
+                throw CapabilityError.unsupported(reason: "No unpinned provider registered for capability '\(request.capability.rawValue)'")
+            }
         }
+        let selected = candidatesForRequest
 
         var lastError: CapabilityError?
         for provider in selected {

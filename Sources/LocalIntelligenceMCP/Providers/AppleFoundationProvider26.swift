@@ -123,7 +123,7 @@ final class AppleFoundationProvider26: IntelligenceProvider, @unchecked Sendable
         let session = LanguageModelSession(
             model: .default,
             tools: modelTools,
-            instructions: Self.instructions(for: request.capability)
+            instructions: request.instructions ?? Self.instructions(for: request.capability)
         )
 
         let composedPrompt = request.input.isEmpty

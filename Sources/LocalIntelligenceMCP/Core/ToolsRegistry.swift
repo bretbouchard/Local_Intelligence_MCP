@@ -39,6 +39,15 @@ actor ToolsRegistry {
             SafetyGatedAutomationProvider(inner: ShortcutsProvider(), policy: automationPolicy, logger: logger),
             priority: 100
         )
+        await capabilityRouter.registerImage(VisionOCRProvider(), priority: 100)
+        if #available(macOS 27.0, *) {
+            #if canImport(FoundationModels)
+            await capabilityRouter.registerImage(AppleMultimodalImageProvider27(), priority: 50)
+            // GSD Plan 4.5: PCC is pinned-only — never an invisible fallback.
+            await capabilityRouter.register(ApplePCCProvider(), for: [.localGenerate], priority: 10, pinnedOnly: true)
+            await logger.info("Apple PCC provider registered (pinned-only, LI_ALLOW_PCC gates availability)", category: .server, metadata: [:])
+            #endif
+        }
         if #available(macOS 26.0, *) {
             #if canImport(FoundationModels)
             let appleProvider = AppleFoundationProvider26(router: capabilityRouter)
@@ -64,6 +73,7 @@ actor ToolsRegistry {
         try await registerTool(LocalClassifyTool(logger: logger, securityManager: securityManager, router: capabilityRouter))
         try await registerTool(LocalAutomationListTool(logger: logger, securityManager: securityManager, router: capabilityRouter))
         try await registerTool(LocalAutomationExecuteTool(logger: logger, securityManager: securityManager, router: capabilityRouter))
+        try await registerTool(LocalImageUnderstandTool(logger: logger, securityManager: securityManager, router: capabilityRouter))
 
         // Register Book Intelligence Tool
         try await registerTool(BookIntelligenceAnalyzerTool(logger: logger, securityManager: securityManager))
@@ -341,6 +351,11 @@ actor ToolsRegistry {
         guard tools.removeValue(forKey: toolName) != nil else { return }
 
         await logger.info("Tool '\(toolName)' unregistered", category: .server, metadata: [:])
+    }
+
+    /// Number of registered tools (for evidence/health reporting).
+    func toolCount() async -> Int {
+        tools.count
     }
 
     /// Get available tools

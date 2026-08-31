@@ -137,6 +137,9 @@ struct RuntimeCapabilities: Codable, Sendable {
         case .localSummarize, .localExtract, .localClassify:
             // Deterministic providers: genuine on every supported OS tier.
             return .available
+        case .localImageUnderstand:
+            // Vision OCR is deterministic and present on every supported tier.
+            return .available
         case .localAutomationList, .localAutomationExecute:
             return automationPermissions.shortcuts ? .available : .unsupported
         case .localGenerate:

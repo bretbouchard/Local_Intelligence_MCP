@@ -112,6 +112,11 @@ final class LocalGenerateTool: BaseMCPTool, @unchecked Sendable {
                             "type": "string",
                             "enum": ["local_summarize", "local_classify", "local_extract"]
                         ]
+                    ],
+                    "profile": [
+                        "type": "string",
+                        "description": "Bounded generation profile (GSD Plan 4.2): composes instructions, permitted tools and sampling. Code-defined and versioned — not an open registry.",
+                        "enum": ["default", "precise", "summarizer", "support_triage"]
                     ]
                 ],
                 "required": ["prompt"]
@@ -129,16 +134,31 @@ final class LocalGenerateTool: BaseMCPTool, @unchecked Sendable {
             throw CapabilityError.invalidRequest("prompt is required")
         }
 
+        // GSD Plan 4.2: bounded profile composes instructions + tools + sampling.
+        // Explicit request parameters always override profile defaults.
+        var instructions: String?
+        var profileTools: [String]?
+        var profileTemperature: Double?
+        if let profileName = parameters["profile"]?.value as? String {
+            guard let profile = GenerationProfile(rawValue: profileName) else {
+                throw CapabilityError.invalidRequest("Unknown profile '\(profileName)'")
+            }
+            instructions = profile.instructions
+            profileTools = profile.permittedTools
+            profileTemperature = profile.temperature
+        }
+        let toolAllowlist = (parameters["tools"]?.value as? [String]) ?? profileTools
+
         let request = GenerationRequest(
             capability: .localGenerate,
             prompt: prompt,
             input: parameters["input"]?.value as? String ?? "",
             maxOutputTokens: parameters["maxTokens"]?.value as? Int,
-            temperature: parameters["temperature"]?.value as? Double,
+            temperature: parameters["temperature"]?.value as? Double ?? profileTemperature,
             deadline: parameters["timeout"]?.value as? Double ?? 120,
             pinnedProvider: parameters["provider"]?.value as? String,
             fallbackAllowed: parameters["provider"]?.value == nil,
-            toolAllowlist: parameters["tools"]?.value as? [String]
+            toolAllowlist: toolAllowlist
         )
         // SEC-02: deadline must be a sane positive number before it reaches
         // nanosecond conversion anywhere downstream.
@@ -459,5 +479,118 @@ final class LocalAutomationExecuteTool: BaseMCPTool, @unchecked Sendable {
                 "provider": execution.provider.id
             ])
         )
+    }
+}
+
+// MARK: - Generation profiles (GSD Plan 4.2)
+
+/// Bounded, code-defined generation profiles. A profile composes instructions
+/// and permitted tools for a known task shape; it is NOT an open registry —
+/// new profiles ship in code, versioned with the server.
+enum GenerationProfile: String, CaseIterable, Sendable {
+    case `default`
+    case precise
+    case summarizer
+    case supportTriage = "support_triage"
+
+    var instructions: String? {
+        switch self {
+        case .default: return nil
+        case .precise: return "Answer exactly and concisely. Prefer verifiable statements; state uncertainty explicitly."
+        case .summarizer: return "Summarize the input faithfully in at most five sentences. Preserve the original language. Never invent facts."
+        case .supportTriage: return "Triage the input as product feedback. Classify it with the classify tool, then state the triage label and one reason."
+        }
+    }
+
+    /// Tools the profile permits the model to call (Plan 3.3 allowlist rules apply).
+    var permittedTools: [String]? {
+        switch self {
+        case .supportTriage: return ["local_classify"]
+        default: return nil
+        }
+    }
+
+    var temperature: Double? {
+        switch self {
+        case .precise, .summarizer: return 0.2
+        default: return nil
+        }
+    }
+}
+
+// MARK: - local_image_understand (GSD Plans 4.3/4.4)
+
+final class LocalImageUnderstandTool: BaseMCPTool, @unchecked Sendable {
+
+    private let router: CapabilityRouter
+
+    init(logger: Logger, securityManager: SecurityManager, router: CapabilityRouter) {
+        self.router = router
+        super.init(
+            name: MCPConstants.Tools.localImageUnderstand,
+            description: "Understand a local image. Default engine is deterministic on-device OCR (Vision); 'apple' uses the on-device model's image understanding on macOS 27+. Local files only, 20 MB limit.",
+            inputSchema: [
+                "type": "object",
+                "properties": [
+                    "imagePath": [
+                        "type": "string",
+                        "description": "Absolute path to a local image file (png, jpg, jpeg, heic, tiff, bmp; max 20 MB)"
+                    ],
+                    "question": [
+                        "type": "string",
+                        "description": "Optional question about the image (apple engine)"
+                    ],
+                    "engine": [
+                        "type": "string",
+                        "description": "vision (default): deterministic OCR. apple: Foundation Models image understanding (macOS 27+, surfaces truthful errors otherwise).",
+                        "enum": ["vision", "apple"]
+                    ]
+                ],
+                "required": ["imagePath"]
+            ],
+            category: .general,
+            requiresPermission: [],
+            offlineCapable: true,
+            logger: logger,
+            securityManager: securityManager
+        )
+    }
+
+    override func performExecution(parameters: [String: AnyCodable], context: MCPExecutionContext) async throws -> MCPResponse {
+        guard let imagePath = parameters["imagePath"]?.value as? String, !imagePath.isEmpty else {
+            throw CapabilityError.invalidRequest("imagePath is required")
+        }
+        let engine = parameters["engine"]?.value as? String ?? "vision"
+        let question = parameters["question"]?.value as? String
+        let started = Date()
+
+        let request = ImageUnderstandingRequest(
+            imageURL: URL(fileURLWithPath: imagePath),
+            question: question,
+            deadline: 120
+        )
+
+        let result: ImageUnderstandingResult
+        switch engine {
+        case "vision":
+            result = try await router.understandImage(request, pinnedProvider: "vision_ocr")
+        case "apple":
+            result = try await router.understandImage(request, pinnedProvider: "apple_multimodal_27")
+        default:
+            throw CapabilityError.invalidRequest("engine must be 'vision' or 'apple'")
+        }
+
+        var data: [String: Any] = [
+            "text": result.text,
+            "provider": [
+                "id": result.provider.id,
+                "class": result.provider.providerClass.rawValue
+            ],
+            "durationSeconds": result.duration
+        ]
+        if let confidence = result.confidence {
+            data["confidence"] = confidence
+        }
+        return MCPResponse(success: true, data: AnyCodable(data))
     }
 }

@@ -9,6 +9,10 @@ import Foundation
 import ArgumentParser
 import MCP
 
+#if canImport(FoundationModels)
+import FoundationModels
+#endif
+
 /// Main entry point for the Local Intelligence MCP
 @main
 struct LocalIntelligenceMCP: AsyncParsableCommand {
@@ -23,7 +27,7 @@ struct LocalIntelligenceMCP: AsyncParsableCommand {
         and comprehensive audit logging for all operations.
         """,
         version: MCPConstants.Server.version,
-        subcommands: [StartCommand.self, StatusCommand.self, ConfigCommand.self],
+        subcommands: [StartCommand.self, StatusCommand.self, ConfigCommand.self, EvidenceCommand.self],
         defaultSubcommand: StartCommand.self
     )
 }
@@ -405,6 +409,48 @@ struct ResetConfigCommand: AsyncParsableCommand {
         } catch {
             await logger.error("Failed to reset configuration", error: error, category: .server, metadata: [:])
             throw error
+        }
+    }
+}
+
+/// GSD Plan 5.6 — machine-readable release evidence bundle.
+struct EvidenceCommand: AsyncParsableCommand {
+    static let configuration = CommandConfiguration(
+        commandName: "evidence",
+        abstract: "Emit a machine-readable evidence bundle (runtime truth for this release)"
+    )
+
+    func run() async throws {
+        let logger = Logger(configuration: LoggingConfiguration(level: .error, file: nil, maxSize: 1, maxFiles: 1, enableConsole: false))
+        let securityManager = SecurityManager()
+        let registry = ToolsRegistry(logger: logger, securityManager: securityManager)
+        try await registry.initialize()
+        try await registry.initializeAudioTools()
+
+        let capabilities = RuntimeCapabilities(providers: await registry.capabilityRouter.registeredProviders())
+        var statuses: [String: String] = [:]
+        for capability in StableCapability.allCases {
+            statuses[capability.rawValue] = capabilities.status(for: capability).rawValue
+        }
+
+        var bundle: [String: Any] = [
+            "serverVersion": MCPConstants.Server.version,
+            "generatedAt": Date().iso8601String,
+            "runtime": (try? JSONSerialization.jsonObject(with: JSONEncoder().encode(capabilities))) ?? [:],
+            "capabilityStatuses": statuses.sorted { $0.key < $1.key }.reduce(into: [String: Any]()) { $0[$1.key] = $1.value },
+            "toolCount": await registry.toolCount(),
+        ]
+
+        if #available(macOS 27.0, *) {
+            #if canImport(FoundationModels)
+            bundle["pccPolicyAllowed"] = ApplePCCProvider.policyAllows
+            bundle["pccAvailability"] = ApplePCCProvider.status(for: PrivateCloudComputeLanguageModel().availability).rawValue
+            #endif
+        }
+
+        let data = try JSONSerialization.data(withJSONObject: bundle, options: [.prettyPrinted, .sortedKeys])
+        if let json = String(data: data, encoding: .utf8) {
+            print(json)
         }
     }
 }

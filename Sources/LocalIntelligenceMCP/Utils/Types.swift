@@ -419,6 +419,12 @@ struct MCPConstants {
         static let localClassify = "local_classify"
         static let localAutomationList = "local_automation_list"
         static let localAutomationExecute = "local_automation_execute"
+        static let localImageUnderstand = "local_image_understand"
+    }
+
+    struct Schema {
+        /// M9: canonical JSON Schema dialect for tool contracts.
+        static let jsonSchema2020_12 = "https://json-schema.org/draft/2020-12/schema"
     }
 
     struct Limits {

@@ -21,6 +21,7 @@ enum StableCapability: String, Codable, CaseIterable, Sendable {
     case localClassify = "local_classify"
     case localAutomationList = "local_automation_list"
     case localAutomationExecute = "local_automation_execute"
+    case localImageUnderstand = "local_image_understand"
 }
 
 // MARK: - Capability status
@@ -116,6 +117,9 @@ enum ProviderClass: String, Codable, Sendable {
     case deterministic
     case appleAutomation
     case appleFoundationModel
+    /// Private Cloud Compute: separate OPT-IN class (GSD Plan 4.5) — never an
+    /// invisible fallback from a local provider; served only when explicitly pinned.
+    case applePrivateCloudCompute
 }
 
 /// Observable provider metadata reported with every result (no sensitive machine state).
@@ -154,6 +158,8 @@ struct GenerationRequest: Sendable {
     /// GSD Plan 3.3: allowlist of capability IDs the model may call during this
     /// generation. nil/empty = no model-callable tools.
     let toolAllowlist: [String]?
+    /// GSD Plan 4.2: profile-composed instructions; nil = capability default.
+    let instructions: String?
 
     init(
         capability: StableCapability,
@@ -164,7 +170,8 @@ struct GenerationRequest: Sendable {
         deadline: TimeInterval? = nil,
         pinnedProvider: String? = nil,
         fallbackAllowed: Bool = true,
-        toolAllowlist: [String]? = nil
+        toolAllowlist: [String]? = nil,
+        instructions: String? = nil
     ) {
         self.capability = capability
         self.prompt = prompt
@@ -175,6 +182,7 @@ struct GenerationRequest: Sendable {
         self.pinnedProvider = pinnedProvider
         self.fallbackAllowed = fallbackAllowed
         self.toolAllowlist = toolAllowlist
+        self.instructions = instructions
     }
 }
 
