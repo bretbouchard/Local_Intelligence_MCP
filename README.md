@@ -19,6 +19,8 @@ Local Intelligence MCP reports what your Mac can actually do at runtime, then ro
 - **🧩 Capability kernel**: stable `local_*` tool contracts over swappable providers (router, error taxonomy, deadlines, cancellation)
 - **📝 Deterministic text tools**: `local_summarize`, `local_extract`, `local_classify` — reproducible, no model mediation needed
 - **⚡ On-device generation**: `local_generate` on macOS 26+ Apple Intelligence Macs
+- **🧾 Structured output**: optional JSON Schema validation of model output at the MCP boundary (`responseSchema`), with explicit rejection of unsupported schema constructs
+- **🛠️ Model-callable tools**: opt-in allowlist (`tools`) letting the model invoke read-only capabilities through the same policy-checked router
 - **🤖 Apple automation**: `local_automation_list`, `local_automation_execute` via the supported `shortcuts` CLI
 - **📚 Book Intelligence**: PDF analysis and knowledge extraction for technical documents
 - **🛡️ Privacy preserving**: PII redaction tools; capability reports never fingerprint the machine

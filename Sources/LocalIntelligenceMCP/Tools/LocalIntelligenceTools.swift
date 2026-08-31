@@ -96,6 +96,18 @@ final class LocalGenerateTool: BaseMCPTool, @unchecked Sendable {
                         "description": "Deadline in seconds (default: 120)",
                         "minimum": 1,
                         "maximum": 600
+                    ],
+                    "responseSchema": [
+                        "type": "object",
+                        "description": "Optional JSON Schema (2020-12 subset: type/properties/required/items/enum/bounds). Model output is parsed and validated against it; violations fail the call with INVALID_REQUEST. Unsupported constructs are rejected explicitly."
+                    ],
+                    "tools": [
+                        "type": "array",
+                        "description": "Model-callable tool allowlist for this request (GSD Plan 3.3). Only read-only text capabilities are permitted: local_summarize, local_classify, local_extract. Side-effect and generation tools are rejected.",
+                        "items": [
+                            "type": "string",
+                            "enum": ["local_summarize", "local_classify", "local_extract"]
+                        ]
                     ]
                 ],
                 "required": ["prompt"]
@@ -121,22 +133,33 @@ final class LocalGenerateTool: BaseMCPTool, @unchecked Sendable {
             temperature: parameters["temperature"]?.value as? Double,
             deadline: parameters["timeout"]?.value as? Double ?? 120,
             pinnedProvider: parameters["provider"]?.value as? String,
-            fallbackAllowed: parameters["provider"]?.value == nil
+            fallbackAllowed: parameters["provider"]?.value == nil,
+            toolAllowlist: parameters["tools"]?.value as? [String]
         )
 
         let result = try await router.execute(request)
-        return MCPResponse(
-            success: true,
-            data: AnyCodable([
-                "text": result.text,
-                "provider": [
-                    "id": result.provider.id,
-                    "displayName": result.provider.displayName,
-                    "class": result.provider.providerClass.rawValue
-                ],
-                "durationSeconds": result.duration
-            ])
-        )
+
+        var response: [String: Any] = [
+            "text": result.text,
+            "provider": [
+                "id": result.provider.id,
+                "displayName": result.provider.displayName,
+                "class": result.provider.providerClass.rawValue
+            ],
+            "durationSeconds": result.duration
+        ]
+
+        // GSD Plan 3.2: structured generation with validation at the MCP boundary.
+        if let schemaAny = parameters["responseSchema"]?.value {
+            guard let schema = schemaAny as? [String: Any] else {
+                throw CapabilityError.invalidRequest("responseSchema must be a JSON object")
+            }
+            let structured = try StructuredOutput.validate(result.text, against: schema)
+            response["structured"] = structured
+            response["validation"] = "passed"
+        }
+
+        return MCPResponse(success: true, data: AnyCodable(response))
     }
 }
 
@@ -390,6 +413,11 @@ final class LocalAutomationExecuteTool: BaseMCPTool, @unchecked Sendable {
                         "description": "Maximum execution time in seconds (default: 60)",
                         "minimum": 1,
                         "maximum": 300
+                    ],
+                    "confirm": [
+                        "type": "boolean",
+                        "description": "Explicit confirmation for shortcuts whose names look destructive (delete/send/erase/...). Required for those by default policy.",
+                        "default": false
                     ]
                 ],
                 "required": ["name"]
@@ -408,8 +436,9 @@ final class LocalAutomationExecuteTool: BaseMCPTool, @unchecked Sendable {
         }
         let input = parameters["input"]?.value as? String
         let timeout = parameters["timeout"]?.value as? Double ?? 60
+        let confirm = parameters["confirm"]?.value as? Bool ?? false
 
-        let execution = try await router.executeAutomation(name: name, input: input, timeout: timeout)
+        let execution = try await router.executeAutomation(name: name, input: input, timeout: timeout, confirm: confirm)
         return MCPResponse(
             success: execution.didRun,
             data: AnyCodable([

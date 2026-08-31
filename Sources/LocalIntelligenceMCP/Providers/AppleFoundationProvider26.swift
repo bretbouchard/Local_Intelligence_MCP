@@ -13,6 +13,45 @@ import Foundation
 import FoundationModels
 
 @available(macOS 26.0, *)
+@Generable
+struct TextCapabilityArguments: Sendable {
+    var text: String = ""
+}
+
+@available(macOS 26.0, *)
+/// Exposes one read-only text capability to the Apple model as a callable tool.
+/// GSD Plan 3.3: every invocation is re-routed through the CapabilityRouter, so
+/// availability and policy are re-evaluated at execution time — the model can
+/// never bypass authorization by naming a function.
+struct TextCapabilityAdapter: Tool, @unchecked Sendable {
+    typealias Arguments = TextCapabilityArguments
+    typealias Output = String
+
+    let capability: StableCapability
+    let router: CapabilityRouter
+
+    var name: String { capability.rawValue }
+    var description: String {
+        switch capability {
+        case .localSummarize: return "Summarize a piece of text faithfully without inventing facts."
+        case .localClassify: return "Classify text into question/bug_report/feature_request/complaint/praise/general."
+        case .localExtract: return "Extract emails, URLs, dates and numbers explicitly present in text."
+        default: return "Deterministic text analysis."
+        }
+    }
+    var parameters: GenerationSchema { TextCapabilityArguments.generationSchema }
+
+    func call(arguments: Arguments) async throws -> String {
+        let request = GenerationRequest(
+            capability: capability,
+            input: arguments.text,
+            deadline: 60
+        )
+        return try await router.execute(request).text
+    }
+}
+
+@available(macOS 26.0, *)
 final class AppleFoundationProvider26: IntelligenceProvider, @unchecked Sendable {
 
     let metadata = ProviderMetadata(
@@ -21,6 +60,17 @@ final class AppleFoundationProvider26: IntelligenceProvider, @unchecked Sendable
         providerClass: .appleFoundationModel,
         modelId: "system_language_model"
     )
+
+    /// Injected at registration (GSD Plan 3.3): model-callable tools re-route
+    /// through the router so policy is re-evaluated on every invocation.
+    weak var router: CapabilityRouter?
+
+    /// Capabilities the model may call, and explicitly excluded ones.
+    /// local_automation_execute is EXCLUDED: a model must not trigger side
+    /// effects; local_generate is EXCLUDED: no recursion.
+    static let supportedModelTools: Set<StableCapability> = [
+        .localSummarize, .localClassify, .localExtract,
+    ]
 
     func availability(for capability: StableCapability) async -> CapabilityStatus {
         switch capability {
@@ -39,9 +89,31 @@ final class AppleFoundationProvider26: IntelligenceProvider, @unchecked Sendable
             throw CapabilityError.invalidRequest("prompt is required for '\(request.capability.rawValue)'")
         }
 
+        // Build the model-callable tool set from the per-request allowlist.
+        // Policy check comes first: rejection must not depend on router state.
+        var modelTools: [any Tool] = []
+        if let allowlist = request.toolAllowlist, !allowlist.isEmpty {
+            for rawName in allowlist {
+                guard let capability = StableCapability(rawValue: rawName),
+                      Self.supportedModelTools.contains(capability) else {
+                    throw CapabilityError.policyDenied(
+                        reason: "Tool '\(rawName)' is not in the model-callable allowlist. Allowed: \(Self.supportedModelTools.map(\.rawValue).sorted().joined(separator: ", "))"
+                    )
+                }
+            }
+            guard let router = router else {
+                throw CapabilityError.unavailable(reason: "Provider is not attached to a capability router")
+            }
+            modelTools = allowlist.compactMap { rawName in
+                guard let capability = StableCapability(rawValue: rawName) else { return nil }
+                return TextCapabilityAdapter(capability: capability, router: router)
+            }
+        }
+
         let started = Date()
         let session = LanguageModelSession(
             model: .default,
+            tools: modelTools,
             instructions: Self.instructions(for: request.capability)
         )
 

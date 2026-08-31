@@ -68,6 +68,7 @@ let package = Package(
                 "EngineeringTemplatesTests.swift",
                 "CapabilityKernelTests.swift",
                 "AudioTextToolsTests.swift",
+                "AdvancedCapabilityTests.swift",
             ]
         ),
 

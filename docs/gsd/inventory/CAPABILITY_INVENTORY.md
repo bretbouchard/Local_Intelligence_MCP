@@ -93,7 +93,17 @@ never falls through after an execution attempt (double side effect unsafe).
 - `MCPConstants.ProtocolInfo.version` string is stale ("2024-11-05"); actual protocol
   negotiation is owned by the MCP Swift SDK (dogfood: negotiated 2025-06-18). Cleanup
   belongs to M1/M2 (MCP 2026-07-28 reconciliation).
-- App Intents (Plan 2.2), Accessibility provider (Plan 2.3), structured generation
-  with guided schemas (Plan 3.2), FM tool adapter (Plan 3.3): not started.
 - Address PII pattern requires end-of-line `$` match; mid-sentence street addresses
   may go undetected (detection-quality follow-up).
+
+## Shipped 2026-08-31 (second pass — beads li-mcp-tba/fka/4x0/f72)
+
+| Plan | Shipped | Evidence |
+|------|---------|----------|
+| 2.4 Automation safety | `SafetyGatedAutomationProvider`: env allow/deny lists, destructive-name classification requiring `confirm:true`, timeout clamp, audited decisions | `AutomationSafetyTests`; live POLICY_DENIED demo |
+| 3.2 Structured generation | `responseSchema` on `local_generate`; `JSONSchemaValidator` (2020-12 subset, explicit unsupported rejection); `StructuredOutput` fence/prose-tolerant extraction | `StructuredOutputTests`; live fenced-JSON validated example |
+| 3.3 FM tool adapter | `TextCapabilityAdapter` (FoundationModels `Tool`); per-request `tools` allowlist; router re-routes every invocation; side-effects/generation excluded by policy | `FoundationModelsIntegrationTests`; live model-invoked classify |
+| 3.6 Integration suite | FM availability state mapping, concurrency (20 parallel), cancellation propagation, allowlist exclusion tests | `FoundationModelsIntegrationTests` |
+| 2.2/2.3 boundaries | App Intents + Accessibility documented as supported-surface boundary, no invented APIs | `docs/gsd/AUTOMATION_BOUNDARIES.md` |
+| M0 protocol inventory | Gap matrix: 2026-07-28 deltas → shipped / N/A / SDK-blocked | `docs/gsd/protocol/M0_PROTOCOL_INVENTORY.md` |
+| 6.3 Examples | `examples/01–08` stdio JSON-RPC scripts covering all required scenarios | `examples/README.md` |

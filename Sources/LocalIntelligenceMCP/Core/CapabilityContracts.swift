@@ -162,6 +162,9 @@ struct GenerationRequest: Sendable {
     /// When false, an unavailable/pinned provider surfaces its real status instead of
     /// falling through to the next provider.
     let fallbackAllowed: Bool
+    /// GSD Plan 3.3: allowlist of capability IDs the model may call during this
+    /// generation. nil/empty = no model-callable tools.
+    let toolAllowlist: [String]?
 
     init(
         capability: StableCapability,
@@ -171,7 +174,8 @@ struct GenerationRequest: Sendable {
         temperature: Double? = nil,
         deadline: TimeInterval? = nil,
         pinnedProvider: String? = nil,
-        fallbackAllowed: Bool = true
+        fallbackAllowed: Bool = true,
+        toolAllowlist: [String]? = nil
     ) {
         self.capability = capability
         self.prompt = prompt
@@ -181,6 +185,7 @@ struct GenerationRequest: Sendable {
         self.deadline = deadline
         self.pinnedProvider = pinnedProvider
         self.fallbackAllowed = fallbackAllowed
+        self.toolAllowlist = toolAllowlist
     }
 }
 
@@ -242,5 +247,13 @@ protocol IntelligenceProvider: CapabilityProvider {
 /// Providers that perform real Apple automation side effects.
 protocol AutomationProvider: CapabilityProvider {
     func listAutomation() async throws -> [String]
-    func executeAutomation(name: String, input: String?, timeout: TimeInterval) async throws -> AutomationExecution
+    func executeAutomation(name: String, input: String?, timeout: TimeInterval, confirm: Bool) async throws -> AutomationExecution
+}
+
+extension AutomationProvider {
+    /// Convenience overload preserving the pre-confirmation call shape;
+    /// confirmation defaults to false (safest).
+    func executeAutomation(name: String, input: String?, timeout: TimeInterval) async throws -> AutomationExecution {
+        try await executeAutomation(name: name, input: input, timeout: timeout, confirm: false)
+    }
 }

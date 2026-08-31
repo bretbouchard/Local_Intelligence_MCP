@@ -51,7 +51,7 @@ final class ShortcutsProvider: AutomationProvider, @unchecked Sendable {
             .filter { !$0.isEmpty }
     }
 
-    func executeAutomation(name: String, input: String?, timeout: TimeInterval) async throws -> AutomationExecution {
+    func executeAutomation(name: String, input: String?, timeout: TimeInterval, confirm: Bool) async throws -> AutomationExecution {
         try validateShortcutName(name)
 
         let started = Date()

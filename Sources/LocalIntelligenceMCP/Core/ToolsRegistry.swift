@@ -31,12 +31,17 @@ actor ToolsRegistry {
     func initialize() async throws {
         await logger.info("Initializing MCP tools registry", category: .server, metadata: [:])
 
-        // Register capability providers (GSD Plans 1.2, 2.1, 3.1)
+        // Register capability providers (GSD Plans 1.2, 2.1, 2.4, 3.1)
         await capabilityRouter.register(DeterministicTextProvider(), for: [.localSummarize, .localExtract, .localClassify], priority: 100)
-        await capabilityRouter.registerAutomation(ShortcutsProvider(), priority: 100)
+        let automationPolicy = AutomationSafetyPolicy.fromEnvironment()
+        await capabilityRouter.registerAutomation(
+            SafetyGatedAutomationProvider(inner: ShortcutsProvider(), policy: automationPolicy, logger: logger),
+            priority: 100
+        )
         if #available(macOS 26.0, *) {
             #if canImport(FoundationModels)
             let appleProvider = AppleFoundationProvider26()
+            appleProvider.router = capabilityRouter
             await capabilityRouter.register(appleProvider, for: [.localGenerate, .localSummarize, .localExtract, .localClassify], priority: 50)
             await logger.info("Apple Foundation Models provider registered (macOS 26+)", category: .server, metadata: [:])
             #endif

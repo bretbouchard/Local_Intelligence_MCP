@@ -114,7 +114,7 @@ actor CapabilityRouter {
         throw lastError ?? CapabilityError.unavailable(reason: "No available automation provider")
     }
 
-    func executeAutomation(name: String, input: String?, timeout: TimeInterval) async throws -> AutomationExecution {
+    func executeAutomation(name: String, input: String?, timeout: TimeInterval, confirm: Bool = false) async throws -> AutomationExecution {
         let sorted = Self.sorted(automationProviders.map { ($0.priority, $0.provider) })
         guard !sorted.isEmpty else {
             throw CapabilityError.unsupported(reason: "No automation provider registered")
@@ -123,7 +123,7 @@ actor CapabilityRouter {
             let status = await provider.availability(for: .localAutomationExecute)
             guard status == .available else { continue }
             // The provider owns its own timeout/cancellation for the side effect.
-            return try await provider.executeAutomation(name: name, input: input, timeout: timeout)
+            return try await provider.executeAutomation(name: name, input: input, timeout: timeout, confirm: confirm)
         }
         throw CapabilityError.unavailable(reason: "No available automation provider")
     }
