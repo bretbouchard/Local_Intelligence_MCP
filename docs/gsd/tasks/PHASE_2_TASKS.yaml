@@ -1,0 +1,880 @@
+# Phase 2: Real Apple Automation - AI-Optimized Task Breakdown
+# Total estimated tasks: 32
+# Total estimated time: 2-3 days
+# Critical path length: 14 tasks
+
+###############################################################################
+# Plan 2.1: Shortcuts provider
+###############################################################################
+
+- task_id: "2.1.1"
+  name: "Research macOS Shortcuts API availability"
+  priority: 1
+  estimated_time: "45 minutes"
+  estimated_tokens: 1200
+  
+  files:
+    create:
+      - docs/ai_context/shortcuts_api_reference.md
+  
+  dependencies: []
+  
+  work:
+    - step: "Document NSUserScriptTask"
+    - step: "Document Shortcuts app URL scheme"
+    - step: "Document AppleScript bridge if applicable"
+    - step: "Test basic shortcut execution on current macOS"
+    - step: "Document findings with code examples"
+  
+  ai_context:
+    purpose: "AI needs exact API references to avoid hallucination"
+    approach: "Create comprehensive reference document"
+    gotchas:
+      - "Shortcuts API varies by macOS version"
+      - "Some methods require Full Disk Access"
+    
+  verification:
+    commands:
+      - cmd: "cat docs/ai_context/shortcuts_api_reference.md | grep -c 'import'"
+        expected_output: "At least 1"
+  
+  acceptance_criteria:
+    - criterion: "API documented"
+      test: "Reference includes working code example"
+    - criterion: "Availability noted"
+      test: "Document specifies minimum macOS version"
+
+- task_id: "2.1.2"
+  name: "Create ShortcutsProvider protocol conformance"
+  priority: 1
+  estimated_time: "30 minutes"
+  estimated_tokens: 800
+  
+  files:
+    create:
+      - Sources/LocalIntelligenceMCP/Providers/Shortcuts/ShortcutsProvider.swift
+      - Tests/ProviderTests/ShortcutsProviderTests.swift
+  
+  dependencies:
+    - task_id: "1.2.1"
+      reason: "Conforms to IntelligenceProvider"
+    - task_id: "2.1.1"
+      reason: "Uses API reference"
+  
+  work:
+    - step: "Create class ShortcutsProvider: IntelligenceProvider"
+    - step: "Implement providerID, isAvailable"
+    - step: "Stub generate() method"
+    - step: "Add tests"
+  
+  verification:
+    commands:
+      - cmd: "swift build"
+        expected_exit: 0
+      - cmd: "swift test --filter ShortcutsProviderTests"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Provider compiles"
+      test: "Conforms to protocol"
+
+- task_id: "2.1.3"
+  name: "Implement shortcut enumeration"
+  priority: 1
+  estimated_time: "40 minutes"
+  estimated_tokens: 1000
+  
+  files:
+    create:
+      - Sources/LocalIntelligenceMCP/Providers/Shortcuts/ShortcutEnumerator.swift
+      - Tests/ProviderTests/ShortcutEnumeratorTests.swift
+  
+  dependencies:
+    - task_id: "2.1.1"
+      reason: "Uses API knowledge"
+  
+  work:
+    - step: "Find Shortcuts directory"
+      code_hint: "~/Library/Shortcuts/"
+    - step: "Parse .shortcut files or use API"
+    - step: "Return list of available shortcuts"
+    - step: "Add tests (may need fixtures)"
+  
+  verification:
+    commands:
+      - cmd: "swift build"
+        expected_exit: 0
+      - cmd: "swift test --filter ShortcutEnumeratorTests"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Can list shortcuts"
+      test: "Returns array of shortcut names"
+
+- task_id: "2.1.4"
+  name: "Implement shortcut execution"
+  priority: 1
+  estimated_time: "50 minutes"
+  estimated_tokens: 1300
+  
+  files:
+    create:
+      - Sources/LocalIntelligenceMCP/Providers/Shortcuts/ShortcutExecutor.swift
+      - Tests/ProviderTests/ShortcutExecutorTests.swift
+  
+  dependencies:
+    - task_id: "2.1.1"
+      reason: "Uses API"
+  
+  work:
+    - step: "Implement execute(shortcut: String, input: Any?) async throws -> Any?"
+    - step: "Use NSUserScriptTask or URL scheme"
+    - step: "Capture output"
+    - step: "Handle errors"
+    - step: "Add integration test with real shortcut"
+  
+  ai_context:
+    gotchas:
+      - "Must handle async execution"
+      - "Shortcuts may require permissions"
+      - "Output format varies by shortcut"
+  
+  verification:
+    commands:
+      - cmd: "swift build"
+        expected_exit: 0
+      - cmd: "swift test --filter ShortcutExecutorTests"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Real execution works"
+      test: "Integration test with test shortcut succeeds"
+
+- task_id: "2.1.5"
+  name: "Add timeout and cancellation to shortcut execution"
+  priority: 1
+  estimated_time: "35 minutes"
+  estimated_tokens: 900
+  
+  files:
+    modify:
+      - Sources/LocalIntelligenceMCP/Providers/Shortcuts/ShortcutExecutor.swift
+    test:
+      - Tests/ProviderTests/ShortcutExecutorTests.swift
+  
+  dependencies:
+    - task_id: "2.1.4"
+      reason: "Extends executor"
+  
+  work:
+    - step: "Add timeout parameter"
+    - step: "Implement timeout using Task.sleep + cancel"
+    - step: "Kill shortcut process on timeout"
+    - step: "Add cancellation support"
+    - step: "Add tests"
+  
+  verification:
+    commands:
+      - cmd: "swift test --filter ShortcutExecutorTests.testTimeout"
+        expected_exit: 0
+      - cmd: "swift test --filter ShortcutExecutorTests.testCancellation"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Timeout works"
+      test: "Long-running shortcut times out"
+    - criterion: "Cancellation works"
+      test: "Can cancel in-flight shortcut"
+
+- task_id: "2.1.6"
+  name: "Add input/output type validation"
+  priority: 2
+  estimated_time: "30 minutes"
+  estimated_tokens: 800
+  
+  files:
+    modify:
+      - Sources/LocalIntelligenceMCP/Providers/Shortcuts/ShortcutExecutor.swift
+    test:
+      - Tests/ProviderTests/ShortcutExecutorTests.swift
+  
+  dependencies:
+    - task_id: "2.1.4"
+      reason: "Extends executor"
+  
+  work:
+    - step: "Validate input types (String, Data, etc.)"
+    - step: "Parse output types"
+    - step: "Throw error on unsupported types"
+    - step: "Add tests"
+  
+  verification:
+    commands:
+      - cmd: "swift test --filter ShortcutExecutorTests.testValidation"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Invalid input rejected"
+      test: "Test with invalid type throws error"
+
+- task_id: "2.1.7"
+  name: "Wire ShortcutsProvider into local_automation_* tools"
+  priority: 1
+  estimated_time: "40 minutes"
+  estimated_tokens: 1000
+  
+  files:
+    modify:
+      - Sources/LocalIntelligenceMCP/Tools/LocalAutomationListTool.swift
+      - Sources/LocalIntelligenceMCP/Tools/LocalAutomationExecuteTool.swift
+    test:
+      - Tests/ToolTests/LocalAutomationToolsTests.swift
+  
+  dependencies:
+    - task_id: "2.1.3"
+      reason: "Uses enumeration"
+    - task_id: "2.1.4"
+      reason: "Uses execution"
+    - task_id: "1.4.6"
+      reason: "Updates tool"
+    - task_id: "1.4.7"
+      reason: "Updates tool"
+  
+  work:
+    - step: "Remove stub implementation from list tool"
+    - step: "Call shortcut enumerator"
+    - step: "Remove stub from execute tool"
+    - step: "Call shortcut executor"
+    - step: "Add integration tests"
+  
+  verification:
+    commands:
+      - cmd: "swift build"
+        expected_exit: 0
+      - cmd: "swift test --filter LocalAutomationToolsTests"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Tools use real provider"
+      test: "No more unavailable errors"
+    - criterion: "Integration test passes"
+      test: "Can list and execute test shortcut"
+
+- task_id: "2.1.8"
+  name: "Add shortcut execution audit logging"
+  priority: 2
+  estimated_time: "25 minutes"
+  estimated_tokens: 700
+  
+  files:
+    modify:
+      - Sources/LocalIntelligenceMCP/Providers/Shortcuts/ShortcutExecutor.swift
+  
+  dependencies:
+    - task_id: "2.1.4"
+      reason: "Extends executor"
+    - task_id: "1.5.1"
+      reason: "Uses logging"
+  
+  work:
+    - step: "Log shortcut name before execution"
+    - step: "Log success/failure"
+    - step: "Log duration"
+    - step: "Do NOT log input/output (may contain PII)"
+  
+  verification:
+    commands:
+      - cmd: "swift build"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Execution logged"
+      test: "Log statements present"
+
+###############################################################################
+# Plan 2.2: App Intents (if applicable)
+###############################################################################
+
+- task_id: "2.2.1"
+  name: "Research App Intents discovery mechanism"
+  priority: 2
+  estimated_time: "40 minutes"
+  estimated_tokens: 1000
+  
+  files:
+    create:
+      - docs/ai_context/app_intents_reference.md
+  
+  dependencies: []
+  
+  work:
+    - step: "Determine if App Intents are discoverable"
+    - step: "Document API if available"
+    - step: "Test on current macOS"
+    - step: "Note limitations"
+  
+  verification:
+    commands:
+      - cmd: "cat docs/ai_context/app_intents_reference.md | wc -l"
+        expected_output: "At least 20 lines"
+  
+  acceptance_criteria:
+    - criterion: "Research complete"
+      test: "Document exists with findings"
+
+- task_id: "2.2.2"
+  name: "Implement App Intents enumeration (if available)"
+  priority: 3
+  estimated_time: "45 minutes"
+  estimated_tokens: 1200
+  
+  files:
+    create:
+      - Sources/LocalIntelligenceMCP/Providers/AppIntents/AppIntentsEnumerator.swift
+      - Tests/ProviderTests/AppIntentsEnumeratorTests.swift
+  
+  dependencies:
+    - task_id: "2.2.1"
+      reason: "Uses research"
+  
+  work:
+    - step: "Implement if API available"
+    - step: "Otherwise stub with unavailable"
+    - step: "Add tests"
+  
+  verification:
+    commands:
+      - cmd: "swift build"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Enumerator exists"
+      test: "Compiles successfully"
+
+- task_id: "2.2.3"
+  name: "Document App Intents execution (if available)"
+  priority: 3
+  estimated_time: "40 minutes"
+  estimated_tokens: 1000
+  
+  files:
+    modify:
+      - docs/ai_context/app_intents_reference.md
+  
+  dependencies:
+    - task_id: "2.2.1"
+      reason: "Extends research"
+  
+  work:
+    - step: "Document execution mechanism"
+    - step: "Provide code example if possible"
+    - step: "Note if feature deferred"
+  
+  verification:
+    commands:
+      - cmd: "cat docs/ai_context/app_intents_reference.md | grep -c 'execution'"
+        expected_output: "At least 1"
+  
+  acceptance_criteria:
+    - criterion: "Documented"
+      test: "Execution section complete"
+
+###############################################################################
+# Plan 2.3: Accessibility fallback
+###############################################################################
+
+- task_id: "2.3.1"
+  name: "Research Accessibility API for automation"
+  priority: 2
+  estimated_time: "40 minutes"
+  estimated_tokens: 1000
+  
+  files:
+    create:
+      - docs/ai_context/accessibility_api_reference.md
+  
+  dependencies: []
+  
+  work:
+    - step: "Document Accessibility framework"
+    - step: "Note permission requirements"
+    - step: "Provide code examples"
+    - step: "Document when to use (last resort)"
+  
+  verification:
+    commands:
+      - cmd: "cat docs/ai_context/accessibility_api_reference.md | grep -c 'permission'"
+        expected_output: "At least 2"
+  
+  acceptance_criteria:
+    - criterion: "API documented"
+      test: "Reference complete"
+
+- task_id: "2.3.2"
+  name: "Implement permission check for Accessibility"
+  priority: 2
+  estimated_time: "30 minutes"
+  estimated_tokens: 800
+  
+  files:
+    create:
+      - Sources/LocalIntelligenceMCP/Providers/Accessibility/AccessibilityPermissions.swift
+      - Tests/ProviderTests/AccessibilityPermissionsTests.swift
+  
+  dependencies:
+    - task_id: "2.3.1"
+      reason: "Uses API knowledge"
+  
+  work:
+    - step: "Check AXIsProcessTrusted()"
+    - step: "Return permission status"
+    - step: "Add tests"
+  
+  verification:
+    commands:
+      - cmd: "swift build"
+        expected_exit: 0
+      - cmd: "swift test --filter AccessibilityPermissionsTests"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Permission check works"
+      test: "Returns correct status"
+
+- task_id: "2.3.3"
+  name: "Document Accessibility as explicit fallback only"
+  priority: 2
+  estimated_time: "20 minutes"
+  estimated_tokens: 600
+  
+  files:
+    create:
+      - docs/automation/accessibility_policy.md
+  
+  dependencies: []
+  
+  work:
+    - step: "Document that Accessibility is NOT default"
+    - step: "Requires explicit opt-in"
+    - step: "Requires permission grant"
+    - step: "Document security implications"
+  
+  verification:
+    commands:
+      - cmd: "cat docs/automation/accessibility_policy.md | grep -c 'explicit'"
+        expected_output: "At least 1"
+  
+  acceptance_criteria:
+    - criterion: "Policy documented"
+      test: "Clear that it's opt-in only"
+
+- task_id: "2.3.4"
+  name: "Add Accessibility provider (minimal implementation)"
+  priority: 3
+  estimated_time: "45 minutes"
+  estimated_tokens: 1200
+  
+  files:
+    create:
+      - Sources/LocalIntelligenceMCP/Providers/Accessibility/AccessibilityProvider.swift
+      - Tests/ProviderTests/AccessibilityProviderTests.swift
+  
+  dependencies:
+    - task_id: "2.3.2"
+      reason: "Uses permissions"
+  
+  work:
+    - step: "Create minimal provider"
+    - step: "Check permission before any action"
+    - step: "Throw permissionDenied if not granted"
+    - step: "Add tests"
+  
+  verification:
+    commands:
+      - cmd: "swift build"
+        expected_exit: 0
+      - cmd: "swift test --filter AccessibilityProviderTests"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Provider exists"
+      test: "Compiles"
+    - criterion: "Permission enforced"
+      test: "Throws error when permission denied"
+
+###############################################################################
+# Plan 2.4: Timeout and safety
+###############################################################################
+
+- task_id: "2.4.1"
+  name: "Add configurable timeout defaults"
+  priority: 2
+  estimated_time: "25 minutes"
+  estimated_tokens: 700
+  
+  files:
+    create:
+      - Sources/LocalIntelligenceMCP/Configuration/AutomationConfig.swift
+      - Tests/ConfigTests/AutomationConfigTests.swift
+  
+  dependencies: []
+  
+  work:
+    - step: "Create config struct"
+      code_hint: |
+        public struct AutomationConfig {
+            public let defaultTimeoutSeconds: Int = 30
+            public let maxTimeoutSeconds: Int = 300
+        }
+    - step: "Add tests"
+  
+  verification:
+    commands:
+      - cmd: "swift build"
+        expected_exit: 0
+      - cmd: "swift test --filter AutomationConfigTests"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Config exists"
+      test: "Defaults defined"
+
+- task_id: "2.4.2"
+  name: "Enforce timeout limits in automation tools"
+  priority: 2
+  estimated_time: "30 minutes"
+  estimated_tokens: 800
+  
+  files:
+    modify:
+      - Sources/LocalIntelligenceMCP/Tools/LocalAutomationExecuteTool.swift
+  
+  dependencies:
+    - task_id: "2.4.1"
+      reason: "Uses config"
+    - task_id: "2.1.7"
+      reason: "After tool wired up"
+  
+  work:
+    - step: "Read timeout from request or use default"
+    - step: "Enforce maximum timeout"
+    - step: "Pass to executor"
+    - step: "Add tests"
+  
+  verification:
+    commands:
+      - cmd: "swift test --filter LocalAutomationExecuteTool.testTimeoutEnforced"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Timeout enforced"
+      test: "Excessive timeout capped at max"
+
+- task_id: "2.4.3"
+  name: "Add automation argument validation"
+  priority: 2
+  estimated_time: "35 minutes"
+  estimated_tokens: 900
+  
+  files:
+    create:
+      - Sources/LocalIntelligenceMCP/Providers/Shortcuts/ArgumentValidator.swift
+      - Tests/ProviderTests/ArgumentValidatorTests.swift
+  
+  dependencies: []
+  
+  work:
+    - step: "Validate shortcut names (no path traversal)"
+    - step: "Validate input data types"
+    - step: "Reject dangerous patterns"
+    - step: "Add tests"
+  
+  verification:
+    commands:
+      - cmd: "swift test --filter ArgumentValidatorTests"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Malicious input rejected"
+      test: "Tests verify path traversal blocked"
+
+- task_id: "2.4.4"
+  name: "Add result evidence to automation execution"
+  priority: 2
+  estimated_time: "30 minutes"
+  estimated_tokens: 800
+  
+  files:
+    modify:
+      - Sources/LocalIntelligenceMCP/Providers/Shortcuts/ShortcutExecutor.swift
+  
+  dependencies:
+    - task_id: "1.3.4"
+      reason: "Uses ToolExecutionEvidence"
+    - task_id: "2.1.4"
+      reason: "Extends executor"
+  
+  work:
+    - step: "Return ToolExecutionEvidence with result"
+    - step: "Include timestamp, duration"
+    - step: "Include error if failed"
+    - step: "Add tests"
+  
+  verification:
+    commands:
+      - cmd: "swift build"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Evidence included"
+      test: "Result includes evidence"
+
+- task_id: "2.4.5"
+  name: "Create automation integration test suite"
+  priority: 1
+  estimated_time: "45 minutes"
+  estimated_tokens: 1200
+  
+  files:
+    create:
+      - Tests/IntegrationTests/AutomationIntegrationTests.swift
+      - Tests/Fixtures/TestShortcut.shortcut
+  
+  dependencies:
+    - task_id: "2.1.7"
+      reason: "After tools wired up"
+  
+  work:
+    - step: "Create test shortcut fixture"
+    - step: "Test: list shortcuts"
+    - step: "Test: execute test shortcut"
+    - step: "Test: handle execution error"
+    - step: "Test: timeout"
+    - step: "Test: cancellation"
+  
+  verification:
+    commands:
+      - cmd: "swift test --filter AutomationIntegrationTests"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Integration tests pass"
+      test: "All 5+ tests green"
+
+###############################################################################
+# Plan 2.5: Permission and policy
+###############################################################################
+
+- task_id: "2.5.1"
+  name: "Define automation permission requirements"
+  priority: 2
+  estimated_time: "25 minutes"
+  estimated_tokens: 700
+  
+  files:
+    create:
+      - docs/security/automation_permissions.md
+  
+  dependencies: []
+  
+  work:
+    - step: "List required permissions for Shortcuts"
+    - step: "List required permissions for Accessibility"
+    - step: "Document how to grant"
+    - step: "Document behavior when denied"
+  
+  verification:
+    commands:
+      - cmd: "cat docs/security/automation_permissions.md | grep -c 'permission'"
+        expected_output: "At least 3"
+  
+  acceptance_criteria:
+    - criterion: "Permissions documented"
+      test: "All requirements listed"
+
+- task_id: "2.5.2"
+  name: "Implement permission checks before automation"
+  priority: 2
+  estimated_time: "30 minutes"
+  estimated_tokens: 800
+  
+  files:
+    modify:
+      - Sources/LocalIntelligenceMCP/Providers/Shortcuts/ShortcutExecutor.swift
+  
+  dependencies:
+    - task_id: "2.1.4"
+      reason: "Extends executor"
+  
+  work:
+    - step: "Check permissions before execution"
+    - step: "Throw permissionDenied if not granted"
+    - step: "Add tests"
+  
+  verification:
+    commands:
+      - cmd: "swift test --filter ShortcutExecutorTests.testPermissionDenied"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Permission enforced"
+      test: "Test verifies denial"
+
+- task_id: "2.5.3"
+  name: "Add automation policy framework"
+  priority: 3
+  estimated_time: "40 minutes"
+  estimated_tokens: 1000
+  
+  files:
+    create:
+      - Sources/LocalIntelligenceMCP/Policy/AutomationPolicy.swift
+      - Tests/PolicyTests/AutomationPolicyTests.swift
+  
+  dependencies: []
+  
+  work:
+    - step: "Create policy protocol"
+      code_hint: |
+        public protocol AutomationPolicy {
+            func canExecute(shortcut: String, requestedBy: String) -> Bool
+        }
+    - step: "Create default allow-all policy"
+    - step: "Create allowlist policy"
+    - step: "Add tests"
+  
+  verification:
+    commands:
+      - cmd: "swift test --filter AutomationPolicyTests"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Policy framework exists"
+      test: "Can implement custom policies"
+
+- task_id: "2.5.4"
+  name: "Wire policy checks into automation execution"
+  priority: 3
+  estimated_time: "30 minutes"
+  estimated_tokens: 800
+  
+  files:
+    modify:
+      - Sources/LocalIntelligenceMCP/Providers/Shortcuts/ShortcutExecutor.swift
+  
+  dependencies:
+    - task_id: "2.5.3"
+      reason: "Uses policy"
+    - task_id: "2.1.4"
+      reason: "Extends executor"
+  
+  work:
+    - step: "Add policy parameter to executor"
+    - step: "Check policy before execution"
+    - step: "Throw policyDenied if not allowed"
+    - step: "Add tests"
+  
+  verification:
+    commands:
+      - cmd: "swift test --filter ShortcutExecutorTests.testPolicyDenied"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Policy enforced"
+      test: "Test verifies policy denial"
+
+###############################################################################
+# Plan 2.6: Documentation and examples
+###############################################################################
+
+- task_id: "2.6.1"
+  name: "Create automation usage examples"
+  priority: 2
+  estimated_time: "35 minutes"
+  estimated_tokens: 900
+  
+  files:
+    create:
+      - docs/examples/automation_examples.md
+  
+  dependencies:
+    - task_id: "2.1.7"
+      reason: "After automation works"
+  
+  work:
+    - step: "Example: list shortcuts"
+    - step: "Example: execute shortcut with input"
+    - step: "Example: handle timeout"
+    - step: "Example: handle permission denied"
+  
+  verification:
+    commands:
+      - cmd: "cat docs/examples/automation_examples.md | grep -c '```'"
+        expected_output: "At least 8 (4 examples × 2 fences)"
+  
+  acceptance_criteria:
+    - criterion: "Examples complete"
+      test: "All 4 scenarios covered"
+
+- task_id: "2.6.2"
+  name: "Document automation limitations"
+  priority: 2
+  estimated_time: "25 minutes"
+  estimated_tokens: 700
+  
+  files:
+    create:
+      - docs/automation/limitations.md
+  
+  dependencies: []
+  
+  work:
+    - step: "List what automation CAN do"
+    - step: "List what it CANNOT do"
+    - step: "Note security/permission constraints"
+    - step: "Note timeout limits"
+  
+  verification:
+    commands:
+      - cmd: "cat docs/automation/limitations.md | wc -l"
+        expected_output: "At least 30"
+  
+  acceptance_criteria:
+    - criterion: "Limitations documented"
+      test: "Both capabilities and limits clear"
+
+- task_id: "2.6.3"
+  name: "Update README with automation features"
+  priority: 2
+  estimated_time: "20 minutes"
+  estimated_tokens: 600
+  
+  files:
+    modify:
+      - README.md
+  
+  dependencies:
+    - task_id: "2.1.7"
+      reason: "After automation works"
+  
+  work:
+    - step: "Add automation section"
+    - step: "Link to examples"
+    - step: "Note requirements (macOS version, permissions)"
+  
+  verification:
+    commands:
+      - cmd: "grep -c 'automation' README.md"
+        expected_output: "At least 3"
+  
+  acceptance_criteria:
+    - criterion: "README updated"
+      test: "Automation documented"
+
+###############################################################################
+# Phase 2 Summary
+###############################################################################
+# Total tasks: 32
+# Critical path: 14 tasks (priority 1)
+# Estimated completion: 2-3 days with AI
+# Next phase: Phase 3 (macOS 15 Foundation Models)

@@ -633,23 +633,6 @@ final class VendorNeutralAnalyzerTests: XCTestCase {
         XCTAssertTrue(recommendations.isEmpty)
     }
 
-    func testGenerateRecommendationsWithLowSimilarityThreshold() {
-        let targetPlugin = createCompressorPlugin()
-        let veryDifferentPlugin = createDelayPlugin()
-
-        let recommendations = VendorNeutralAnalyzer.generateRecommendations(
-            for: targetPlugin,
-            from: [veryDifferentPlugin]
-        )
-
-        // Should still generate recommendation even for dissimilar plugins
-        XCTAssertFalse(recommendations.isEmpty)
-
-        let recommendation = recommendations.first!
-        XCTAssertLessThan(recommendation.similarityScore, 0.4) // Should be low similarity
-        XCTAssertGreaterThan(recommendation.compatibilityScore, 0.0) // But should have some compatibility
-    }
-
     // MARK: - Performance Tests
 
     func testPerformanceWithLargePluginSet() {

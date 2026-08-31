@@ -1,0 +1,94 @@
+# AI-Optimized Task Template for Qwen3-Code:30B
+# Copy this template for each atomic task
+
+task_id: "X.Y.Z"  # Phase.Plan.Task (e.g., "0.1.1")
+name: "Brief description of what this task accomplishes"
+phase: X
+plan: Y
+priority: 1  # 1=critical path, 2=parallel ok, 3=optional
+estimated_time: "15-30 minutes"
+estimated_tokens: 500-1000
+
+# What files this task touches
+files:
+  create:
+    - path/to/new/file.swift
+  modify:
+    - path/to/existing/file.swift
+  test:
+    - Tests/SomeTests/FileTests.swift
+  docs:
+    - docs/some_doc.md
+
+# Tasks that must complete before this one
+dependencies:
+  - task_id: "X.Y.Z-1"
+    reason: "Needs TypeName definition"
+  - task_id: "X.Y.Z-2"
+    reason: "Requires protocol conformance"
+
+# What must be true before starting
+preconditions:
+  build:
+    - "swift build succeeds"
+  tests:
+    - "existing test suite passes"
+  files:
+    - "Target file exists or parent directory exists"
+
+# Detailed work breakdown
+work:
+  - step: "Add property X to struct Y"
+    code_hint: "public var x: TypeName"
+  - step: "Implement method Z"
+    code_hint: "func z() -> Result<Value, Error>"
+  - step: "Add availability check"
+    code_hint: "@available(macOS 13.0, *)"
+  - step: "Write unit test"
+    code_hint: "func testZ() { XCTAssertEqual(...) }"
+
+# How to verify task completion
+verification:
+  commands:
+    - cmd: "swift build"
+      expected_exit: 0
+      expected_output: "Build complete"
+    - cmd: "swift test --filter FileTests"
+      expected_exit: 0
+      expected_output: "Test Suite 'FileTests' passed"
+    - cmd: "swiftlint lint --path path/to/file.swift"
+      expected_exit: 0
+      optional: true
+  
+  # Specific assertions
+  assertions:
+    - "File contains no TODO or FIXME comments"
+    - "All public APIs have documentation comments"
+    - "No force unwraps (!)"
+    - "No print() statements (use logger)"
+
+# What makes this task complete
+acceptance_criteria:
+  - criterion: "Method returns correct value"
+    test: "testZ passes"
+  - criterion: "Error handling is complete"
+    test: "testZFailure passes"
+  - criterion: "Availability guard works"
+    test: "Compiles on macOS 13 SDK"
+
+# Context for AI
+ai_context:
+  purpose: "Why this task exists"
+  approach: "Suggested implementation approach"
+  gotchas:
+    - "Common mistake to avoid"
+    - "Edge case to handle"
+  examples:
+    - "Code snippet showing pattern"
+
+# Evidence to commit
+evidence:
+  commit_message: "feat(component): brief description [task X.Y.Z]"
+  files_changed: 2-3
+  tests_added: 1-3
+  lines_changed: 50-200

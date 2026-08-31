@@ -277,6 +277,10 @@ extension Error {
             return mcpError
         }
 
+        if let capabilityError = self as? CapabilityError {
+            return capabilityError.localMCPError
+        }
+
         return LocalMCPError(
             code: "INTERNAL_ERROR",
             message: self.localizedDescription,
@@ -387,6 +391,15 @@ struct MCPConstants {
         static let systemInfo = "system_info"
         static let getPermissionStatus = "get_permission_status"
         static let checkPermission = "check_permission"
+
+        // Stable capability-oriented tools (GSD Plan 1.4)
+        static let localCapabilities = "local_capabilities"
+        static let localGenerate = "local_generate"
+        static let localSummarize = "local_summarize"
+        static let localExtract = "local_extract"
+        static let localClassify = "local_classify"
+        static let localAutomationList = "local_automation_list"
+        static let localAutomationExecute = "local_automation_execute"
     }
 
     struct Limits {

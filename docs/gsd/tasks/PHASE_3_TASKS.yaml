@@ -1,0 +1,1261 @@
+# Phase 3: macOS 15 Foundation Models - AI-Optimized Task Breakdown
+# Total estimated tasks: 48
+# Total estimated time: 4-5 days
+# Critical path length: 22 tasks
+# ⚠️ CRITICAL: Requires Apple API documentation seeding
+
+###############################################################################
+# PREREQUISITE: Apple API Context Seeding
+###############################################################################
+
+- task_id: "3.0.1"
+  name: "Extract Apple Foundation Models API documentation"
+  priority: 1
+  estimated_time: "2 hours"
+  estimated_tokens: "N/A - Manual research"
+  
+  files:
+    create:
+      - docs/ai_context/foundation_models_api.md
+      - docs/ai_context/foundation_models_examples.swift
+  
+  dependencies: []
+  
+  work:
+    - step: "Research Apple's Foundation Models framework"
+    - step: "Document exact import statements"
+    - step: "Document availability annotations (@available(macOS 15.0, *))"
+    - step: "Document initialization patterns"
+    - step: "Document session lifecycle"
+    - step: "Document generation methods"
+    - step: "Document streaming patterns"
+    - step: "Document structured output mechanism"
+    - step: "Document tool calling API"
+    - step: "Document error types"
+    - step: "Provide 3-5 working code examples"
+    - step: "Note hardware requirements"
+  
+  ai_context:
+    purpose: "CRITICAL: AI will hallucinate APIs without this"
+    approach: "Extract from Apple docs, WWDC, sample code"
+    gotchas:
+      - "API names may differ from expectations"
+      - "Framework name might not be 'FoundationModels'"
+      - "May require private entitlements"
+  
+  verification:
+    commands:
+      - cmd: "cat docs/ai_context/foundation_models_api.md | grep -c 'import'"
+        expected_output: "At least 1"
+      - cmd: "cat docs/ai_context/foundation_models_examples.swift | grep -c 'func'"
+        expected_output: "At least 3"
+  
+  acceptance_criteria:
+    - criterion: "Complete API reference"
+      test: "Document has all major sections"
+    - criterion: "Working examples"
+      test: "Examples compile on macOS 15+"
+    - criterion: "Availability clear"
+      test: "All APIs annotated with macOS version"
+
+###############################################################################
+# Plan 3.1: Apple FM provider skeleton
+###############################################################################
+
+- task_id: "3.1.1"
+  name: "Create AppleFMProvider stub with availability check"
+  priority: 1
+  estimated_time: "25 minutes"
+  estimated_tokens: 700
+  
+  files:
+    create:
+      - Sources/LocalIntelligenceMCP/Providers/AppleFM/AppleFMProvider.swift
+      - Tests/ProviderTests/AppleFMProviderTests.swift
+  
+  dependencies:
+    - task_id: "3.0.1"
+      reason: "Needs API reference"
+    - task_id: "1.2.1"
+      reason: "Conforms to IntelligenceProvider"
+  
+  work:
+    - step: "Create class with @available(macOS 15.0, *)"
+      code_hint: |
+        @available(macOS 15.0, *)
+        public final class AppleFMProvider: IntelligenceProvider {
+            public let providerID = "apple_fm_macos15"
+            public var isAvailable: Bool { 
+                // Check hardware, feature flags
+                return false  // Stub for now
+            }
+        }
+    - step: "Stub generate() method"
+    - step: "Add tests with availability guards"
+  
+  verification:
+    commands:
+      - cmd: "swift build"
+        expected_exit: 0
+      - cmd: "swift test --filter AppleFMProviderTests"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Provider compiles on all macOS versions"
+      test: "Availability guard prevents compile errors"
+    - criterion: "Tests pass"
+      test: "Tests skip gracefully on older macOS"
+
+- task_id: "3.1.2"
+  name: "Implement Apple Intelligence eligibility check"
+  priority: 1
+  estimated_time: "40 minutes"
+  estimated_tokens: 1000
+  
+  files:
+    modify:
+      - Sources/LocalIntelligenceMCP/Providers/AppleFM/AppleFMProvider.swift
+    test:
+      - Tests/ProviderTests/AppleFMProviderTests.swift
+  
+  dependencies:
+    - task_id: "3.1.1"
+      reason: "Extends provider"
+    - task_id: "3.0.1"
+      reason: "Uses API knowledge"
+  
+  work:
+    - step: "Implement isAvailable using Apple's eligibility API"
+      code_hint: "Check for Apple Silicon, macOS 15+, feature enabled"
+    - step: "Return false if any requirement not met"
+    - step: "Add tests with mocking"
+  
+  ai_context:
+    gotchas:
+      - "Cannot fake eligibility - must check real system state"
+      - "May require actual Apple Silicon hardware to test"
+  
+  verification:
+    commands:
+      - cmd: "swift test --filter AppleFMProviderTests.testEligibility"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Eligibility check works"
+      test: "Returns false on Intel or macOS <15"
+    - criterion: "No crashes on older systems"
+      test: "Test passes on macOS 13"
+
+- task_id: "3.1.3"
+  name: "Add model availability state detection"
+  priority: 1
+  estimated_time: "35 minutes"
+  estimated_tokens: 900
+  
+  files:
+    modify:
+      - Sources/LocalIntelligenceMCP/Providers/AppleFM/AppleFMProvider.swift
+    test:
+      - Tests/ProviderTests/AppleFMProviderTests.swift
+  
+  dependencies:
+    - task_id: "3.1.2"
+      reason: "After eligibility check"
+    - task_id: "3.0.1"
+      reason: "Uses API"
+  
+  work:
+    - step: "Query model download/ready state"
+    - step: "Return ModelAvailability enum"
+    - step: "Handle downloading state with progress"
+    - step: "Add tests"
+  
+  verification:
+    commands:
+      - cmd: "swift test --filter AppleFMProviderTests.testModelAvailability"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Can detect model state"
+      test: "Returns correct availability"
+
+###############################################################################
+# Plan 3.2: Session management
+###############################################################################
+
+- task_id: "3.2.1"
+  name: "Create AppleFMSession wrapper"
+  priority: 1
+  estimated_time: "30 minutes"
+  estimated_tokens: 800
+  
+  files:
+    create:
+      - Sources/LocalIntelligenceMCP/Providers/AppleFM/AppleFMSession.swift
+      - Tests/ProviderTests/AppleFMSessionTests.swift
+  
+  dependencies:
+    - task_id: "3.0.1"
+      reason: "Uses session API"
+  
+  work:
+    - step: "Wrap Apple's session object"
+      code_hint: |
+        @available(macOS 15.0, *)
+        public final class AppleFMSession {
+            private let underlyingSession: AppleSession  // Use real type
+            public init() throws { ... }
+            public func close() async { ... }
+        }
+    - step: "Add initialization error handling"
+    - step: "Add tests"
+  
+  verification:
+    commands:
+      - cmd: "swift build"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Session wrapper exists"
+      test: "Compiles on macOS 15+"
+
+- task_id: "3.2.2"
+  name: "Implement session lifecycle management"
+  priority: 1
+  estimated_time: "35 minutes"
+  estimated_tokens: 900
+  
+  files:
+    modify:
+      - Sources/LocalIntelligenceMCP/Providers/AppleFM/AppleFMSession.swift
+    test:
+      - Tests/ProviderTests/AppleFMSessionTests.swift
+  
+  dependencies:
+    - task_id: "3.2.1"
+      reason: "Extends session"
+  
+  work:
+    - step: "Add session pooling or singleton"
+    - step: "Implement cleanup on close"
+    - step: "Handle session expiration"
+    - step: "Add tests"
+  
+  verification:
+    commands:
+      - cmd: "swift test --filter AppleFMSessionTests.testLifecycle"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Sessions managed properly"
+      test: "No session leaks in tests"
+
+- task_id: "3.2.3"
+  name: "Add session-level context limits"
+  priority: 2
+  estimated_time: "30 minutes"
+  estimated_tokens: 800
+  
+  files:
+    modify:
+      - Sources/LocalIntelligenceMCP/Providers/AppleFM/AppleFMSession.swift
+    test:
+      - Tests/ProviderTests/AppleFMSessionTests.swift
+  
+  dependencies:
+    - task_id: "3.2.2"
+      reason: "Extends session"
+  
+  work:
+    - step: "Track conversation history"
+    - step: "Enforce maximum context window"
+    - step: "Implement truncation strategy"
+    - step: "Add tests"
+  
+  verification:
+    commands:
+      - cmd: "swift test --filter AppleFMSessionTests.testContextLimit"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Context bounded"
+      test: "Exceeding limit truncates or errors"
+
+- task_id: "3.2.4"
+  name: "Add session reset capability"
+  priority: 2
+  estimated_time: "20 minutes"
+  estimated_tokens: 600
+  
+  files:
+    modify:
+      - Sources/LocalIntelligenceMCP/Providers/AppleFM/AppleFMSession.swift
+    test:
+      - Tests/ProviderTests/AppleFMSessionTests.swift
+  
+  dependencies:
+    - task_id: "3.2.2"
+      reason: "Extends session"
+  
+  work:
+    - step: "Add reset() method"
+    - step: "Clear conversation history"
+    - step: "Keep session alive"
+    - step: "Add tests"
+  
+  verification:
+    commands:
+      - cmd: "swift test --filter AppleFMSessionTests.testReset"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Reset works"
+      test: "History cleared after reset"
+
+###############################################################################
+# Plan 3.3: Basic generation
+###############################################################################
+
+- task_id: "3.3.1"
+  name: "Implement basic text generation"
+  priority: 1
+  estimated_time: "45 minutes"
+  estimated_tokens: 1200
+  
+  files:
+    modify:
+      - Sources/LocalIntelligenceMCP/Providers/AppleFM/AppleFMProvider.swift
+    test:
+      - Tests/ProviderTests/AppleFMProviderTests.swift
+  
+  dependencies:
+    - task_id: "3.2.1"
+      reason: "Uses session"
+    - task_id: "3.0.1"
+      reason: "Uses generation API"
+  
+  work:
+    - step: "Implement generate() method"
+      code_hint: |
+        public func generate(request: GenerationRequest) async throws -> GenerationResult {
+            let session = try getOrCreateSession()
+            let response = try await session.generate(prompt: request.prompt)
+            return GenerationResult(...)
+        }
+    - step: "Map request to Apple API"
+    - step: "Map response to GenerationResult"
+    - step: "Add integration test (requires hardware)"
+  
+  ai_context:
+    gotchas:
+      - "Response format may not match expectations"
+      - "Need actual eligible hardware to test fully"
+  
+  verification:
+    commands:
+      - cmd: "swift build"
+        expected_exit: 0
+      - cmd: "swift test --filter AppleFMProviderTests.testGeneration"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Generation works on eligible hardware"
+      test: "Integration test passes (or skips if unavailable)"
+
+- task_id: "3.3.2"
+  name: "Add system prompt support"
+  priority: 1
+  estimated_time: "25 minutes"
+  estimated_tokens: 700
+  
+  files:
+    modify:
+      - Sources/LocalIntelligenceMCP/Providers/AppleFM/AppleFMProvider.swift
+    test:
+      - Tests/ProviderTests/AppleFMProviderTests.swift
+  
+  dependencies:
+    - task_id: "3.3.1"
+      reason: "Extends generation"
+  
+  work:
+    - step: "Add system prompt to API call"
+    - step: "Handle absence of system prompt"
+    - step: "Add tests"
+  
+  verification:
+    commands:
+      - cmd: "swift test --filter AppleFMProviderTests.testSystemPrompt"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "System prompt works"
+      test: "Test with system prompt passes"
+
+- task_id: "3.3.3"
+  name: "Add generation parameters (temperature, maxTokens)"
+  priority: 1
+  estimated_time: "30 minutes"
+  estimated_tokens: 800
+  
+  files:
+    modify:
+      - Sources/LocalIntelligenceMCP/Providers/AppleFM/AppleFMProvider.swift
+    test:
+      - Tests/ProviderTests/AppleFMProviderTests.swift
+  
+  dependencies:
+    - task_id: "3.3.1"
+      reason: "Extends generation"
+  
+  work:
+    - step: "Map temperature parameter"
+    - step: "Map maxTokens parameter"
+    - step: "Use defaults if not provided"
+    - step: "Add tests"
+  
+  verification:
+    commands:
+      - cmd: "swift test --filter AppleFMProviderTests.testParameters"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Parameters work"
+      test: "Tests verify parameter passing"
+
+- task_id: "3.3.4"
+  name: "Implement streaming generation"
+  priority: 1
+  estimated_time: "50 minutes"
+  estimated_tokens: 1300
+  
+  files:
+    modify:
+      - Sources/LocalIntelligenceMCP/Providers/AppleFM/AppleFMProvider.swift
+      - Sources/LocalIntelligenceMCP/Providers/IntelligenceProvider.swift
+    test:
+      - Tests/ProviderTests/AppleFMProviderTests.swift
+  
+  dependencies:
+    - task_id: "3.3.1"
+      reason: "Extends generation"
+    - task_id: "3.0.1"
+      reason: "Uses streaming API"
+  
+  work:
+    - step: "Add generateStream() method to protocol"
+      code_hint: |
+        func generateStream(request: GenerationRequest) -> AsyncThrowingStream<String, Error>
+    - step: "Implement using Apple's streaming API"
+    - step: "Handle stream errors"
+    - step: "Add tests"
+  
+  verification:
+    commands:
+      - cmd: "swift build"
+        expected_exit: 0
+      - cmd: "swift test --filter AppleFMProviderTests.testStreaming"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Streaming works"
+      test: "Can receive partial results"
+
+- task_id: "3.3.5"
+  name: "Add generation cancellation"
+  priority: 1
+  estimated_time: "30 minutes"
+  estimated_tokens: 800
+  
+  files:
+    modify:
+      - Sources/LocalIntelligenceMCP/Providers/AppleFM/AppleFMProvider.swift
+    test:
+      - Tests/ProviderTests/AppleFMProviderTests.swift
+  
+  dependencies:
+    - task_id: "3.3.1"
+      reason: "Extends generation"
+  
+  work:
+    - step: "Implement cancelGeneration()"
+    - step: "Cancel underlying Apple API request"
+    - step: "Clean up resources"
+    - step: "Add cancellation test"
+  
+  verification:
+    commands:
+      - cmd: "swift test --filter AppleFMProviderTests.testCancellation"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Cancellation works"
+      test: "In-flight generation can be cancelled"
+
+- task_id: "3.3.6"
+  name: "Add error mapping from Apple FM errors"
+  priority: 1
+  estimated_time: "35 minutes"
+  estimated_tokens: 900
+  
+  files:
+    create:
+      - Sources/LocalIntelligenceMCP/Providers/AppleFM/ErrorMapper.swift
+      - Tests/ProviderTests/ErrorMapperTests.swift
+  
+  dependencies:
+    - task_id: "3.3.1"
+      reason: "Maps errors"
+    - task_id: "1.3.1"
+      reason: "Maps to CapabilityError"
+  
+  work:
+    - step: "Map Apple FM errors to CapabilityError"
+    - step: "Handle model unavailable"
+    - step: "Handle rate limiting"
+    - step: "Handle context length exceeded"
+    - step: "Add tests for each error type"
+  
+  verification:
+    commands:
+      - cmd: "swift test --filter ErrorMapperTests"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "All error types mapped"
+      test: "Tests cover all Apple error cases"
+
+###############################################################################
+# Plan 3.4: Structured generation
+###############################################################################
+
+- task_id: "3.4.1"
+  name: "Research Apple's structured output API"
+  priority: 1
+  estimated_time: "40 minutes"
+  estimated_tokens: 1000
+  
+  files:
+    modify:
+      - docs/ai_context/foundation_models_api.md
+  
+  dependencies:
+    - task_id: "3.0.1"
+      reason: "Extends API documentation"
+  
+  work:
+    - step: "Document structured output mechanism"
+    - step: "Document schema format (JSON Schema?)"
+    - step: "Provide code examples"
+    - step: "Note limitations"
+  
+  verification:
+    commands:
+      - cmd: "grep -c 'structured' docs/ai_context/foundation_models_api.md"
+        expected_output: "At least 3"
+  
+  acceptance_criteria:
+    - criterion: "Structured API documented"
+      test: "Examples provided"
+
+- task_id: "3.4.2"
+  name: "Implement structured generation"
+  priority: 1
+  estimated_time: "50 minutes"
+  estimated_tokens: 1300
+  
+  files:
+    modify:
+      - Sources/LocalIntelligenceMCP/Providers/AppleFM/AppleFMProvider.swift
+    create:
+      - Sources/LocalIntelligenceMCP/Providers/AppleFM/StructuredGenerator.swift
+    test:
+      - Tests/ProviderTests/StructuredGeneratorTests.swift
+  
+  dependencies:
+    - task_id: "3.4.1"
+      reason: "Uses API knowledge"
+    - task_id: "1.3.2"
+      reason: "Uses StructuredGenerationRequest"
+  
+  work:
+    - step: "Implement generateStructured()"
+    - step: "Pass schema to Apple API"
+    - step: "Validate response against schema"
+    - step: "Add tests"
+  
+  verification:
+    commands:
+      - cmd: "swift build"
+        expected_exit: 0
+      - cmd: "swift test --filter StructuredGeneratorTests"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Structured generation works"
+      test: "Can generate valid JSON matching schema"
+
+- task_id: "3.4.3"
+  name: "Add schema validation"
+  priority: 1
+  estimated_time: "35 minutes"
+  estimated_tokens: 900
+  
+  files:
+    create:
+      - Sources/LocalIntelligenceMCP/Providers/SchemaValidator.swift
+      - Tests/ProviderTests/SchemaValidatorTests.swift
+  
+  dependencies:
+    - task_id: "3.4.2"
+      reason: "Validates output"
+  
+  work:
+    - step: "Implement JSON Schema validator"
+    - step: "Validate generated output"
+    - step: "Return validation errors"
+    - step: "Add tests with valid and invalid schemas"
+  
+  verification:
+    commands:
+      - cmd: "swift test --filter SchemaValidatorTests"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Validation catches invalid output"
+      test: "Tests verify validation logic"
+
+- task_id: "3.4.4"
+  name: "Implement local_extract using structured generation"
+  priority: 1
+  estimated_time: "40 minutes"
+  estimated_tokens: 1000
+  
+  files:
+    modify:
+      - Sources/LocalIntelligenceMCP/Tools/LocalExtractTool.swift
+    test:
+      - Tests/ToolTests/LocalExtractToolTests.swift
+  
+  dependencies:
+    - task_id: "3.4.2"
+      reason: "Uses structured generation"
+    - task_id: "1.4.4"
+      reason: "Implements tool"
+  
+  work:
+    - step: "Build schema from extraction request"
+    - step: "Call structured generation"
+    - step: "Return extracted data"
+    - step: "Add integration test"
+  
+  verification:
+    commands:
+      - cmd: "swift test --filter LocalExtractToolTests"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Extraction works"
+      test: "Can extract structured data from text"
+
+- task_id: "3.4.5"
+  name: "Implement local_classify using structured generation"
+  priority: 1
+  estimated_time: "35 minutes"
+  estimated_tokens: 900
+  
+  files:
+    modify:
+      - Sources/LocalIntelligenceMCP/Tools/LocalClassifyTool.swift
+    test:
+      - Tests/ToolTests/LocalClassifyToolTests.swift
+  
+  dependencies:
+    - task_id: "3.4.2"
+      reason: "Uses structured generation"
+    - task_id: "1.4.5"
+      reason: "Implements tool"
+  
+  work:
+    - step: "Build enum schema from categories"
+    - step: "Call structured generation"
+    - step: "Return classification"
+    - step: "Add integration test"
+  
+  verification:
+    commands:
+      - cmd: "swift test --filter LocalClassifyToolTests"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Classification works"
+      test: "Returns valid category from list"
+
+###############################################################################
+# Plan 3.5: Tool calling
+###############################################################################
+
+- task_id: "3.5.1"
+  name: "Research Apple's tool calling API"
+  priority: 1
+  estimated_time: "45 minutes"
+  estimated_tokens: 1200
+  
+  files:
+    modify:
+      - docs/ai_context/foundation_models_api.md
+  
+  dependencies:
+    - task_id: "3.0.1"
+      reason: "Extends API documentation"
+  
+  work:
+    - step: "Document tool definition format"
+    - step: "Document tool selection mechanism"
+    - step: "Document tool call format"
+    - step: "Document how to return tool results"
+    - step: "Provide code examples"
+  
+  verification:
+    commands:
+      - cmd: "grep -c 'tool' docs/ai_context/foundation_models_api.md"
+        expected_output: "At least 5"
+  
+  acceptance_criteria:
+    - criterion: "Tool calling API documented"
+      test: "Complete example provided"
+
+- task_id: "3.5.2"
+  name: "Create Tool definition types"
+  priority: 1
+  estimated_time: "30 minutes"
+  estimated_tokens: 800
+  
+  files:
+    create:
+      - Sources/LocalIntelligenceMCP/Providers/AppleFM/ToolDefinition.swift
+      - Tests/ProviderTests/ToolDefinitionTests.swift
+  
+  dependencies:
+    - task_id: "3.5.1"
+      reason: "Uses API knowledge"
+  
+  work:
+    - step: "Create ToolDefinition struct"
+      code_hint: |
+        public struct ToolDefinition {
+            public let name: String
+            public let description: String
+            public let parameters: JSONSchema
+        }
+    - step: "Add ToolCall struct for results"
+    - step: "Add tests"
+  
+  verification:
+    commands:
+      - cmd: "swift build"
+        expected_exit: 0
+      - cmd: "swift test --filter ToolDefinitionTests"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Types defined"
+      test: "Compiles and tests pass"
+
+- task_id: "3.5.3"
+  name: "Implement tool registration with generation"
+  priority: 1
+  estimated_time: "40 minutes"
+  estimated_tokens: 1000
+  
+  files:
+    modify:
+      - Sources/LocalIntelligenceMCP/Providers/AppleFM/AppleFMProvider.swift
+    test:
+      - Tests/ProviderTests/AppleFMProviderTests.swift
+  
+  dependencies:
+    - task_id: "3.5.2"
+      reason: "Uses ToolDefinition"
+    - task_id: "3.3.1"
+      reason: "Extends generation"
+  
+  work:
+    - step: "Accept tools in GenerationRequest"
+    - step: "Pass tools to Apple API"
+    - step: "Handle tool selection in response"
+    - step: "Add tests"
+  
+  verification:
+    commands:
+      - cmd: "swift build"
+        expected_exit: 0
+      - cmd: "swift test --filter AppleFMProviderTests.testToolCalling"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Tools can be registered"
+      test: "Model can select tools"
+
+- task_id: "3.5.4"
+  name: "Implement tool execution policy"
+  priority: 1
+  estimated_time: "40 minutes"
+  estimated_tokens: 1000
+  
+  files:
+    create:
+      - Sources/LocalIntelligenceMCP/Policy/ToolPolicy.swift
+      - Tests/PolicyTests/ToolPolicyTests.swift
+  
+  dependencies: []
+  
+  work:
+    - step: "Create ToolPolicy protocol"
+      code_hint: |
+        public protocol ToolPolicy {
+            func canExecute(tool: String, arguments: [String: Any]) -> Bool
+        }
+    - step: "Create allowlist policy"
+    - step: "Create deny-all policy"
+    - step: "Add tests"
+  
+  verification:
+    commands:
+      - cmd: "swift test --filter ToolPolicyTests"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Policy framework exists"
+      test: "Can allow/deny tool execution"
+
+- task_id: "3.5.5"
+  name: "Add tool execution with policy checks"
+  priority: 1
+  estimated_time: "45 minutes"
+  estimated_tokens: 1200
+  
+  files:
+    create:
+      - Sources/LocalIntelligenceMCP/Providers/AppleFM/ToolExecutor.swift
+      - Tests/ProviderTests/ToolExecutorTests.swift
+  
+  dependencies:
+    - task_id: "3.5.4"
+      reason: "Uses policy"
+    - task_id: "3.5.3"
+      reason: "Executes tool calls"
+  
+  work:
+    - step: "Check policy before execution"
+    - step: "Validate tool arguments"
+    - step: "Execute allowed tools"
+    - step: "Return execution evidence"
+    - step: "Add tests"
+  
+  verification:
+    commands:
+      - cmd: "swift test --filter ToolExecutorTests"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Tool execution controlled by policy"
+      test: "Denied tools not executed"
+
+- task_id: "3.5.6"
+  name: "Add tool call validation"
+  priority: 1
+  estimated_time: "35 minutes"
+  estimated_tokens: 900
+  
+  files:
+    create:
+      - Sources/LocalIntelligenceMCP/Providers/AppleFM/ToolCallValidator.swift
+      - Tests/ProviderTests/ToolCallValidatorTests.swift
+  
+  dependencies:
+    - task_id: "3.5.2"
+      reason: "Validates tool calls"
+  
+  work:
+    - step: "Validate tool exists"
+    - step: "Validate arguments against schema"
+    - step: "Reject invalid calls"
+    - step: "Add tests"
+  
+  verification:
+    commands:
+      - cmd: "swift test --filter ToolCallValidatorTests"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Invalid calls rejected"
+      test: "Tests verify validation"
+
+- task_id: "3.5.7"
+  name: "Implement multi-turn conversation with tool results"
+  priority: 2
+  estimated_time: "50 minutes"
+  estimated_tokens: 1300
+  
+  files:
+    modify:
+      - Sources/LocalIntelligenceMCP/Providers/AppleFM/AppleFMSession.swift
+    test:
+      - Tests/ProviderTests/AppleFMSessionTests.swift
+  
+  dependencies:
+    - task_id: "3.5.5"
+      reason: "After tool execution"
+  
+  work:
+    - step: "Support tool result submission"
+    - step: "Continue generation after tool execution"
+    - step: "Track conversation state"
+    - step: "Add integration test"
+  
+  verification:
+    commands:
+      - cmd: "swift test --filter AppleFMSessionTests.testToolConversation"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Multi-turn with tools works"
+      test: "Can execute tool and continue"
+
+###############################################################################
+# Plan 3.6: Integration and testing
+###############################################################################
+
+- task_id: "3.6.1"
+  name: "Create macOS 15 integration test suite"
+  priority: 1
+  estimated_time: "60 minutes"
+  estimated_tokens: 1500
+  
+  files:
+    create:
+      - Tests/IntegrationTests/MacOS15IntegrationTests.swift
+  
+  dependencies:
+    - task_id: "3.3.1"
+      reason: "After generation works"
+    - task_id: "3.4.2"
+      reason: "After structured works"
+    - task_id: "3.5.5"
+      reason: "After tools work"
+  
+  work:
+    - step: "Test: API absent (macOS <15)"
+    - step: "Test: hardware ineligible"
+    - step: "Test: Apple Intelligence disabled"
+    - step: "Test: model not ready"
+    - step: "Test: model available and generation"
+    - step: "Test: cancellation"
+    - step: "Test: tool call allowed"
+    - step: "Test: tool call denied"
+    - step: "Test: malformed structured request"
+    - step: "Test: concurrent clients"
+    - step: "Test: fallback to deterministic provider"
+  
+  verification:
+    commands:
+      - cmd: "swift test --filter MacOS15IntegrationTests"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "All state combinations tested"
+      test: "11+ test cases"
+    - criterion: "Tests skip gracefully on unavailable hardware"
+      test: "No false failures"
+
+- task_id: "3.6.2"
+  name: "Test backward compatibility with macOS 13-14"
+  priority: 1
+  estimated_time: "30 minutes"
+  estimated_tokens: 800
+  
+  files:
+    create:
+      - Tests/CompatibilityTests/MacOS13CompatibilityTests.swift
+  
+  dependencies:
+    - task_id: "3.1.1"
+      reason: "After provider exists"
+  
+  work:
+    - step: "Test: build succeeds on macOS 13 SDK"
+    - step: "Test: runtime on macOS 13 doesn't crash"
+    - step: "Test: capabilities report correctly"
+    - step: "Test: FM provider returns unavailable"
+  
+  verification:
+    commands:
+      - cmd: "swift test --filter MacOS13CompatibilityTests"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Tier 0 still works"
+      test: "All compat tests pass"
+
+- task_id: "3.6.3"
+  name: "Register AppleFMProvider with router"
+  priority: 1
+  estimated_time: "25 minutes"
+  estimated_tokens: 700
+  
+  files:
+    modify:
+      - Sources/LocalIntelligenceMCP/main.swift
+    test:
+      - Tests/IntegrationTests/ProviderRoutingTests.swift
+  
+  dependencies:
+    - task_id: "3.3.1"
+      reason: "After provider works"
+    - task_id: "1.2.5"
+      reason: "Uses router"
+  
+  work:
+    - step: "Instantiate AppleFMProvider"
+    - step: "Register for generation capabilities"
+    - step: "Set priority higher than deterministic"
+    - step: "Add test"
+  
+  verification:
+    commands:
+      - cmd: "swift build"
+        expected_exit: 0
+      - cmd: "swift test --filter ProviderRoutingTests"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Provider registered"
+      test: "Router selects FM provider when available"
+
+- task_id: "3.6.4"
+  name: "Add provider metadata to results"
+  priority: 2
+  estimated_time: "20 minutes"
+  estimated_tokens: 600
+  
+  files:
+    modify:
+      - Sources/LocalIntelligenceMCP/Providers/AppleFM/AppleFMProvider.swift
+  
+  dependencies:
+    - task_id: "3.3.1"
+      reason: "Extends generation results"
+  
+  work:
+    - step: "Include provider ID in results"
+    - step: "Include model ID if available"
+    - step: "Include latency"
+    - step: "Add tests"
+  
+  verification:
+    commands:
+      - cmd: "swift build"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Metadata present"
+      test: "Results include provider info"
+
+- task_id: "3.6.5"
+  name: "Create deterministic fallback tests"
+  priority: 2
+  estimated_time: "35 minutes"
+  estimated_tokens: 900
+  
+  files:
+    create:
+      - Tests/IntegrationTests/FallbackTests.swift
+  
+  dependencies:
+    - task_id: "3.6.3"
+      reason: "After routing configured"
+  
+  work:
+    - step: "Test: FM unavailable, deterministic used"
+    - step: "Test: FM fails, error propagated (no silent fallback)"
+    - step: "Test: explicit provider selection"
+    - step: "Add tests"
+  
+  verification:
+    commands:
+      - cmd: "swift test --filter FallbackTests"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Fallback behavior correct"
+      test: "No unexpected provider switches"
+
+- task_id: "3.6.6"
+  name: "Validate Phase 3 acceptance gates"
+  priority: 1
+  estimated_time: "45 minutes"
+  estimated_tokens: 1200
+  
+  files:
+    create:
+      - docs/validation/phase3_gate_evidence.md
+  
+  dependencies:
+    - task_id: "3.6.1"
+      reason: "After integration tests"
+  
+  work:
+    - step: "Run full test suite"
+    - step: "Document test results"
+    - step: "Verify macOS 13-25 still works"
+    - step: "Verify structured generation works"
+    - step: "Verify tool calling with policy"
+    - step: "Generate evidence report"
+  
+  verification:
+    commands:
+      - cmd: "cat docs/validation/phase3_gate_evidence.md | grep -c 'PASS'"
+        expected_output: "At least 5"
+  
+  acceptance_criteria:
+    - criterion: "All gates passed"
+      test: "Evidence document complete"
+
+###############################################################################
+# Additional supporting tasks
+###############################################################################
+
+- task_id: "3.7.1"
+  name: "Add deterministic provider for summarization"
+  priority: 2
+  estimated_time: "40 minutes"
+  estimated_tokens: 1000
+  
+  files:
+    create:
+      - Sources/LocalIntelligenceMCP/Providers/Deterministic/SummarizationProvider.swift
+      - Tests/ProviderTests/SummarizationProviderTests.swift
+  
+  dependencies:
+    - task_id: "1.2.1"
+      reason: "Implements IntelligenceProvider"
+  
+  work:
+    - step: "Implement simple extractive summarization"
+    - step: "Use sentence scoring"
+    - step: "No LLM required"
+    - step: "Add tests"
+  
+  ai_context:
+    purpose: "Provide fallback when FM unavailable"
+    approach: "Use deterministic algorithms (frequency, position)"
+  
+  verification:
+    commands:
+      - cmd: "swift test --filter SummarizationProviderTests"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Deterministic summarization works"
+      test: "Can summarize without model"
+
+- task_id: "3.7.2"
+  name: "Add logging for FM provider events"
+  priority: 2
+  estimated_time: "25 minutes"
+  estimated_tokens: 700
+  
+  files:
+    modify:
+      - Sources/LocalIntelligenceMCP/Providers/AppleFM/AppleFMProvider.swift
+  
+  dependencies:
+    - task_id: "1.5.1"
+      reason: "Uses logging"
+    - task_id: "3.3.1"
+      reason: "Extends provider"
+  
+  work:
+    - step: "Log generation start/completion"
+    - step: "Log errors"
+    - step: "Log tool calls"
+    - step: "Do NOT log prompts/results"
+  
+  verification:
+    commands:
+      - cmd: "swift build"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Events logged"
+      test: "Log statements present"
+
+- task_id: "3.7.3"
+  name: "Add metrics for FM provider"
+  priority: 2
+  estimated_time: "30 minutes"
+  estimated_tokens: 800
+  
+  files:
+    modify:
+      - Sources/LocalIntelligenceMCP/Providers/AppleFM/AppleFMProvider.swift
+  
+  dependencies:
+    - task_id: "1.5.3"
+      reason: "Uses metrics collector"
+    - task_id: "3.3.1"
+      reason: "Extends provider"
+  
+  work:
+    - step: "Track generation count"
+    - step: "Track latency"
+    - step: "Track success/error rates"
+    - step: "Track tool call counts"
+  
+  verification:
+    commands:
+      - cmd: "swift build"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Metrics collected"
+      test: "Metrics accessible"
+
+- task_id: "3.7.4"
+  name: "Update README with macOS 15 features"
+  priority: 2
+  estimated_time: "30 minutes"
+  estimated_tokens: 800
+  
+  files:
+    modify:
+      - README.md
+  
+  dependencies:
+    - task_id: "3.6.1"
+      reason: "After features work"
+  
+  work:
+    - step: "Add macOS 15 section"
+    - step: "Document requirements (hardware, OS)"
+    - step: "Provide examples"
+    - step: "Note limitations"
+  
+  verification:
+    commands:
+      - cmd: "grep -c 'macOS 15' README.md"
+        expected_output: "At least 3"
+  
+  acceptance_criteria:
+    - criterion: "README updated"
+      test: "macOS 15 features documented"
+
+###############################################################################
+# Phase 3 Summary
+###############################################################################
+# Total tasks: 48
+# Critical path: 22 tasks (priority 1)
+# Estimated completion: 4-5 days with AI
+# PREREQUISITE: Task 3.0.1 (API documentation) must be completed FIRST
+# Next phase: Phase 4 (macOS 16+ advanced features) - DEFERRED initially

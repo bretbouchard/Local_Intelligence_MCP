@@ -1,37 +1,46 @@
 # 🧠 Local Intelligence MCP
 
-A Swift-based, cross-platform Model Context Protocol (MCP) server that extends Apple's on-device Intelligence features to local AI agents in a secure and privacy-preserving way.
+A lightweight Swift Model Context Protocol (MCP) server that gives AI agents practical access to Apple's local intelligence and automation stack, using the best capabilities available on each Mac while preserving graceful support for older systems.
 
-Local Intelligence MCP provides text processing, summarization, and contextual analysis tools designed to augment Apple Intelligence capabilities within your own applications — without sharing data externally and without being affiliated with or authored by Apple.
+Local Intelligence MCP reports what your Mac can actually do at runtime, then routes work to genuine providers: Apple's on-device Foundation Model on macOS 26+, real Shortcuts automation, and deterministic text analysis everywhere else. Unavailable capabilities return distinguishable machine-readable errors — nothing simulates success. Not developed, endorsed, or affiliated with Apple Inc.
 
 ## ✅ Key Points
 
 - **Built independently** using Apple's public frameworks and Model Context Protocol support
-- **Integrates with Apple Intelligence** for local inference, privacy, and system-level AI features  
-- **Not developed, endorsed, or affiliated** with Apple Inc.
-- **Privacy-first architecture**: all analysis runs locally, with optional sandboxed model extensions
+- **Apple on-device generation** through Foundation Models on macOS 26+ (verified on Apple Silicon); `local_generate` never falls back to remote services
+- **Real Shortcuts automation** — enumerate and execute the Shortcuts actually installed on the Mac, with truthful `didRun` reporting
+- **Runtime capability discovery** — `local_capabilities` reports OS tier, Apple Intelligence/model state, permissions, and per-capability statuses; distinct states for unsupported / unavailable / disabled / not ready / permission denied
+- **Deterministic by default** — summarization, extraction, and classification are pure computation unless you explicitly opt into the Apple model
+- **Privacy-first architecture**: all analysis runs locally
 
 ## ✨ Features
 
-- **🔧 MCP Protocol Compliance**: Full implementation of the Model Context Protocol specification
-- **📝 Text Processing Tools**: 21 professional tools for text analysis, summarization, and content processing
-- **🔍 Content Analysis**: Advanced PII detection, intent analysis, and content categorization
-- **📚 Book Intelligence**: Advanced PDF analysis and knowledge extraction for technical documents
-- **🧠 Knowledge Graph**: Domain-specific entity extraction and relationship mapping
-- **🎯 Claude Code Integration**: Automatic context extraction for AI-assisted development
-- **🛡️ Privacy Preserving**: Built-in PII redaction with audio term preservation
-- **🔒 Enterprise-Grade Security**: Comprehensive security testing and protection against attacks
-- **🚀 High Performance**: Concurrent request handling with memory optimization
-- **🐳 Cross-Platform**: Builds and runs on macOS, Linux, and other platforms
-- **📱 Offline Capable**: Core functionality works without network connectivity
-- **⚡ Streaming Support**: Handles large documents with efficient streaming processing
+- **🔧 MCP Protocol**: stdio transport via the official MCP Swift SDK
+- **🧩 Capability kernel**: stable `local_*` tool contracts over swappable providers (router, error taxonomy, deadlines, cancellation)
+- **📝 Deterministic text tools**: `local_summarize`, `local_extract`, `local_classify` — reproducible, no model mediation needed
+- **⚡ On-device generation**: `local_generate` on macOS 26+ Apple Intelligence Macs
+- **🤖 Apple automation**: `local_automation_list`, `local_automation_execute` via the supported `shortcuts` CLI
+- **📚 Book Intelligence**: PDF analysis and knowledge extraction for technical documents
+- **🛡️ Privacy preserving**: PII redaction tools; capability reports never fingerprint the machine
+- **📱 Offline Capable**: deterministic tools and automation work without network connectivity
 
 ## Requirements
 
-- **Swift**: 6.0 or later
-- **Platforms**: macOS 12.0+, Linux (Ubuntu 20.04+)
-- **Memory**: 512MB minimum, 1GB recommended
-- **Storage**: 100MB for installation
+- **Swift**: 6.0 or later (Xcode 26+ toolchain for the Foundation Models provider)
+- **Platforms**: macOS 13+ (portable tier); Apple Intelligence features require macOS 26+ with eligible hardware
+- **Automation**: macOS 12+ for the `shortcuts` CLI
+
+## Capability availability
+
+| Capability | macOS 13–25 | macOS 26+ (eligible) | macOS 26+ (ineligible/disabled) |
+|------------|-------------|----------------------|---------------------------------|
+| `local_capabilities` | ✅ | ✅ | ✅ |
+| `local_summarize` / `local_extract` / `local_classify` | ✅ deterministic | ✅ deterministic (Apple model opt-in) | ✅ deterministic |
+| `local_generate` | ❌ `UNSUPPORTED` | ✅ Apple on-device model | `UNSUPPORTED` / `DISABLED` / `NOT_READY` (distinguishable) |
+| `local_automation_list` / `local_automation_execute` | ✅ (macOS 12+) | ✅ | ✅ |
+| `voice_command` | ❌ `UNSUPPORTED` (no supported external API; never simulated) | ❌ | ❌ |
+
+A ✅ still means the runtime check can refuse per-execution (e.g. a named Shortcut that doesn't exist fails with `INVALID_REQUEST`, never a fake success).
 
 ## Installation
 

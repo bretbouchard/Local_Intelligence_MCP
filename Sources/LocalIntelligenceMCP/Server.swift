@@ -77,7 +77,15 @@ struct StartCommand: AsyncParsableCommand {
         let server = Server(
             name: "Local Intelligence MCP",
             version: MCPConstants.Server.version,
-            instructions: "Apple Ecosystem MCP Server - Provides access to Shortcuts, Voice Control, System Information, and Accessibility features",
+            instructions: """
+            Local Intelligence MCP provides truthful local capabilities: runtime \
+            capability discovery (local_capabilities), on-device Apple generation on \
+            macOS 26+ (local_generate), deterministic text tools (local_summarize, \
+            local_extract, local_classify), and real Apple Shortcuts automation \
+            (local_automation_list, local_automation_execute). Unavailable \
+            capabilities report distinguishable machine-readable errors; nothing \
+            simulates success.
+            """,
             capabilities: .init(
                 tools: .init(listChanged: true)  // Enable tools capability
             )
@@ -85,17 +93,15 @@ struct StartCommand: AsyncParsableCommand {
 
         await logger.info("Creating MCP server with tools registry", category: .server, metadata: [:])
 
-        // Register ListTools handler - converts tools to MCP Tool format
+        // Register ListTools handler - converts tools to MCP Tool format with real schemas
         await server.withMethodHandler(ListTools.self) { _ in
             let availableTools = await toolsRegistry.getAvailableTools()
             let mcpTools = availableTools.map { toolInfo in
-                // Create a proper input schema - for now use a simple object schema
-                // until we can properly convert AnyCodable to JSON-serializable types
-                let inputSchema = Value.object([
-                    "type": .string("object"),
-                    "properties": .object([:])
-                ])
-
+                // Expose each tool's authoritative input schema — an empty schema here
+                // would misrepresent the contract clients are calling.
+                let inputSchema = Value.object(
+                    toolInfo.inputSchema.mapValues { StartCommand.toMCPValue($0.value) }
+                )
                 return Tool(
                     name: toolInfo.name,
                     description: toolInfo.description,
@@ -428,6 +434,28 @@ extension TimeInterval {
 // MARK: - Static Tool Handler
 
 extension StartCommand {
+    /// Convert a decoded JSON value to an MCP protocol Value (recursive).
+    static func toMCPValue(_ any: Any) -> Value {
+        switch any {
+        case let value as Value:
+            return value
+        case let value as String:
+            return .string(value)
+        case let value as Bool:
+            return .bool(value)
+        case let value as Int:
+            return .int(value)
+        case let value as Double:
+            return .double(value)
+        case let value as [Any]:
+            return .array(value.map(toMCPValue))
+        case let value as [String: Any]:
+            return .object(value.mapValues(toMCPValue))
+        default:
+            return .string(String(describing: any))
+        }
+    }
+
     /// Handle tool calls from MCP server
     /// - Parameters:
     ///   - name: Tool name

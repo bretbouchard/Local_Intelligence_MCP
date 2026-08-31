@@ -16,6 +16,7 @@ actor ToolsRegistry {
     private var tools: [String: MCPToolProtocol] = [:]
     private let logger: Logger
     private let securityManager: SecurityManager
+    let capabilityRouter = CapabilityRouter()
 
     // MARK: - Initialization
 
@@ -30,12 +31,34 @@ actor ToolsRegistry {
     func initialize() async throws {
         await logger.info("Initializing MCP tools registry", category: .server, metadata: [:])
 
+        // Register capability providers (GSD Plans 1.2, 2.1, 3.1)
+        await capabilityRouter.register(DeterministicTextProvider(), for: [.localSummarize, .localExtract, .localClassify], priority: 100)
+        await capabilityRouter.registerAutomation(ShortcutsProvider(), priority: 100)
+        if #available(macOS 26.0, *) {
+            #if canImport(FoundationModels)
+            let appleProvider = AppleFoundationProvider26()
+            await capabilityRouter.register(appleProvider, for: [.localGenerate, .localSummarize, .localExtract, .localClassify], priority: 50)
+            await logger.info("Apple Foundation Models provider registered (macOS 26+)", category: .server, metadata: [:])
+            #endif
+        } else {
+            await logger.info("Apple Foundation Models unavailable: requires macOS 26+", category: .server, metadata: [:])
+        }
+
         // Register built-in tools
         try await registerTool(SystemInfoTool(logger: logger, securityManager: securityManager))
         try await registerTool(PermissionTool(logger: logger, securityManager: securityManager))
-        try await registerTool(ShortcutsTool(logger: logger, securityManager: securityManager))
-        try await registerTool(ShortcutsListTool(logger: logger, securityManager: securityManager))
+        try await registerTool(ShortcutsTool(logger: logger, securityManager: securityManager, router: capabilityRouter))
+        try await registerTool(ShortcutsListTool(logger: logger, securityManager: securityManager, router: capabilityRouter))
         try await registerTool(VoiceControlTool(logger: logger, securityManager: securityManager))
+
+        // Register stable local_* capability tools (GSD Plan 1.4)
+        try await registerTool(LocalCapabilitiesTool(logger: logger, securityManager: securityManager, router: capabilityRouter))
+        try await registerTool(LocalGenerateTool(logger: logger, securityManager: securityManager, router: capabilityRouter))
+        try await registerTool(LocalSummarizeTool(logger: logger, securityManager: securityManager, router: capabilityRouter))
+        try await registerTool(LocalExtractTool(logger: logger, securityManager: securityManager, router: capabilityRouter))
+        try await registerTool(LocalClassifyTool(logger: logger, securityManager: securityManager, router: capabilityRouter))
+        try await registerTool(LocalAutomationListTool(logger: logger, securityManager: securityManager, router: capabilityRouter))
+        try await registerTool(LocalAutomationExecuteTool(logger: logger, securityManager: securityManager, router: capabilityRouter))
 
         // Register Book Intelligence Tool
         try await registerTool(BookIntelligenceAnalyzerTool(logger: logger, securityManager: securityManager))

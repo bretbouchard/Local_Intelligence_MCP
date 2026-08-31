@@ -1,0 +1,521 @@
+# Phases 4-6: Advanced Features & Hardening - AI-Optimized Task Breakdown
+# These phases are DEFERRED until Phases 0-3 are complete and validated
+# Total estimated tasks: 65
+# Total estimated time: 6-8 days
+
+###############################################################################
+# PHASE 4: macOS 16+ Intelligence Expansion
+# Status: DEFERRED - Complete Phase 3 first
+# Total tasks: 28
+###############################################################################
+
+## Plan 4.1: Provider-neutral LanguageModel layer (8 tasks)
+
+- task_id: "4.1.1"
+  name: "Research macOS 16 LanguageModel API changes"
+  priority: 3
+  estimated_time: "60 minutes"
+  files:
+    create:
+      - docs/ai_context/macos16_language_model_api.md
+
+- task_id: "4.1.2"
+  name: "Create LanguageModel adapter abstraction"
+  priority: 3
+  estimated_time: "45 minutes"
+
+- task_id: "4.1.3"
+  name: "Implement backward compatibility with macOS 15"
+  priority: 3
+  estimated_time: "50 minutes"
+
+- task_id: "4.1.4-4.1.8"
+  name: "Additional LanguageModel integration tasks"
+  priority: 3
+  total_estimated_time: "3 hours"
+
+## Plan 4.2: Dynamic Profiles (6 tasks)
+
+- task_id: "4.2.1"
+  name: "Research Dynamic Profiles API"
+  priority: 3
+  estimated_time: "50 minutes"
+
+- task_id: "4.2.2"
+  name: "Create Profile definition types"
+  priority: 3
+  estimated_time: "40 minutes"
+
+- task_id: "4.2.3"
+  name: "Implement profile-based tool scoping"
+  priority: 3
+  estimated_time: "45 minutes"
+
+- task_id: "4.2.4"
+  name: "Prevent profile tool authority escalation"
+  priority: 3
+  estimated_time: "40 minutes"
+
+- task_id: "4.2.5-4.2.6"
+  name: "Profile management and validation"
+  priority: 3
+  total_estimated_time: "1.5 hours"
+
+## Plan 4.3: Multimodal/Image input (7 tasks)
+
+- task_id: "4.3.1"
+  name: "Research multimodal API"
+  priority: 3
+  estimated_time: "50 minutes"
+  files:
+    create:
+      - docs/ai_context/multimodal_api_reference.md
+
+- task_id: "4.3.2"
+  name: "Add attachment/media request types"
+  priority: 3
+  estimated_time: "40 minutes"
+
+- task_id: "4.3.3"
+  name: "Implement file size/type validation"
+  priority: 3
+  estimated_time: "35 minutes"
+
+- task_id: "4.3.4"
+  name: "Create local_image_understand tool"
+  priority: 3
+  estimated_time: "50 minutes"
+
+- task_id: "4.3.5"
+  name: "Implement lifecycle cleanup for attachments"
+  priority: 3
+  estimated_time: "30 minutes"
+
+- task_id: "4.3.6"
+  name: "Add privacy policy for image processing"
+  priority: 3
+  estimated_time: "25 minutes"
+
+- task_id: "4.3.7"
+  name: "Create multimodal integration tests"
+  priority: 3
+  estimated_time: "50 minutes"
+
+## Plan 4.4: Apple system tools (4 tasks)
+
+- task_id: "4.4.1"
+  name: "Evaluate Vision framework integration"
+  priority: 3
+  estimated_time: "45 minutes"
+
+- task_id: "4.4.2"
+  name: "Evaluate Spotlight semantic search"
+  priority: 3
+  estimated_time: "40 minutes"
+
+- task_id: "4.4.3"
+  name: "Implement deterministic-first approach"
+  priority: 3
+  estimated_time: "50 minutes"
+
+- task_id: "4.4.4"
+  name: "Add system tool integration tests"
+  priority: 3
+  estimated_time: "45 minutes"
+
+## Plan 4.5: Private Cloud Compute (3 tasks)
+
+- task_id: "4.5.1"
+  name: "Research PCC API and requirements"
+  priority: 3
+  estimated_time: "60 minutes"
+
+- task_id: "4.5.2"
+  name: "Create PCCProvider as opt-in only"
+  priority: 3
+  estimated_time: "50 minutes"
+
+- task_id: "4.5.3"
+  name: "Document privacy and routing semantics"
+  priority: 3
+  estimated_time: "30 minutes"
+
+###############################################################################
+# PHASE 5: Security, Evaluation, and Compatibility
+# Status: DEFER non-critical items until Phase 3 complete
+# Total tasks: 22
+###############################################################################
+
+## Plan 5.1: Threat model (4 tasks)
+
+- task_id: "5.1.1"
+  name: "Document prompt injection threats"
+  priority: 2
+  estimated_time: "40 minutes"
+  files:
+    create:
+      - docs/security/threat_model.md
+
+- task_id: "5.1.2"
+  name: "Document malicious tool argument threats"
+  priority: 2
+  estimated_time: "35 minutes"
+
+- task_id: "5.1.3"
+  name: "Create prompt injection test suite"
+  priority: 2
+  estimated_time: "60 minutes"
+
+- task_id: "5.1.4"
+  name: "Create tool security test suite"
+  priority: 2
+  estimated_time: "55 minutes"
+
+## Plan 5.2: Permission and approval contracts (5 tasks)
+
+- task_id: "5.2.1"
+  name: "Define risk classification for capabilities"
+  priority: 2
+  estimated_time: "45 minutes"
+
+- task_id: "5.2.2"
+  name: "Implement permission checks for each risk class"
+  priority: 2
+  estimated_time: "50 minutes"
+
+- task_id: "5.2.3"
+  name: "Add interactive approval mechanism"
+  priority: 3
+  estimated_time: "60 minutes"
+
+- task_id: "5.2.4"
+  name: "Implement denial as first-class result"
+  priority: 2
+  estimated_time: "30 minutes"
+
+- task_id: "5.2.5"
+  name: "Create permission test suite"
+  priority: 2
+  estimated_time: "45 minutes"
+
+## Plan 5.3: Cross-version compatibility (4 tasks)
+
+- task_id: "5.3.1"
+  name: "Set up multi-SDK build matrix"
+  priority: 2
+  estimated_time: "50 minutes"
+
+- task_id: "5.3.2"
+  name: "Run tests on macOS 13, 14, 15"
+  priority: 2
+  estimated_time: "60 minutes"
+
+- task_id: "5.3.3"
+  name: "Verify Tier 0/1 features on older OS"
+  priority: 2
+  estimated_time: "40 minutes"
+
+- task_id: "5.3.4"
+  name: "Document compatibility matrix"
+  priority: 2
+  estimated_time: "35 minutes"
+
+## Plan 5.4: Reliability (4 tasks)
+
+- task_id: "5.4.1"
+  name: "Create concurrent session stress test"
+  priority: 2
+  estimated_time: "50 minutes"
+
+- task_id: "5.4.2"
+  name: "Test provider availability transitions"
+  priority: 2
+  estimated_time: "45 minutes"
+
+- task_id: "5.4.3"
+  name: "Test cancellation storms"
+  priority: 2
+  estimated_time: "40 minutes"
+
+- task_id: "5.4.4"
+  name: "Test malformed MCP requests"
+  priority: 2
+  estimated_time: "45 minutes"
+
+## Plan 5.5: Performance (3 tasks)
+
+- task_id: "5.5.1"
+  name: "Benchmark all critical paths"
+  priority: 2
+  estimated_time: "60 minutes"
+
+- task_id: "5.5.2"
+  name: "Compare against baseline metrics"
+  priority: 2
+  estimated_time: "30 minutes"
+
+- task_id: "5.5.3"
+  name: "Optimize hotspots if needed"
+  priority: 2
+  estimated_time: "Variable"
+
+## Plan 5.6: Release evidence (2 tasks)
+
+- task_id: "5.6.1"
+  name: "Generate comprehensive test evidence"
+  priority: 1
+  estimated_time: "45 minutes"
+
+- task_id: "5.6.2"
+  name: "Create release evidence bundle"
+  priority: 1
+  estimated_time: "40 minutes"
+  files:
+    create:
+      - docs/release/evidence_bundle.md
+
+###############################################################################
+# PHASE 6: Public Product Surface
+# Status: Concurrent with Phase 3 completion
+# Total tasks: 15
+###############################################################################
+
+## Plan 6.1: README rewrite (4 tasks)
+
+- task_id: "6.1.1"
+  name: "Rewrite README introduction"
+  priority: 2
+  estimated_time: "40 minutes"
+  
+  work:
+    - step: "Lead with actual product value"
+    - step: "Distinguish shipped vs planned"
+    - step: "Be honest about limitations"
+
+- task_id: "6.1.2"
+  name: "Add feature status indicators"
+  priority: 2
+  estimated_time: "30 minutes"
+  
+  work:
+    - step: "Mark features as: stable, experimental, planned"
+    - step: "Use emoji or badges for clarity"
+
+- task_id: "6.1.3"
+  name: "Document system requirements clearly"
+  priority: 2
+  estimated_time: "25 minutes"
+
+- task_id: "6.1.4"
+  name: "Remove stale claims and mock terminology"
+  priority: 2
+  estimated_time: "35 minutes"
+
+## Plan 6.2: Compatibility table (3 tasks)
+
+- task_id: "6.2.1"
+  name: "Create capability × OS tier matrix"
+  priority: 2
+  estimated_time: "40 minutes"
+  
+  files:
+    create:
+      - docs/compatibility/capability_matrix.md
+
+- task_id: "6.2.2"
+  name: "Add hardware/setting requirements column"
+  priority: 2
+  estimated_time: "30 minutes"
+
+- task_id: "6.2.3"
+  name: "Add provider information"
+  priority: 2
+  estimated_time: "25 minutes"
+
+## Plan 6.3: Examples (5 tasks)
+
+- task_id: "6.3.1"
+  name: "Create capability discovery example"
+  priority: 2
+  estimated_time: "20 minutes"
+  
+  files:
+    create:
+      - examples/01_capability_discovery.md
+
+- task_id: "6.3.2"
+  name: "Create deterministic utility example"
+  priority: 2
+  estimated_time: "20 minutes"
+  
+  files:
+    create:
+      - examples/02_deterministic_tools.md
+
+- task_id: "6.3.3"
+  name: "Create Shortcuts execution example"
+  priority: 2
+  estimated_time: "25 minutes"
+  
+  files:
+    create:
+      - examples/03_shortcuts_automation.md
+
+- task_id: "6.3.4"
+  name: "Create macOS 15 generation example"
+  priority: 2
+  estimated_time: "30 minutes"
+  
+  files:
+    create:
+      - examples/04_macos15_generation.md
+
+- task_id: "6.3.5"
+  name: "Create graceful fallback example"
+  priority: 2
+  estimated_time: "30 minutes"
+  
+  files:
+    create:
+      - examples/05_fallback_handling.md
+
+## Plan 6.4: Portfolio cleanup (3 tasks)
+
+- task_id: "6.4.1"
+  name: "Add architecture diagram"
+  priority: 2
+  estimated_time: "50 minutes"
+  
+  files:
+    create:
+      - docs/architecture/system_diagram.md
+
+- task_id: "6.4.2"
+  name: "Document security model"
+  priority: 2
+  estimated_time: "40 minutes"
+
+- task_id: "6.4.3"
+  name: "Write testing philosophy doc"
+  priority: 2
+  estimated_time: "35 minutes"
+  
+  files:
+    create:
+      - docs/testing/philosophy.md
+
+###############################################################################
+# DEFERRED PHASE 4 ADDITIONAL TASKS
+###############################################################################
+
+## Plan 4.6: Evaluations (NOT DETAILED - requires model-specific datasets)
+
+- Note: Create evaluation datasets after Phase 3 model behavior is understood
+- Defer until real model integration complete
+- Estimated: 10-15 tasks, 2-3 days
+
+## Plan 4.7: Developer interoperability (NOT DETAILED - optional)
+
+- fm CLI examples
+- Python SDK integration examples
+- Defer until core functionality stable
+- Estimated: 5-8 tasks, 1-2 days
+
+###############################################################################
+# CRITICAL PATH SEQUENCING
+###############################################################################
+
+## Must Complete First (Phases 0-3)
+1. Phase 0: Establish truth (2-3 days)
+2. Phase 1: Capability kernel (3-4 days)
+3. Phase 2: Real automation (2-3 days)
+4. Phase 3: macOS 15 FM (4-5 days)
+
+Total core path: 11-15 days
+
+## Can Start During Phase 3
+- Plan 6.1: README rewrite (concurrent)
+- Plan 6.3: Examples (as features complete)
+
+## Do After Phase 3 Validated
+- Phase 5: Security and hardening (2-3 days)
+- Phase 6: Final docs (1 day)
+- Phase 4: macOS 16+ features (3-4 days)
+
+Total additional: 6-8 days
+
+## Grand Total: 17-23 days with AI implementation
+
+###############################################################################
+# AI IMPLEMENTATION NOTES FOR PHASES 4-6
+###############################################################################
+
+## Phase 4 Risks
+- **High hallucination risk**: macOS 16+ APIs may not be documented yet
+- **Mitigation**: DO NOT start Phase 4 until official Apple documentation available
+- **Alternative**: Stub Phase 4 providers with unavailable errors until API confirmed
+
+## Phase 5 Best Practices
+- Security tests benefit from adversarial examples
+- AI can generate test cases but human should review threat model
+- Performance optimization may require profiling tools beyond AI capability
+
+## Phase 6 Success Factors
+- Documentation tasks are well-suited for AI
+- Provide templates and tone guidelines
+- Examples should be tested, not just written
+
+###############################################################################
+# TASK STATUS TRACKING
+###############################################################################
+
+Recommended TASK_STATUS.json structure:
+
+```json
+{
+  "phases": {
+    "0": {
+      "status": "not_started",
+      "completion_percentage": 0,
+      "tasks": {
+        "0.1.1": {"status": "not_started", "assignee": "ai", "blocked_by": []},
+        "0.1.2": {"status": "not_started", "assignee": "ai", "blocked_by": ["0.1.1"]}
+      }
+    }
+  },
+  "current_phase": 0,
+  "overall_completion": 0
+}
+```
+
+Update after each task completion.
+
+###############################################################################
+# VERIFICATION AUTOMATION
+###############################################################################
+
+Create scripts/verify_phase.sh:
+
+```bash
+#!/bin/bash
+# Usage: ./scripts/verify_phase.sh <phase_number>
+
+PHASE=$1
+
+case $PHASE in
+  0)
+    echo "Verifying Phase 0: Establish Truth"
+    swift test --filter Phase0
+    ;;
+  1)
+    echo "Verifying Phase 1: Capability Kernel"
+    swift build
+    swift test --filter Phase1
+    ;;
+  # ... etc
+esac
+```
+
+###############################################################################
+# END OF PHASES 4-6 BREAKDOWN
+###############################################################################

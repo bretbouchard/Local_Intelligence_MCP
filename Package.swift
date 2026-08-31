@@ -48,6 +48,13 @@ let package = Package(
         ),
 
         // Test targets
+        //
+        // NOTE (GSD Plan 0.1 inventory): the legacy test corpus under
+        // Tools/, Integration/, and AdvancedTextTools/ was written against
+        // long-gone APIs (duplicate MockLogger/MockSecurityManager in every
+        // file, subclassing of non-open classes, corrupted array literals)
+        // and does not compile. It is quarantined via explicit `sources:`
+        // until each file is rewritten against current contracts.
         .testTarget(
             name: "LocalIntelligenceMCPTests",
             dependencies: [
@@ -57,7 +64,20 @@ let package = Package(
                 .product(name: "NIOCore", package: "swift-nio"),
                 .product(name: "NIOEmbedded", package: "swift-nio"),
             ],
-            path: "Tests/LocalIntelligenceMCPTests"
+            path: "Tests/LocalIntelligenceMCPTests",
+            sources: [
+                "EngineeringTemplatesTests.swift",
+                "CapabilityKernelTests.swift",
+            ]
+        ),
+
+        // BDS feature tests (behavioral scenarios, e.g. RuntimeCapabilities)
+        .testTarget(
+            name: "BDSTests",
+            dependencies: [
+                "LocalIntelligenceMCP"
+            ],
+            path: "Tests/BDSTests"
         ),
     ]
 )

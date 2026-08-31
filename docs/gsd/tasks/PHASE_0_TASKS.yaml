@@ -1,0 +1,751 @@
+# Phase 0: Establish Truth - AI-Optimized Task Breakdown
+# Total estimated tasks: 28
+# Total estimated time: 2-3 days
+# Critical path length: 12 tasks
+
+###############################################################################
+# Plan 0.1: Freeze and inventory the current public contract
+###############################################################################
+
+- task_id: "0.1.1"
+  name: "Enumerate all registered MCP tools"
+  priority: 1
+  estimated_time: "20 minutes"
+  estimated_tokens: 600
+  
+  files:
+    create:
+      - scripts/enumerate_tools.swift
+      - docs/inventory/tool_registry.json
+    modify: []
+  
+  dependencies: []
+  
+  preconditions:
+    build:
+      - "swift build succeeds"
+  
+  work:
+    - step: "Create Swift script to introspect tool registry"
+      code_hint: "Use reflection or registry inspection"
+    - step: "Output JSON with tool names, schemas, descriptions"
+      code_hint: "Codable struct for output"
+    - step: "Include parameter schemas and return types"
+  
+  verification:
+    commands:
+      - cmd: "swift scripts/enumerate_tools.swift > docs/inventory/tool_registry.json"
+        expected_exit: 0
+      - cmd: "jq '.tools | length' docs/inventory/tool_registry.json"
+        expected_output: "Greater than 0"
+  
+  acceptance_criteria:
+    - criterion: "All MCP tools captured"
+      test: "JSON contains expected tool count"
+    - criterion: "Schemas are complete"
+      test: "Each tool has parameters and return_type"
+
+- task_id: "0.1.2"
+  name: "Classify each tool by implementation type"
+  priority: 1
+  estimated_time: "30 minutes"
+  estimated_tokens: 800
+  
+  files:
+    create:
+      - scripts/classify_tools.swift
+    modify:
+      - docs/inventory/tool_registry.json
+  
+  dependencies:
+    - task_id: "0.1.1"
+      reason: "Needs tool list"
+  
+  work:
+    - step: "Read tool_registry.json"
+    - step: "For each tool, analyze implementation"
+    - step: "Classify as: deterministic, genuine_side_effect, simulated, stub, optional, deprecated, unknown"
+    - step: "Add 'classification' field to each tool"
+    - step: "Add 'reason' field explaining classification"
+  
+  verification:
+    commands:
+      - cmd: "swift scripts/classify_tools.swift"
+        expected_exit: 0
+      - cmd: "jq '.tools[] | select(.classification == null)' docs/inventory/tool_registry.json"
+        expected_output: "Empty (all classified)"
+  
+  acceptance_criteria:
+    - criterion: "Every tool has classification"
+      test: "No null classifications in JSON"
+    - criterion: "Simulated tools identified"
+      test: "Shortcuts and Voice Control marked as 'simulated'"
+
+- task_id: "0.1.3"
+  name: "Map tools to source files"
+  priority: 1
+  estimated_time: "25 minutes"
+  estimated_tokens: 700
+  
+  files:
+    create:
+      - scripts/map_tool_sources.swift
+      - docs/inventory/tool_source_map.json
+  
+  dependencies:
+    - task_id: "0.1.1"
+      reason: "Needs tool names"
+  
+  work:
+    - step: "Search Sources/ for tool implementations"
+      code_hint: "grep or source analysis"
+    - step: "Map each tool to implementation file(s)"
+    - step: "Output JSON mapping"
+  
+  verification:
+    commands:
+      - cmd: "swift scripts/map_tool_sources.swift > docs/inventory/tool_source_map.json"
+        expected_exit: 0
+      - cmd: "jq 'keys | length' docs/inventory/tool_source_map.json"
+        expected_output: "Matches tool count"
+  
+  acceptance_criteria:
+    - criterion: "All tools mapped"
+      test: "Every tool has source file"
+
+- task_id: "0.1.4"
+  name: "Map tools to test files"
+  priority: 2
+  estimated_time: "25 minutes"
+  estimated_tokens: 700
+  
+  files:
+    create:
+      - scripts/map_tool_tests.swift
+    modify:
+      - docs/inventory/tool_source_map.json
+  
+  dependencies:
+    - task_id: "0.1.3"
+      reason: "Extends source map"
+  
+  work:
+    - step: "Search Tests/ for test files"
+    - step: "Map each tool to its test file(s)"
+    - step: "Add 'test_files' field to source map"
+    - step: "Flag tools with no tests"
+  
+  verification:
+    commands:
+      - cmd: "swift scripts/map_tool_tests.swift"
+        expected_exit: 0
+      - cmd: "jq '.[] | select(.test_files == null or (.test_files | length == 0))' docs/inventory/tool_source_map.json"
+        expected_output: "List of untested tools"
+  
+  acceptance_criteria:
+    - criterion: "Test coverage identified"
+      test: "Each tool shows test status"
+
+- task_id: "0.1.5"
+  name: "Extract minimum OS/Swift/Xcode requirements"
+  priority: 1
+  estimated_time: "15 minutes"
+  estimated_tokens: 500
+  
+  files:
+    create:
+      - docs/inventory/build_requirements.json
+  
+  dependencies: []
+  
+  work:
+    - step: "Parse Package.swift for platforms"
+    - step: "Extract Swift tools version"
+    - step: "Document Xcode version(s)"
+    - step: "Output as JSON"
+  
+  verification:
+    commands:
+      - cmd: "cat docs/inventory/build_requirements.json | jq '.minimum_macos'"
+        expected_output: "13.0 or compatible"
+  
+  acceptance_criteria:
+    - criterion: "Requirements documented"
+      test: "JSON contains all version info"
+
+- task_id: "0.1.6"
+  name: "Audit README claims against implementation"
+  priority: 1
+  estimated_time: "30 minutes"
+  estimated_tokens: 800
+  
+  files:
+    create:
+      - docs/inventory/documentation_audit.md
+    modify: []
+  
+  dependencies:
+    - task_id: "0.1.2"
+      reason: "Needs tool classifications"
+  
+  work:
+    - step: "Extract capability claims from README.md"
+    - step: "Compare against tool classifications"
+    - step: "Flag mismatches (claimed but simulated/missing)"
+    - step: "Generate discrepancy report"
+  
+  verification:
+    commands:
+      - cmd: "cat docs/inventory/documentation_audit.md | grep -c 'MISMATCH'"
+        expected_output: "Count of discrepancies"
+  
+  acceptance_criteria:
+    - criterion: "All claims audited"
+      test: "Report lists verified and unverified claims"
+
+- task_id: "0.1.7"
+  name: "Generate tool-implementation-test matrix"
+  priority: 2
+  estimated_time: "20 minutes"
+  estimated_tokens: 600
+  
+  files:
+    create:
+      - docs/inventory/coverage_matrix.md
+  
+  dependencies:
+    - task_id: "0.1.2"
+      reason: "Needs classifications"
+    - task_id: "0.1.4"
+      reason: "Needs test mappings"
+  
+  work:
+    - step: "Generate markdown table"
+    - step: "Columns: Tool | Classification | Source | Tests | Coverage"
+    - step: "Highlight gaps"
+  
+  verification:
+    commands:
+      - cmd: "cat docs/inventory/coverage_matrix.md | grep '|' | wc -l"
+        expected_output: "Greater than tool count"
+  
+  acceptance_criteria:
+    - criterion: "Matrix complete"
+      test: "All tools represented"
+
+###############################################################################
+# Plan 0.2: Remove false-success behavior
+###############################################################################
+
+- task_id: "0.2.1"
+  name: "Identify all simulated side-effect tools"
+  priority: 1
+  estimated_time: "15 minutes"
+  estimated_tokens: 500
+  
+  files:
+    create:
+      - docs/inventory/simulated_tools.json
+  
+  dependencies:
+    - task_id: "0.1.2"
+      reason: "Needs classifications"
+  
+  work:
+    - step: "Filter tool_registry.json for 'simulated' classification"
+    - step: "Extract tool names and implementations"
+    - step: "Save as separate list"
+  
+  verification:
+    commands:
+      - cmd: "jq '.simulated_tools | length' docs/inventory/simulated_tools.json"
+        expected_output: "2 or more (Shortcuts, Voice Control)"
+  
+  acceptance_criteria:
+    - criterion: "Simulated tools listed"
+      test: "JSON contains expected tools"
+
+- task_id: "0.2.2"
+  name: "Create CapabilityUnavailable error type"
+  priority: 1
+  estimated_time: "20 minutes"
+  estimated_tokens: 600
+  
+  files:
+    create:
+      - Sources/LocalIntelligenceMCP/Errors/CapabilityError.swift
+      - Tests/ErrorTests/CapabilityErrorTests.swift
+  
+  dependencies: []
+  
+  work:
+    - step: "Define enum CapabilityError: Error"
+      code_hint: |
+        public enum CapabilityError: Error {
+            case unavailable(capability: String, reason: String)
+            case unsupported(capability: String)
+            case permissionDenied(capability: String)
+            case notReady(capability: String, status: String)
+        }
+    - step: "Add CustomStringConvertible conformance"
+    - step: "Add unit tests"
+  
+  verification:
+    commands:
+      - cmd: "swift build"
+        expected_exit: 0
+      - cmd: "swift test --filter CapabilityErrorTests"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Error type compiles"
+      test: "Build succeeds"
+    - criterion: "Error messages clear"
+      test: "Tests verify descriptions"
+
+- task_id: "0.2.3"
+  name: "Replace simulated Shortcuts execution with unavailable error"
+  priority: 1
+  estimated_time: "25 minutes"
+  estimated_tokens: 700
+  
+  files:
+    modify:
+      - Sources/LocalIntelligenceMCP/Tools/ShortcutsTools.swift
+    test:
+      - Tests/ToolTests/ShortcutsToolsTests.swift
+  
+  dependencies:
+    - task_id: "0.2.2"
+      reason: "Needs CapabilityError"
+  
+  work:
+    - step: "Find executeShortcut method"
+    - step: "Replace simulated success with error"
+      code_hint: "throw CapabilityError.unavailable(capability: 'shortcuts', reason: 'Real provider not yet implemented')"
+    - step: "Update tests to expect error, not success"
+    - step: "Remove mock success data"
+  
+  verification:
+    commands:
+      - cmd: "swift build"
+        expected_exit: 0
+      - cmd: "swift test --filter ShortcutsToolsTests"
+        expected_exit: 0
+      - cmd: "grep -n 'simulated\\|mock.*success' Sources/LocalIntelligenceMCP/Tools/ShortcutsTools.swift"
+        expected_output: "No matches"
+  
+  acceptance_criteria:
+    - criterion: "No false success"
+      test: "Method throws error, not returns success"
+    - criterion: "Tests updated"
+      test: "Tests expect error"
+
+- task_id: "0.2.4"
+  name: "Replace simulated Voice Control with unavailable error"
+  priority: 1
+  estimated_time: "25 minutes"
+  estimated_tokens: 700
+  
+  files:
+    modify:
+      - Sources/LocalIntelligenceMCP/Tools/VoiceControlTools.swift
+    test:
+      - Tests/ToolTests/VoiceControlToolsTests.swift
+  
+  dependencies:
+    - task_id: "0.2.2"
+      reason: "Needs CapabilityError"
+  
+  work:
+    - step: "Find voice recognition/execution methods"
+    - step: "Replace simulated behavior with unavailable error"
+    - step: "Update tests"
+  
+  verification:
+    commands:
+      - cmd: "swift build"
+        expected_exit: 0
+      - cmd: "swift test --filter VoiceControlToolsTests"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "No false success"
+      test: "Methods throw errors"
+
+- task_id: "0.2.5"
+  name: "Standardize unavailable/unsupported/permission-denied errors"
+  priority: 2
+  estimated_time: "30 minutes"
+  estimated_tokens: 800
+  
+  files:
+    modify:
+      - Sources/LocalIntelligenceMCP/Tools/*.swift
+  
+  dependencies:
+    - task_id: "0.2.2"
+      reason: "Needs CapabilityError"
+  
+  work:
+    - step: "Audit all tool implementations"
+    - step: "Replace generic errors with CapabilityError"
+    - step: "Ensure consistent error reasons"
+  
+  verification:
+    commands:
+      - cmd: "swift build"
+        expected_exit: 0
+      - cmd: "grep -r 'throw.*Error' Sources/LocalIntelligenceMCP/Tools/ | grep -v CapabilityError | wc -l"
+        expected_output: "Minimized non-standard errors"
+  
+  acceptance_criteria:
+    - criterion: "Errors standardized"
+      test: "Most errors use CapabilityError"
+
+- task_id: "0.2.6"
+  name: "Update health check to not report unavailable as available"
+  priority: 1
+  estimated_time: "20 minutes"
+  estimated_tokens: 600
+  
+  files:
+    modify:
+      - Sources/LocalIntelligenceMCP/Health/HealthCheck.swift
+    test:
+      - Tests/HealthTests/HealthCheckTests.swift
+  
+  dependencies:
+    - task_id: "0.2.3"
+      reason: "After tool updates"
+    - task_id: "0.2.4"
+      reason: "After tool updates"
+  
+  work:
+    - step: "Review capability reporting logic"
+    - step: "Ensure configured != available"
+    - step: "Test actual provider availability"
+    - step: "Update tests"
+  
+  verification:
+    commands:
+      - cmd: "swift test --filter HealthCheckTests"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Health reflects reality"
+      test: "Unavailable tools not marked available"
+
+- task_id: "0.2.7"
+  name: "Create false-success detection test"
+  priority: 1
+  estimated_time: "30 minutes"
+  estimated_tokens: 800
+  
+  files:
+    create:
+      - Tests/IntegrityTests/FalseSuccessTests.swift
+  
+  dependencies:
+    - task_id: "0.2.3"
+      reason: "After fixes"
+    - task_id: "0.2.4"
+      reason: "After fixes"
+  
+  work:
+    - step: "Create test that calls each side-effect tool"
+    - step: "Verify real actions occur OR errors thrown"
+    - step: "Never accept simulated success"
+  
+  verification:
+    commands:
+      - cmd: "swift test --filter FalseSuccessTests"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Test suite enforces truth"
+      test: "Tests fail on simulated success"
+
+###############################################################################
+# Plan 0.3: Establish compatibility build matrix
+###############################################################################
+
+- task_id: "0.3.1"
+  name: "Document supported Xcode/SDK combinations"
+  priority: 1
+  estimated_time: "20 minutes"
+  estimated_tokens: 600
+  
+  files:
+    create:
+      - docs/compatibility/build_matrix.md
+  
+  dependencies: []
+  
+  work:
+    - step: "List minimum Xcode version"
+    - step: "List tested SDK versions (13, 14, 15, 26, 27)"
+    - step: "Document Swift version requirements"
+    - step: "Note hardware requirements per tier"
+  
+  verification:
+    commands:
+      - cmd: "cat docs/compatibility/build_matrix.md | grep -c 'macOS'"
+        expected_output: "5 or more"
+  
+  acceptance_criteria:
+    - criterion: "Matrix documented"
+      test: "All SDK versions listed"
+
+- task_id: "0.3.2"
+  name: "Create Package.swift configurations for SDK tiers"
+  priority: 1
+  estimated_time: "30 minutes"
+  estimated_tokens: 800
+  
+  files:
+    modify:
+      - Package.swift
+    create:
+      - .swiftpm/xcode/xcshareddata/xcschemes/LocalIntelligenceMCP-Tier0.xcscheme
+      - .swiftpm/xcode/xcshareddata/xcschemes/LocalIntelligenceMCP-Tier1.xcscheme
+  
+  dependencies: []
+  
+  work:
+    - step: "Add conditional compilation flags"
+      code_hint: "swiftSettings: [.define('TIER_0_ONLY')]"
+    - step: "Create build schemes for each tier"
+    - step: "Document usage"
+  
+  verification:
+    commands:
+      - cmd: "swift build -c debug"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Tier builds work"
+      test: "Each scheme builds successfully"
+
+- task_id: "0.3.3"
+  name: "Isolate SDK-specific source with availability guards"
+  priority: 1
+  estimated_time: "40 minutes"
+  estimated_tokens: 1000
+  
+  files:
+    create:
+      - Sources/LocalIntelligenceMCP/Availability/SDKVersion.swift
+  
+  dependencies: []
+  
+  work:
+    - step: "Create SDKVersion helper"
+      code_hint: |
+        public struct SDKVersion {
+            public static var supportsTier0: Bool { true }
+            public static var supportsTier1: Bool { 
+                #if os(macOS)
+                if #available(macOS 13.0, *) { return true }
+                #endif
+                return false
+            }
+            public static var supportsTier2: Bool {
+                #if os(macOS)
+                if #available(macOS 15.0, *) { return true }
+                #endif
+                return false
+            }
+        }
+    - step: "Add tests"
+  
+  verification:
+    commands:
+      - cmd: "swift build"
+        expected_exit: 0
+      - cmd: "swift test --filter SDKVersionTests"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Availability helper works"
+      test: "Tests pass on current SDK"
+
+- task_id: "0.3.4"
+  name: "Establish CI policy for hardware-specific APIs"
+  priority: 2
+  estimated_time: "25 minutes"
+  estimated_tokens: 700
+  
+  files:
+    create:
+      - docs/testing/ci_policy.md
+      - .github/workflows/ci-tier0.yml
+  
+  dependencies: []
+  
+  work:
+    - step: "Document what CI can test"
+    - step: "Document what requires physical hardware"
+    - step: "Create CI workflow for portable tier"
+    - step: "Add skip markers for hardware tests"
+  
+  verification:
+    commands:
+      - cmd: "cat docs/testing/ci_policy.md | grep -c 'physical'"
+        expected_output: "At least 1"
+  
+  acceptance_criteria:
+    - criterion: "Policy clear"
+      test: "CI vs hardware distinction documented"
+
+- task_id: "0.3.5"
+  name: "Add compilation check preventing portable tier breakage"
+  priority: 1
+  estimated_time: "30 minutes"
+  estimated_tokens: 800
+  
+  files:
+    create:
+      - scripts/check_tier0_compatibility.sh
+  
+  dependencies:
+    - task_id: "0.3.2"
+      reason: "Needs tier schemes"
+  
+  work:
+    - step: "Create script that builds Tier 0 target"
+    - step: "Ensure no SDK 15+ APIs leak in"
+    - step: "Exit with error if tier 0 broken"
+  
+  verification:
+    commands:
+      - cmd: "bash scripts/check_tier0_compatibility.sh"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Check script works"
+      test: "Script builds tier 0 successfully"
+
+###############################################################################
+# Plan 0.4: Baseline security and performance
+###############################################################################
+
+- task_id: "0.4.1"
+  name: "Create performance baseline measurement script"
+  priority: 2
+  estimated_time: "35 minutes"
+  estimated_tokens: 900
+  
+  files:
+    create:
+      - scripts/measure_baseline.swift
+      - docs/performance/baseline_metrics.json
+  
+  dependencies: []
+  
+  work:
+    - step: "Measure server startup time"
+    - step: "Measure tool discovery latency"
+    - step: "Measure deterministic tool latency (sample)"
+    - step: "Measure memory footprint"
+    - step: "Output JSON"
+  
+  verification:
+    commands:
+      - cmd: "swift scripts/measure_baseline.swift > docs/performance/baseline_metrics.json"
+        expected_exit: 0
+      - cmd: "jq '.startup_ms' docs/performance/baseline_metrics.json"
+        expected_output: "Numeric value"
+  
+  acceptance_criteria:
+    - criterion: "Baseline captured"
+      test: "JSON contains all metrics"
+
+- task_id: "0.4.2"
+  name: "Document current permission behavior"
+  priority: 2
+  estimated_time: "25 minutes"
+  estimated_tokens: 700
+  
+  files:
+    create:
+      - docs/security/permission_baseline.md
+  
+  dependencies: []
+  
+  work:
+    - step: "List all permissions currently requested"
+    - step: "Document when/how they're requested"
+    - step: "Document current denied-permission behavior"
+  
+  verification:
+    commands:
+      - cmd: "cat docs/security/permission_baseline.md | grep -c 'permission'"
+        expected_output: "At least 3"
+  
+  acceptance_criteria:
+    - criterion: "Permissions documented"
+      test: "All current permissions listed"
+
+- task_id: "0.4.3"
+  name: "Create baseline security test suite"
+  priority: 2
+  estimated_time: "40 minutes"
+  estimated_tokens: 1000
+  
+  files:
+    create:
+      - Tests/SecurityTests/BaselineSecurityTests.swift
+  
+  dependencies: []
+  
+  work:
+    - step: "Test: no secrets in logs"
+    - step: "Test: no secrets in error messages"
+    - step: "Test: permission denial handled"
+    - step: "Test: malformed input rejected"
+  
+  verification:
+    commands:
+      - cmd: "swift test --filter BaselineSecurityTests"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Security tests pass"
+      test: "All baseline security tests green"
+
+- task_id: "0.4.4"
+  name: "Establish performance regression thresholds"
+  priority: 2
+  estimated_time: "20 minutes"
+  estimated_tokens: 600
+  
+  files:
+    create:
+      - docs/performance/regression_policy.md
+  
+  dependencies:
+    - task_id: "0.4.1"
+      reason: "Needs baseline numbers"
+  
+  work:
+    - step: "Set acceptable degradation percentages"
+    - step: "Define what triggers regression review"
+    - step: "Document measurement methodology"
+  
+  verification:
+    commands:
+      - cmd: "cat docs/performance/regression_policy.md | grep -c 'threshold'"
+        expected_output: "At least 1"
+  
+  acceptance_criteria:
+    - criterion: "Thresholds defined"
+      test: "Policy document complete"
+
+###############################################################################
+# Phase 0 Summary
+###############################################################################
+# Total tasks: 28
+# Critical path: Tasks with priority 1
+# Estimated completion: 2-3 days with AI
+# Next phase unlocked when all acceptance criteria met

@@ -1,0 +1,1401 @@
+# Phase 1: Capability Kernel - AI-Optimized Task Breakdown
+# Total estimated tasks: 42
+# Total estimated time: 3-4 days
+# Critical path length: 18 tasks
+
+###############################################################################
+# Plan 1.1: RuntimeCapabilities
+###############################################################################
+
+- task_id: "1.1.1"
+  name: "Define CapabilityID enum"
+  priority: 1
+  estimated_time: "20 minutes"
+  estimated_tokens: 600
+  
+  files:
+    create:
+      - Sources/LocalIntelligenceMCP/Capability/CapabilityID.swift
+      - Tests/CapabilityTests/CapabilityIDTests.swift
+  
+  dependencies: []
+  
+  work:
+    - step: "Create enum with all capability identifiers"
+      code_hint: |
+        public enum CapabilityID: String, Codable, CaseIterable {
+            case localGenerate = "local_generate"
+            case localSummarize = "local_summarize"
+            case localExtract = "local_extract"
+            case localClassify = "local_classify"
+            case automationList = "local_automation_list"
+            case automationExecute = "local_automation_execute"
+            case capabilities = "local_capabilities"
+        }
+    - step: "Add CaseIterable, Codable conformance"
+    - step: "Add unit tests"
+  
+  verification:
+    commands:
+      - cmd: "swift build"
+        expected_exit: 0
+      - cmd: "swift test --filter CapabilityIDTests"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "All capabilities enumerated"
+      test: "Enum has 7+ cases"
+    - criterion: "String mapping works"
+      test: "Tests verify rawValue roundtrip"
+
+- task_id: "1.1.2"
+  name: "Define CapabilityStatus enum"
+  priority: 1
+  estimated_time: "25 minutes"
+  estimated_tokens: 700
+  
+  files:
+    create:
+      - Sources/LocalIntelligenceMCP/Capability/CapabilityStatus.swift
+      - Tests/CapabilityTests/CapabilityStatusTests.swift
+  
+  dependencies: []
+  
+  work:
+    - step: "Create status enum"
+      code_hint: |
+        public enum CapabilityStatus: String, Codable {
+            case available
+            case unavailable
+            case disabled
+            case notReady
+            case permissionDenied
+            case unsupported
+        }
+    - step: "Add helper properties (isAvailable, isError)"
+    - step: "Add tests"
+  
+  verification:
+    commands:
+      - cmd: "swift build"
+        expected_exit: 0
+      - cmd: "swift test --filter CapabilityStatusTests"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "All states covered"
+      test: "6 status cases"
+
+- task_id: "1.1.3"
+  name: "Create RuntimeCapabilities struct with OS version"
+  priority: 1
+  estimated_time: "20 minutes"
+  estimated_tokens: 600
+  
+  files:
+    create:
+      - Sources/LocalIntelligenceMCP/Capability/RuntimeCapabilities.swift
+      - Tests/CapabilityTests/RuntimeCapabilitiesTests.swift
+  
+  dependencies:
+    - task_id: "1.1.1"
+      reason: "Uses CapabilityID"
+    - task_id: "1.1.2"
+      reason: "Uses CapabilityStatus"
+  
+  work:
+    - step: "Create struct RuntimeCapabilities"
+      code_hint: |
+        public struct RuntimeCapabilities {
+            public let osVersion: OperatingSystemVersion
+            public let architecture: String
+        }
+    - step: "Implement OS version detection"
+      code_hint: "ProcessInfo.processInfo.operatingSystemVersion"
+    - step: "Add tests"
+  
+  verification:
+    commands:
+      - cmd: "swift build"
+        expected_exit: 0
+      - cmd: "swift test --filter RuntimeCapabilitiesTests.testOSVersion"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "OS version captured"
+      test: "Test verifies non-zero version"
+
+- task_id: "1.1.4"
+  name: "Add API feature level detection"
+  priority: 1
+  estimated_time: "30 minutes"
+  estimated_tokens: 800
+  
+  files:
+    modify:
+      - Sources/LocalIntelligenceMCP/Capability/RuntimeCapabilities.swift
+    test:
+      - Tests/CapabilityTests/RuntimeCapabilitiesTests.swift
+  
+  dependencies:
+    - task_id: "1.1.3"
+      reason: "Extends RuntimeCapabilities"
+  
+  work:
+    - step: "Add apiFeatureLevel property"
+      code_hint: |
+        public enum APIFeatureLevel: Int {
+            case tier0 = 0  // macOS 13+
+            case tier1 = 1  // macOS 13+ automation
+            case tier2 = 2  // macOS 15+ Foundation Models
+            case tier3 = 3  // macOS 16+ advanced
+        }
+    - step: "Implement detection based on OS version"
+    - step: "Add availability checks"
+    - step: "Add tests for each tier"
+  
+  verification:
+    commands:
+      - cmd: "swift build"
+        expected_exit: 0
+      - cmd: "swift test --filter RuntimeCapabilitiesTests.testAPIFeatureLevel"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Tier detection works"
+      test: "Current macOS version maps to correct tier"
+
+- task_id: "1.1.5"
+  name: "Add Apple Intelligence eligibility check"
+  priority: 1
+  estimated_time: "35 minutes"
+  estimated_tokens: 900
+  
+  files:
+    modify:
+      - Sources/LocalIntelligenceMCP/Capability/RuntimeCapabilities.swift
+    test:
+      - Tests/CapabilityTests/RuntimeCapabilitiesTests.swift
+  
+  dependencies:
+    - task_id: "1.1.4"
+      reason: "Extends RuntimeCapabilities"
+  
+  work:
+    - step: "Add appleIntelligenceEligible property"
+    - step: "Check for macOS 15+"
+    - step: "Check for Apple Silicon (where detectable)"
+    - step: "Return best-effort eligibility"
+      code_hint: |
+        @available(macOS 15.0, *)
+        private func checkEligibility() -> Bool {
+            // Check OS version, architecture
+            // Note: Cannot reliably detect model/RAM without private APIs
+            // Return conservative estimate
+        }
+    - step: "Add tests with mocking"
+  
+  verification:
+    commands:
+      - cmd: "swift build"
+        expected_exit: 0
+      - cmd: "swift test --filter RuntimeCapabilitiesTests.testAppleIntelligence"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Eligibility check exists"
+      test: "Returns boolean on macOS 15+"
+    - criterion: "Graceful on older OS"
+      test: "Returns false on macOS 13-14"
+
+- task_id: "1.1.6"
+  name: "Add model availability state"
+  priority: 1
+  estimated_time: "30 minutes"
+  estimated_tokens: 800
+  
+  files:
+    modify:
+      - Sources/LocalIntelligenceMCP/Capability/RuntimeCapabilities.swift
+    test:
+      - Tests/CapabilityTests/RuntimeCapabilitiesTests.swift
+  
+  dependencies:
+    - task_id: "1.1.5"
+      reason: "Extends intelligence checks"
+  
+  work:
+    - step: "Add ModelAvailability enum"
+      code_hint: |
+        public enum ModelAvailability {
+            case available
+            case downloading(progress: Double)
+            case notReady
+            case unavailable
+        }
+    - step: "Add modelAvailability property"
+    - step: "Stub implementation (return unavailable for now)"
+    - step: "Add tests"
+  
+  verification:
+    commands:
+      - cmd: "swift build"
+        expected_exit: 0
+      - cmd: "swift test --filter RuntimeCapabilitiesTests.testModelAvailability"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "State enum exists"
+      test: "All states defined"
+    - criterion: "Property accessible"
+      test: "Returns unavailable on unsupported OS"
+
+- task_id: "1.1.7"
+  name: "Add automation permissions check"
+  priority: 1
+  estimated_time: "30 minutes"
+  estimated_tokens: 800
+  
+  files:
+    modify:
+      - Sources/LocalIntelligenceMCP/Capability/RuntimeCapabilities.swift
+    test:
+      - Tests/CapabilityTests/RuntimeCapabilitiesTests.swift
+  
+  dependencies:
+    - task_id: "1.1.3"
+      reason: "Extends RuntimeCapabilities"
+  
+  work:
+    - step: "Add automationPermissions property"
+      code_hint: |
+        public struct AutomationPermissions {
+            public let shortcuts: Bool
+            public let accessibility: Bool
+            public let automation: Bool
+        }
+    - step: "Implement permission checks"
+    - step: "Add tests (may need mocking)"
+  
+  verification:
+    commands:
+      - cmd: "swift build"
+        expected_exit: 0
+      - cmd: "swift test --filter RuntimeCapabilitiesTests.testPermissions"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Permission checks exist"
+      test: "Can query each permission"
+
+- task_id: "1.1.8"
+  name: "Add supported capabilities list"
+  priority: 1
+  estimated_time: "25 minutes"
+  estimated_tokens: 700
+  
+  files:
+    modify:
+      - Sources/LocalIntelligenceMCP/Capability/RuntimeCapabilities.swift
+    test:
+      - Tests/CapabilityTests/RuntimeCapabilitiesTests.swift
+  
+  dependencies:
+    - task_id: "1.1.1"
+      reason: "Uses CapabilityID"
+    - task_id: "1.1.4"
+      reason: "Uses feature level"
+  
+  work:
+    - step: "Add supportedCapabilities: [CapabilityID] property"
+    - step: "Populate based on tier, permissions, model availability"
+    - step: "Add tests"
+  
+  verification:
+    commands:
+      - cmd: "swift build"
+        expected_exit: 0
+      - cmd: "swift test --filter RuntimeCapabilitiesTests.testSupportedCapabilities"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Capabilities filtered by runtime state"
+      test: "Only available capabilities listed"
+
+- task_id: "1.1.9"
+  name: "Add capability status lookup method"
+  priority: 1
+  estimated_time: "25 minutes"
+  estimated_tokens: 700
+  
+  files:
+    modify:
+      - Sources/LocalIntelligenceMCP/Capability/RuntimeCapabilities.swift
+    test:
+      - Tests/CapabilityTests/RuntimeCapabilitiesTests.swift
+  
+  dependencies:
+    - task_id: "1.1.8"
+      reason: "Uses supported capabilities"
+  
+  work:
+    - step: "Add method status(for: CapabilityID) -> CapabilityStatus"
+    - step: "Return appropriate status based on runtime checks"
+    - step: "Add tests for each status case"
+  
+  verification:
+    commands:
+      - cmd: "swift build"
+        expected_exit: 0
+      - cmd: "swift test --filter RuntimeCapabilitiesTests.testStatusLookup"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Status lookup works"
+      test: "Returns correct status for each capability"
+
+- task_id: "1.1.10"
+  name: "Add privacy-safe fingerprinting limits"
+  priority: 2
+  estimated_time: "25 minutes"
+  estimated_tokens: 700
+  
+  files:
+    modify:
+      - Sources/LocalIntelligenceMCP/Capability/RuntimeCapabilities.swift
+    create:
+      - docs/security/privacy_policy.md
+  
+  dependencies:
+    - task_id: "1.1.9"
+      reason: "After core capabilities complete"
+  
+  work:
+    - step: "Audit what information is exposed"
+    - step: "Remove or generalize machine-specific details"
+    - step: "Document privacy policy"
+    - step: "Ensure no serial numbers, UUIDs, etc. leaked"
+  
+  verification:
+    commands:
+      - cmd: "swift build"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "No PII in capabilities"
+      test: "Privacy policy documented"
+
+###############################################################################
+# Plan 1.2: CapabilityRouter
+###############################################################################
+
+- task_id: "1.2.1"
+  name: "Define IntelligenceProvider protocol"
+  priority: 1
+  estimated_time: "30 minutes"
+  estimated_tokens: 800
+  
+  files:
+    create:
+      - Sources/LocalIntelligenceMCP/Providers/IntelligenceProvider.swift
+      - Tests/ProviderTests/IntelligenceProviderTests.swift
+  
+  dependencies: []
+  
+  work:
+    - step: "Define protocol IntelligenceProvider"
+      code_hint: |
+        public protocol IntelligenceProvider {
+            var providerID: String { get }
+            var isAvailable: Bool { get }
+            func generate(request: GenerationRequest) async throws -> GenerationResult
+            func cancelGeneration(requestID: String) async
+        }
+    - step: "Add documentation comments"
+    - step: "Create mock provider for testing"
+  
+  verification:
+    commands:
+      - cmd: "swift build"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Protocol compiles"
+      test: "No build errors"
+
+- task_id: "1.2.2"
+  name: "Define GenerationRequest and GenerationResult types"
+  priority: 1
+  estimated_time: "35 minutes"
+  estimated_tokens: 900
+  
+  files:
+    create:
+      - Sources/LocalIntelligenceMCP/Providers/GenerationTypes.swift
+      - Tests/ProviderTests/GenerationTypesTests.swift
+  
+  dependencies: []
+  
+  work:
+    - step: "Create GenerationRequest struct"
+      code_hint: |
+        public struct GenerationRequest {
+            public let requestID: String
+            public let prompt: String
+            public let systemPrompt: String?
+            public let maxTokens: Int?
+            public let temperature: Double?
+            public let tools: [Tool]?
+        }
+    - step: "Create GenerationResult struct"
+      code_hint: |
+        public struct GenerationResult {
+            public let requestID: String
+            public let text: String
+            public let toolCalls: [ToolCall]?
+            public let finishReason: FinishReason
+            public let metadata: ProviderMetadata
+        }
+    - step: "Add Codable conformance"
+    - step: "Add tests"
+  
+  verification:
+    commands:
+      - cmd: "swift build"
+        expected_exit: 0
+      - cmd: "swift test --filter GenerationTypesTests"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Types compile"
+      test: "Build succeeds"
+    - criterion: "Codable works"
+      test: "JSON encoding/decoding tests pass"
+
+- task_id: "1.2.3"
+  name: "Define ProviderMetadata type"
+  priority: 1
+  estimated_time: "20 minutes"
+  estimated_tokens: 600
+  
+  files:
+    create:
+      - Sources/LocalIntelligenceMCP/Providers/ProviderMetadata.swift
+  
+  dependencies: []
+  
+  work:
+    - step: "Create struct ProviderMetadata"
+      code_hint: |
+        public struct ProviderMetadata: Codable {
+            public let providerID: String
+            public let providerType: String  // "deterministic", "apple_fm", "remote"
+            public let modelID: String?
+            public let latencyMs: Int?
+        }
+  
+  verification:
+    commands:
+      - cmd: "swift build"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Metadata type exists"
+      test: "Compiles"
+
+- task_id: "1.2.4"
+  name: "Create CapabilityRouter protocol"
+  priority: 1
+  estimated_time: "25 minutes"
+  estimated_tokens: 700
+  
+  files:
+    create:
+      - Sources/LocalIntelligenceMCP/Routing/CapabilityRouter.swift
+  
+  dependencies:
+    - task_id: "1.1.1"
+      reason: "Uses CapabilityID"
+    - task_id: "1.2.1"
+      reason: "Uses IntelligenceProvider"
+  
+  work:
+    - step: "Define protocol"
+      code_hint: |
+        public protocol CapabilityRouter {
+            func registerProvider(_ provider: IntelligenceProvider, for capability: CapabilityID)
+            func route(capability: CapabilityID, request: GenerationRequest) async throws -> GenerationResult
+        }
+  
+  verification:
+    commands:
+      - cmd: "swift build"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Protocol defined"
+      test: "Compiles"
+
+- task_id: "1.2.5"
+  name: "Implement DefaultCapabilityRouter"
+  priority: 1
+  estimated_time: "45 minutes"
+  estimated_tokens: 1200
+  
+  files:
+    create:
+      - Sources/LocalIntelligenceMCP/Routing/DefaultCapabilityRouter.swift
+      - Tests/RoutingTests/DefaultCapabilityRouterTests.swift
+  
+  dependencies:
+    - task_id: "1.2.4"
+      reason: "Implements protocol"
+  
+  work:
+    - step: "Create class conforming to CapabilityRouter"
+    - step: "Add provider registry (Dictionary)"
+    - step: "Implement registerProvider"
+    - step: "Implement route with provider lookup"
+    - step: "Throw error if no provider available"
+    - step: "Add thread-safe provider access (actor or locks)"
+    - step: "Add tests"
+  
+  verification:
+    commands:
+      - cmd: "swift build"
+        expected_exit: 0
+      - cmd: "swift test --filter DefaultCapabilityRouterTests"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Router works"
+      test: "Can register and route to provider"
+    - criterion: "Thread-safe"
+      test: "Concurrent access test passes"
+
+- task_id: "1.2.6"
+  name: "Add priority-based provider selection"
+  priority: 1
+  estimated_time: "35 minutes"
+  estimated_tokens: 900
+  
+  files:
+    modify:
+      - Sources/LocalIntelligenceMCP/Routing/DefaultCapabilityRouter.swift
+    test:
+      - Tests/RoutingTests/DefaultCapabilityRouterTests.swift
+  
+  dependencies:
+    - task_id: "1.2.5"
+      reason: "Extends router"
+  
+  work:
+    - step: "Allow multiple providers per capability"
+    - step: "Add priority field to provider registration"
+    - step: "Select highest-priority available provider"
+    - step: "Add tests for priority selection"
+  
+  verification:
+    commands:
+      - cmd: "swift build"
+        expected_exit: 0
+      - cmd: "swift test --filter DefaultCapabilityRouterTests.testPriority"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Priority selection works"
+      test: "Higher priority provider chosen"
+
+- task_id: "1.2.7"
+  name: "Add explicit provider selection metadata"
+  priority: 2
+  estimated_time: "25 minutes"
+  estimated_tokens: 700
+  
+  files:
+    modify:
+      - Sources/LocalIntelligenceMCP/Routing/DefaultCapabilityRouter.swift
+  
+  dependencies:
+    - task_id: "1.2.6"
+      reason: "After routing works"
+  
+  work:
+    - step: "Include provider selection in result metadata"
+    - step: "Log which provider was chosen and why"
+    - step: "Add tests"
+  
+  verification:
+    commands:
+      - cmd: "swift build"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Provider choice observable"
+      test: "Result includes providerID"
+
+- task_id: "1.2.8"
+  name: "Prevent hidden local→remote fallback"
+  priority: 1
+  estimated_time: "30 minutes"
+  estimated_tokens: 800
+  
+  files:
+    modify:
+      - Sources/LocalIntelligenceMCP/Routing/DefaultCapabilityRouter.swift
+    test:
+      - Tests/RoutingTests/DefaultCapabilityRouterTests.swift
+  
+  dependencies:
+    - task_id: "1.2.6"
+      reason: "After provider selection"
+  
+  work:
+    - step: "Add ProviderType enum (local, remote, pcc)"
+    - step: "Require explicit opt-in for remote/pcc providers"
+    - step: "Throw error if only remote available and not allowed"
+    - step: "Add tests"
+  
+  verification:
+    commands:
+      - cmd: "swift test --filter DefaultCapabilityRouterTests.testNoHiddenFallback"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "No silent remote fallback"
+      test: "Test verifies error when remote-only"
+
+- task_id: "1.2.9"
+  name: "Add cancellation support"
+  priority: 1
+  estimated_time: "35 minutes"
+  estimated_tokens: 900
+  
+  files:
+    modify:
+      - Sources/LocalIntelligenceMCP/Routing/DefaultCapabilityRouter.swift
+    test:
+      - Tests/RoutingTests/DefaultCapabilityRouterTests.swift
+  
+  dependencies:
+    - task_id: "1.2.5"
+      reason: "Extends router"
+  
+  work:
+    - step: "Add cancel(requestID:) method"
+    - step: "Propagate to active provider"
+    - step: "Track active requests"
+    - step: "Add cancellation tests"
+  
+  verification:
+    commands:
+      - cmd: "swift test --filter DefaultCapabilityRouterTests.testCancellation"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Cancellation works"
+      test: "In-flight request cancelled"
+
+- task_id: "1.2.10"
+  name: "Add deadline/timeout support"
+  priority: 1
+  estimated_time: "30 minutes"
+  estimated_tokens: 800
+  
+  files:
+    modify:
+      - Sources/LocalIntelligenceMCP/Routing/DefaultCapabilityRouter.swift
+      - Sources/LocalIntelligenceMCP/Providers/GenerationTypes.swift
+    test:
+      - Tests/RoutingTests/DefaultCapabilityRouterTests.swift
+  
+  dependencies:
+    - task_id: "1.2.5"
+      reason: "Extends router"
+  
+  work:
+    - step: "Add timeout field to GenerationRequest"
+    - step: "Implement timeout in router"
+    - step: "Cancel request on timeout"
+    - step: "Add timeout tests"
+  
+  verification:
+    commands:
+      - cmd: "swift test --filter DefaultCapabilityRouterTests.testTimeout"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Timeout works"
+      test: "Long request times out"
+
+- task_id: "1.2.11"
+  name: "Add test provider injection mechanism"
+  priority: 1
+  estimated_time: "25 minutes"
+  estimated_tokens: 700
+  
+  files:
+    create:
+      - Sources/LocalIntelligenceMCP/Providers/MockProvider.swift
+      - Tests/RoutingTests/ProviderInjectionTests.swift
+  
+  dependencies:
+    - task_id: "1.2.1"
+      reason: "Implements IntelligenceProvider"
+  
+  work:
+    - step: "Create MockProvider for testing"
+    - step: "Allow router to accept test providers"
+    - step: "Add tests demonstrating injection"
+  
+  verification:
+    commands:
+      - cmd: "swift test --filter ProviderInjectionTests"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Test injection works"
+      test: "Can inject mock provider for testing"
+
+###############################################################################
+# Plan 1.3: Provider protocols and result envelopes
+###############################################################################
+
+- task_id: "1.3.1"
+  name: "Define complete error taxonomy"
+  priority: 1
+  estimated_time: "30 minutes"
+  estimated_tokens: 800
+  
+  files:
+    modify:
+      - Sources/LocalIntelligenceMCP/Errors/CapabilityError.swift
+    test:
+      - Tests/ErrorTests/CapabilityErrorTests.swift
+  
+  dependencies:
+    - task_id: "0.2.2"
+      reason: "Extends CapabilityError"
+  
+  work:
+    - step: "Add all error cases from spec"
+      code_hint: |
+        public enum CapabilityError: Error {
+            case unsupported(capability: String)
+            case unavailable(capability: String, reason: String)
+            case disabled(capability: String)
+            case notReady(capability: String, status: String)
+            case permissionDenied(capability: String)
+            case invalidRequest(reason: String)
+            case timeout(requestID: String)
+            case cancelled(requestID: String)
+            case providerFailure(provider: String, error: Error)
+            case policyDenied(capability: String, reason: String)
+        }
+    - step: "Add LocalizedError conformance"
+    - step: "Add tests for each case"
+  
+  verification:
+    commands:
+      - cmd: "swift build"
+        expected_exit: 0
+      - cmd: "swift test --filter CapabilityErrorTests"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "All error families covered"
+      test: "10 error cases defined"
+    - criterion: "Error messages clear"
+      test: "LocalizedError tests pass"
+
+- task_id: "1.3.2"
+  name: "Define StructuredGenerationRequest type"
+  priority: 1
+  estimated_time: "30 minutes"
+  estimated_tokens: 800
+  
+  files:
+    create:
+      - Sources/LocalIntelligenceMCP/Providers/StructuredGeneration.swift
+      - Tests/ProviderTests/StructuredGenerationTests.swift
+  
+  dependencies:
+    - task_id: "1.2.2"
+      reason: "Extends generation types"
+  
+  work:
+    - step: "Create StructuredGenerationRequest"
+      code_hint: |
+        public struct StructuredGenerationRequest {
+            public let baseRequest: GenerationRequest
+            public let schema: JSONSchema
+            public let strictMode: Bool
+        }
+    - step: "Add JSONSchema type (simplified)"
+    - step: "Add tests"
+  
+  verification:
+    commands:
+      - cmd: "swift build"
+        expected_exit: 0
+      - cmd: "swift test --filter StructuredGenerationTests"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Structured request defined"
+      test: "Type compiles"
+
+- task_id: "1.3.3"
+  name: "Define ModelAvailabilityReason enum"
+  priority: 2
+  estimated_time: "20 minutes"
+  estimated_tokens: 600
+  
+  files:
+    create:
+      - Sources/LocalIntelligenceMCP/Capability/ModelAvailabilityReason.swift
+  
+  dependencies: []
+  
+  work:
+    - step: "Create enum"
+      code_hint: |
+        public enum ModelAvailabilityReason {
+            case ready
+            case downloading
+            case notInstalled
+            case hardwareIncompatible
+            case osVersionTooOld
+            case featureDisabled
+            case unknown
+        }
+  
+  verification:
+    commands:
+      - cmd: "swift build"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Reasons enumerated"
+      test: "7 cases defined"
+
+- task_id: "1.3.4"
+  name: "Define ToolExecutionEvidence type"
+  priority: 2
+  estimated_time: "25 minutes"
+  estimated_tokens: 700
+  
+  files:
+    create:
+      - Sources/LocalIntelligenceMCP/Providers/ToolExecutionEvidence.swift
+  
+  dependencies: []
+  
+  work:
+    - step: "Create evidence structure"
+      code_hint: |
+        public struct ToolExecutionEvidence {
+            public let toolName: String
+            public let executed: Bool
+            public let result: String?
+            public let error: Error?
+            public let timestamp: Date
+            public let durationMs: Int
+        }
+  
+  verification:
+    commands:
+      - cmd: "swift build"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Evidence type defined"
+      test: "Compiles"
+
+- task_id: "1.3.5"
+  name: "Add result envelope validation"
+  priority: 2
+  estimated_time: "30 minutes"
+  estimated_tokens: 800
+  
+  files:
+    create:
+      - Sources/LocalIntelligenceMCP/Providers/ResultValidation.swift
+      - Tests/ProviderTests/ResultValidationTests.swift
+  
+  dependencies:
+    - task_id: "1.2.2"
+      reason: "Validates GenerationResult"
+  
+  work:
+    - step: "Create validation functions"
+    - step: "Check required fields present"
+    - step: "Validate metadata completeness"
+    - step: "Add tests"
+  
+  verification:
+    commands:
+      - cmd: "swift test --filter ResultValidationTests"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Validation catches incomplete results"
+      test: "Tests verify validation logic"
+
+###############################################################################
+# Plan 1.4: Stable local_* MCP tools
+###############################################################################
+
+- task_id: "1.4.1"
+  name: "Create local_capabilities tool schema"
+  priority: 1
+  estimated_time: "30 minutes"
+  estimated_tokens: 800
+  
+  files:
+    create:
+      - Sources/LocalIntelligenceMCP/Tools/LocalCapabilitiesTool.swift
+      - Tests/ToolTests/LocalCapabilitiesToolTests.swift
+  
+  dependencies:
+    - task_id: "1.1.9"
+      reason: "Uses RuntimeCapabilities"
+  
+  work:
+    - step: "Define MCP tool schema"
+    - step: "Implement handler using RuntimeCapabilities"
+    - step: "Return available capabilities and their status"
+    - step: "Add tests"
+  
+  verification:
+    commands:
+      - cmd: "swift build"
+        expected_exit: 0
+      - cmd: "swift test --filter LocalCapabilitiesToolTests"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Tool returns capability list"
+      test: "Response includes all capabilities with status"
+
+- task_id: "1.4.2"
+  name: "Create local_generate tool schema"
+  priority: 1
+  estimated_time: "30 minutes"
+  estimated_tokens: 800
+  
+  files:
+    create:
+      - Sources/LocalIntelligenceMCP/Tools/LocalGenerateTool.swift
+      - Tests/ToolTests/LocalGenerateToolTests.swift
+  
+  dependencies:
+    - task_id: "1.2.5"
+      reason: "Uses CapabilityRouter"
+  
+  work:
+    - step: "Define MCP tool schema"
+      code_hint: |
+        {
+          "name": "local_generate",
+          "description": "Generate text using local intelligence",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "prompt": {"type": "string"},
+              "systemPrompt": {"type": "string"},
+              "maxTokens": {"type": "integer"}
+            },
+            "required": ["prompt"]
+          }
+        }
+    - step: "Implement handler routing to capability router"
+    - step: "Add tests (with mock provider)"
+  
+  verification:
+    commands:
+      - cmd: "swift build"
+        expected_exit: 0
+      - cmd: "swift test --filter LocalGenerateToolTests"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Tool schema valid"
+      test: "MCP schema validates"
+    - criterion: "Routing works"
+      test: "Test with mock provider succeeds"
+
+- task_id: "1.4.3"
+  name: "Create local_summarize tool schema"
+  priority: 1
+  estimated_time: "25 minutes"
+  estimated_tokens: 700
+  
+  files:
+    create:
+      - Sources/LocalIntelligenceMCP/Tools/LocalSummarizeTool.swift
+      - Tests/ToolTests/LocalSummarizeToolTests.swift
+  
+  dependencies:
+    - task_id: "1.2.5"
+      reason: "Uses CapabilityRouter"
+  
+  work:
+    - step: "Define MCP tool schema"
+    - step: "Implement using router"
+    - step: "Add tests"
+  
+  verification:
+    commands:
+      - cmd: "swift test --filter LocalSummarizeToolTests"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Tool works"
+      test: "Tests pass"
+
+- task_id: "1.4.4"
+  name: "Create local_extract tool schema"
+  priority: 1
+  estimated_time: "25 minutes"
+  estimated_tokens: 700
+  
+  files:
+    create:
+      - Sources/LocalIntelligenceMCP/Tools/LocalExtractTool.swift
+      - Tests/ToolTests/LocalExtractToolTests.swift
+  
+  dependencies:
+    - task_id: "1.2.5"
+      reason: "Uses CapabilityRouter"
+  
+  work:
+    - step: "Define MCP tool schema with extraction target"
+    - step: "Implement using router"
+    - step: "Add tests"
+  
+  verification:
+    commands:
+      - cmd: "swift test --filter LocalExtractToolTests"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Tool works"
+      test: "Tests pass"
+
+- task_id: "1.4.5"
+  name: "Create local_classify tool schema"
+  priority: 1
+  estimated_time: "25 minutes"
+  estimated_tokens: 700
+  
+  files:
+    create:
+      - Sources/LocalIntelligenceMCP/Tools/LocalClassifyTool.swift
+      - Tests/ToolTests/LocalClassifyToolTests.swift
+  
+  dependencies:
+    - task_id: "1.2.5"
+      reason: "Uses CapabilityRouter"
+  
+  work:
+    - step: "Define MCP tool schema with categories"
+    - step: "Implement using router"
+    - step: "Add tests"
+  
+  verification:
+    commands:
+      - cmd: "swift test --filter LocalClassifyToolTests"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Tool works"
+      test: "Tests pass"
+
+- task_id: "1.4.6"
+  name: "Create local_automation_list tool schema"
+  priority: 2
+  estimated_time: "25 minutes"
+  estimated_tokens: 700
+  
+  files:
+    create:
+      - Sources/LocalIntelligenceMCP/Tools/LocalAutomationListTool.swift
+      - Tests/ToolTests/LocalAutomationListToolTests.swift
+  
+  dependencies: []
+  
+  work:
+    - step: "Define MCP tool schema"
+    - step: "Stub implementation (returns unavailable for now)"
+    - step: "Add tests"
+  
+  verification:
+    commands:
+      - cmd: "swift test --filter LocalAutomationListToolTests"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Schema defined"
+      test: "Tool compiles"
+
+- task_id: "1.4.7"
+  name: "Create local_automation_execute tool schema"
+  priority: 2
+  estimated_time: "25 minutes"
+  estimated_tokens: 700
+  
+  files:
+    create:
+      - Sources/LocalIntelligenceMCP/Tools/LocalAutomationExecuteTool.swift
+      - Tests/ToolTests/LocalAutomationExecuteToolTests.swift
+  
+  dependencies: []
+  
+  work:
+    - step: "Define MCP tool schema"
+    - step: "Stub implementation (returns unavailable for now)"
+    - step: "Add tests"
+  
+  verification:
+    commands:
+      - cmd: "swift test --filter LocalAutomationExecuteToolTests"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Schema defined"
+      test: "Tool compiles"
+
+- task_id: "1.4.8"
+  name: "Register all local_* tools with MCP server"
+  priority: 1
+  estimated_time: "30 minutes"
+  estimated_tokens: 800
+  
+  files:
+    modify:
+      - Sources/LocalIntelligenceMCP/main.swift
+    test:
+      - Tests/IntegrationTests/ToolRegistrationTests.swift
+  
+  dependencies:
+    - task_id: "1.4.1"
+      reason: "After tools created"
+    - task_id: "1.4.2"
+      reason: "After tools created"
+    - task_id: "1.4.3"
+      reason: "After tools created"
+    - task_id: "1.4.4"
+      reason: "After tools created"
+    - task_id: "1.4.5"
+      reason: "After tools created"
+  
+  work:
+    - step: "Register each local_* tool"
+    - step: "Add integration test"
+    - step: "Verify all tools discoverable"
+  
+  verification:
+    commands:
+      - cmd: "swift build"
+        expected_exit: 0
+      - cmd: "swift test --filter ToolRegistrationTests"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "All tools registered"
+      test: "MCP server lists all local_* tools"
+
+- task_id: "1.4.9"
+  name: "Document old tool deprecation policy"
+  priority: 2
+  estimated_time: "20 minutes"
+  estimated_tokens: 600
+  
+  files:
+    create:
+      - docs/migration/tool_deprecation.md
+  
+  dependencies:
+    - task_id: "1.4.8"
+      reason: "After new tools registered"
+  
+  work:
+    - step: "List which old tools are deprecated"
+    - step: "Document migration path"
+    - step: "Set deprecation timeline"
+  
+  verification:
+    commands:
+      - cmd: "cat docs/migration/tool_deprecation.md | grep -c 'deprecated'"
+        expected_output: "At least 1"
+  
+  acceptance_criteria:
+    - criterion: "Migration documented"
+      test: "Document complete"
+
+###############################################################################
+# Plan 1.5: Observability
+###############################################################################
+
+- task_id: "1.5.1"
+  name: "Define structured log event types"
+  priority: 2
+  estimated_time: "30 minutes"
+  estimated_tokens: 800
+  
+  files:
+    create:
+      - Sources/LocalIntelligenceMCP/Logging/LogEvent.swift
+  
+  dependencies: []
+  
+  work:
+    - step: "Define LogEvent enum"
+      code_hint: |
+        public enum LogEvent {
+            case capabilityRouted(capability: String, provider: String)
+            case generationStarted(requestID: String)
+            case generationCompleted(requestID: String, durationMs: Int)
+            case generationFailed(requestID: String, error: String)
+            case providerUnavailable(provider: String, reason: String)
+            case policyDenied(capability: String, reason: String)
+        }
+    - step: "Add metadata fields"
+    - step: "Add Codable for JSON logging"
+  
+  verification:
+    commands:
+      - cmd: "swift build"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Event types defined"
+      test: "All major events covered"
+
+- task_id: "1.5.2"
+  name: "Integrate structured logging into router"
+  priority: 2
+  estimated_time: "30 minutes"
+  estimated_tokens: 800
+  
+  files:
+    modify:
+      - Sources/LocalIntelligenceMCP/Routing/DefaultCapabilityRouter.swift
+  
+  dependencies:
+    - task_id: "1.5.1"
+      reason: "Uses LogEvent"
+    - task_id: "1.2.5"
+      reason: "Extends router"
+  
+  work:
+    - step: "Add logging to route() method"
+    - step: "Log provider selection"
+    - step: "Log fallback decisions"
+    - step: "Log errors"
+    - step: "Do NOT log prompt/result content"
+  
+  verification:
+    commands:
+      - cmd: "swift build"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Router logs events"
+      test: "Logging statements present"
+
+- task_id: "1.5.3"
+  name: "Add metrics collection"
+  priority: 2
+  estimated_time: "35 minutes"
+  estimated_tokens: 900
+  
+  files:
+    create:
+      - Sources/LocalIntelligenceMCP/Metrics/MetricsCollector.swift
+      - Tests/MetricsTests/MetricsCollectorTests.swift
+  
+  dependencies: []
+  
+  work:
+    - step: "Create MetricsCollector"
+    - step: "Track request count per capability"
+    - step: "Track success/error rates"
+    - step: "Track latency percentiles"
+    - step: "Add tests"
+  
+  verification:
+    commands:
+      - cmd: "swift test --filter MetricsCollectorTests"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Metrics tracked"
+      test: "Can query metrics"
+
+- task_id: "1.5.4"
+  name: "Add privacy-safe logging policy"
+  priority: 1
+  estimated_time: "25 minutes"
+  estimated_tokens: 700
+  
+  files:
+    create:
+      - docs/logging/privacy_policy.md
+    modify:
+      - Sources/LocalIntelligenceMCP/Logging/LogEvent.swift
+  
+  dependencies:
+    - task_id: "1.5.1"
+      reason: "Extends logging"
+  
+  work:
+    - step: "Document what is NOT logged (prompts, results, PII)"
+    - step: "Add redaction helpers"
+    - step: "Add tests verifying no sensitive data in logs"
+  
+  verification:
+    commands:
+      - cmd: "cat docs/logging/privacy_policy.md | grep -c 'NOT logged'"
+        expected_output: "At least 3"
+  
+  acceptance_criteria:
+    - criterion: "Privacy policy clear"
+      test: "Document complete"
+
+- task_id: "1.5.5"
+  name: "Create observability dashboard data export"
+  priority: 3
+  estimated_time: "30 minutes"
+  estimated_tokens: 800
+  
+  files:
+    create:
+      - Sources/LocalIntelligenceMCP/Metrics/MetricsExporter.swift
+  
+  dependencies:
+    - task_id: "1.5.3"
+      reason: "Exports metrics"
+  
+  work:
+    - step: "Export metrics as JSON"
+    - step: "Provide endpoint/command to retrieve"
+    - step: "Optional: Prometheus format"
+  
+  verification:
+    commands:
+      - cmd: "swift build"
+        expected_exit: 0
+  
+  acceptance_criteria:
+    - criterion: "Metrics exportable"
+      test: "Can export to JSON"
+
+###############################################################################
+# Phase 1 Summary
+###############################################################################
+# Total tasks: 42
+# Critical path: 18 tasks (priority 1)
+# Estimated completion: 3-4 days with AI
+# Next phase: Phase 2 (Real Apple automation)
