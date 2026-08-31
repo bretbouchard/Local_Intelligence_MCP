@@ -55,6 +55,12 @@ enum JSONSchemaValidator {
                     if !(value is Bool) {
                         unsupported.insert("additionalProperties (schema form)")
                     }
+                case "minimum", "maximum", "minLength", "maxLength", "minItems", "maxItems":
+                    // Bounds are meaningless without the matching type; silently
+                    // ignoring them would be a false validation pass.
+                    if dict["type"] == nil {
+                        unsupported.insert("\(key) requires an explicit \"type\"")
+                    }
                 default:
                     break // literal values (type, required, enum, bounds, ...)
                 }

@@ -361,7 +361,7 @@ The shipped suites cover the capability kernel, routing behavior, automation saf
 structured-output validation, the audio/text tool family, book intelligence, and
 RuntimeCapabilities feature scenarios:
 
-- `swift test` — **125 LocalIntelligenceMCPTests + 13 BDSTests**, 0 failures
+- `swift test` — **127 LocalIntelligenceMCPTests + 13 BDSTests**, 0 failures
 - [`examples/01–08`](examples/README.md) — scripted end-to-end stdio scenarios
 
 #### Running Tests
@@ -419,7 +419,7 @@ swiftformat .
 - Capability reports contain no identifiers
 
 ### 🧪 Testing
-`swift test` runs the shipped suites: capability kernel, router behavior, safety policy, structured-output validation, wire-boundary contract tests, audio/text tools, book intelligence, and RuntimeCapabilities feature scenarios — **125 LocalIntelligenceMCPTests + 13 BDSTests**. Scripted end-to-end examples live in [`examples/`](examples/README.md).
+`swift test` runs the shipped suites: capability kernel, router behavior, safety policy, structured-output validation, wire-boundary contract tests, audio/text tools, book intelligence, and RuntimeCapabilities feature scenarios — **127 LocalIntelligenceMCPTests + 13 BDSTests**. Scripted end-to-end examples live in [`examples/`](examples/README.md).
 
 ## 📚 API Documentation
 

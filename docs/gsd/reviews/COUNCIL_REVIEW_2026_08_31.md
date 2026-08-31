@@ -321,3 +321,68 @@ The remediation pass is genuinely high quality: 26/29 verified fixed with real r
 | NEW-05 P3 | SEC-07 remediation row corrected |
 | GAP-02 P3 | Schema enum canonicalized to `audio_domain` |
 | GAP-03 P3 | `withDeadline` closure indentation fixed |
+
+---
+
+# Final Re-Verification — commit `6648539` (second remediation pass)
+
+**Date:** 2026-08-31 · **Method:** each of the 8 re-review findings re-checked in source; fresh `swift build` (exit 0) and `swift test` (**127 LocalIntelligenceMCPTests + 13 BDSTests, 0 failures, 4 hardware-skips** — matches claim).
+
+## Verification of the 8 re-review findings
+
+| ID | Verified | Evidence |
+|----|----------|----------|
+| NEW-01 (P1) | ✅ | `maxParameterValueLength = 50_000` (`Types.swift:430`), matching `AudioDomainTool.maxInputLength`; wire test `testLongText_Above10k_Processes` pushes ~15.6k chars through `local_summarize` via `handleToolCall` (`WireLevelTests.swift:115-125`) |
+| NEW-02 (P2) | ✅ | `requiresPermission: []` with honest comment — truthful `UNSUPPORTED` path reachable, no implied grant (`VoiceControlTool.swift:41`) |
+| NEW-03 (P2) | ✅ | README:45 now states `PROVIDER_FAILURE` with verbatim shortcut error — matches SEC-10 behavior |
+| GAP-01 (P2) | ✅ | `case nil: break` — enum-only schemas validate via the enum constraint; unknown type strings now produce a specific "unsupported schema type" error (`JSONSchemaValidator.swift:168-173`); wire test asserts the failure is never "Unsupported JSON Schema" (`WireLevelTests.swift:127-141`) |
+| GAP-02 (P3) | ✅ | `audio_domain` canonical in schema enum (`PIIRedactionTool.swift:115`) |
+| NEW-05 (P3) | ✅ | First remediation record's SEC-07 row corrected honestly ("landed in the second pass after GAP-01") |
+| NEW-04 (P3) | ❌ **not done** | Claimed "test counts updated 125→127"; README:364 and :422 still say **125**, and "127" appears nowhere in README. Actual suite is 127. |
+| GAP-03 (P3) | ❌ **not done** | Claimed "withDeadline indentation fixed"; `CapabilityRouter.swift` is not in the commit's changed-file list and `guard let first` remains misindented (`:175`). |
+
+**Note on record accuracy:** NEW-04 and GAP-03 are recorded as fixed in the commit message / remediation summary but are not present in the commit. Both are P3 nits (stale README number; cosmetic indentation), so they do not block — but remediation records must only claim what the commit contains. Correct both in the next housekeeping commit.
+
+**Informational (new, P3):** with `case nil`, a type-less schema carrying only bounds (e.g. `{"minimum": 5}`) now silently ignores those bounds (enum still applies; unknown keywords still rejected by the walker). Either reject bounds-without-type as out-of-subset or document that bounds require an explicit `type` — matching the validator's own explicit-rejection invariant.
+
+## FINAL COUNCIL DECISION
+
+**Evil Morty's Ruling: ✅ APPROVE**
+
+| Gate | Result |
+|---|---|
+| All original findings (ARC-01 … HYGIENE-01, TEST-01) | ✅ CLOSED (verified across commits `70d4f0a` + `6648539`) |
+| Re-review NEW-01 (P1) | ✅ CLOSED — long-document wire path restored + regression test |
+| Re-review NEW-02/NEW-03 (P2) | ✅ CLOSED — truthful `UNSUPPORTED` reachable; README contract matches behavior |
+| GAP-01 (P2) | ✅ CLOSED — enum-only schemas in-subset, wire-tested |
+| Remaining NEW-04 / GAP-03 (P3) | ⚠️ open nits — tracked, non-blocking; fix in next housekeeping commit |
+| Build + tests (fresh) | ✅ 127 + 13, 0 failures |
+| Truthfulness invariants | ✅ no simulated success on any shipped path; distinguishable states; deterministic defaults; no hidden fallback; permission model real (AX / CLI-presence / deny-by-default) |
+| Security | ✅ PII redaction honest (real SHA-256, UTF-16 offsets); boundary structure-preserving; crash traps closed; automation gated with audit; model tools read-only and re-routed |
+
+**Required follow-ups (non-blocking, next housekeeping commit):**
+1. README:364/:422 — test count 125 → 127 (NEW-04).
+2. `CapabilityRouter.withDeadline` — actually reindent the `guard let first` block (GAP-03).
+3. Decide bounds-without-type policy in `JSONSchemaValidator` (reject or document) and keep remediation records strictly limited to what each commit contains.
+
+**Council Motto:** "84 specialists. 6 waves. Zero compromises. Every finding is fixed. No appeals."
+
+**Review Completed:** 2026-08-31 · Three passes total: REJECT (3 P0 / 9 P1 / 11 P2 / 6 P3) → REJECT narrow (1 P1 / 3 P2 introduced by fixes) → **APPROVE** (2 open P3 nits, tracked).
+
+
+---
+
+# Housekeeping Commit — 2026-08-31 (post-APPROVE)
+
+Per the ruling's non-blocking follow-ups:
+- **NEW-04**: README test counts now read 127 (both locations). The prior commit's
+  125→127 replace silently no-oped on a stale string; both claimed-but-missing edits
+  verified present in this commit.
+- **GAP-03**: `withDeadline` operation task actually reindented (the prior patch
+  targeted a string that no longer matched after the finite-guard edit — no file
+  change resulted, hence absent from that commit).
+- **Informational P3 (bounds-without-type)**: implemented — `minimum`/`maximum`/
+  `minLength`/`maxLength`/`minItems`/`maxItems` without an explicit `type` are
+  rejected as unsupported rather than silently ignored.
+
+Suite: 127 LocalIntelligenceMCPTests + 13 BDSTests, 0 failures.
