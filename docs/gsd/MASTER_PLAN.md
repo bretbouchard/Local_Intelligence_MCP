@@ -1,7 +1,7 @@
 # Local Intelligence MCP — GSD Master Plan
 
 Status: execution specification
-Branch baseline: `tools-addendum`
+Branch baseline: `main`
 Scope: evolve LI MCP into a truthful, lightweight, cross-version Apple-local capability bridge while preserving macOS 13+ usefulness.
 
 ## Mission
