@@ -164,3 +164,8 @@ venv/
 .qoder/rules/byterover-rules.md
 .augment/rules/byterover-rules.md# Exclude large reference PDFs from git
 reference/**/*.pdf
+
+# Beads / Dolt files (added by bd init)
+.dolt/
+.beads-credential-key
+.beads/proxieddb/

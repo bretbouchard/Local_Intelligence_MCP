@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "embedded",
+  "dolt_database": "local_intelligence_mcp",
+  "project_id": "411900e3-cd39-4b4e-8f3a-6bbda186ec53"
+}
