@@ -40,38 +40,26 @@ else
     echo '{"mcpServers": {}}' > "$CONFIG_FILE"
 fi
 
-# Get the absolute path to the executable
-LOCAL_EXECUTABLE="$(pwd)/.build/arm64-apple-macosx/debug/LocalIntelligenceMCP"
-
-# Check if executable exists
-if [ -f "$LOCAL_EXECUTABLE" ]; then
-    echo "✅ Local executable found: $LOCAL_EXECUTABLE"
-    USE_LOCAL=true
-else
-    echo "⚠️  Local executable not found, will use Docker"
-    USE_LOCAL=false
+# Build if needed and resolve the executable path
+if [ ! -x ".build/debug/LocalIntelligenceMCP" ] && [ ! -x "$(pwd)/.build/release/LocalIntelligenceMCP" ]; then
+    echo "🔨 Building server (swift build)..."
+    swift build || { echo "❌ Build failed"; exit 1; }
 fi
+LOCAL_EXECUTABLE="$(swift build --show-bin-path 2>/dev/null)/LocalIntelligenceMCP"
+if [ ! -f "$LOCAL_EXECUTABLE" ]; then
+    echo "❌ Server executable not found at $LOCAL_EXECUTABLE — run 'swift build' first"
+    exit 1
+fi
+echo "✅ Local executable found: $LOCAL_EXECUTABLE"
 
-# Create the server configuration
-if [ "$USE_LOCAL" = true ]; then
-    SERVER_CONFIG=$(cat <<EOF
+SERVER_CONFIG=$(cat <<INNER
     "local-intelligence-mcp": {
       "command": "$LOCAL_EXECUTABLE",
       "args": ["start-command", "--mcp-mode"],
-      "description": "Apple Ecosystem MCP Server - Provides access to Shortcuts, Voice Control, System Information, and Accessibility features"
+      "description": "Local Intelligence MCP - truthful Apple-local capabilities over stdio"
     }
-EOF
+INNER
 )
-else
-    SERVER_CONFIG=$(cat <<EOF
-    "local-intelligence-mcp": {
-      "command": "docker",
-      "args": ["run", "-i", "--rm", "local-intelligence-mcp:latest"],
-      "description": "Apple Ecosystem MCP Server - Provides access to Shortcuts, Voice Control, System Information, and Accessibility features"
-    }
-EOF
-)
-fi
 
 echo ""
 echo "🔧 Adding MCP server configuration..."
@@ -127,11 +115,7 @@ if [ $? -eq 0 ]; then
     echo "- 'List available Apple shortcuts'"
     echo "- 'Check voice control status'"
     echo ""
-    if [ "$USE_LOCAL" = true ]; then
-        echo "✅ Using local build (faster startup)"
-    else
-        echo "🐳 Using Docker (make sure Docker is running)"
-    fi
+    echo "✅ Using local build (faster startup)"
 else
     echo "❌ Setup failed. Please check the configuration manually."
 fi

@@ -822,14 +822,6 @@ public class CapabilitiesListTool: BaseMCPTool, @unchecked Sendable {
                 limitations: ["Cursor editor required", "Configuration setup needed"],
                 features: ["Audio-aware generation", "Workflow templates", "Technical assistance"]
             ),
-            IntegrationInfo(
-                platform: "Docker Desktop",
-                status: "MCP Registry",
-                setupInstructions: "Deploy to Docker MCP Registry for public listing",
-                configuration: "Dockerfile with MCP labels and server.yaml for registry",
-                limitations: ["Docker Desktop required", "Registry submission process"],
-                features: ["Public distribution", "Automatic discovery", "Integrated management"]
-            )
         ]
     }
 }

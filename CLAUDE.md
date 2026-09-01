@@ -35,19 +35,12 @@ swift test
 swift test --filter SecurityAuditTests
 ```
 
-### Docker
-```bash
-docker-compose up -d
-./docker-manager.sh start
-```
-
 ## Code Style
 Swift 6.0+ with strict concurrency: Follow standard conventions with actor-based design
 
 ## Recent Changes
 - Major refactor: Transition from AppleMCPServer to LocalIntelligenceMCP
 - Added comprehensive text processing and audio domain tools
-- Implemented Docker containerization support
 - Enhanced security and PII redaction capabilities
 
 <!-- MANUAL ADDITIONS START -->

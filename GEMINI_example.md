@@ -45,10 +45,8 @@ def setup_gemini_with_mcp():
     return model
 ```
 
-### **3. Docker Deployment**
 ```bash
 # Start Local Intelligence MCP server
-docker-compose up -d
 
 # Verify server is running
 curl http://localhost:3000/health
@@ -524,7 +522,6 @@ def track_mcp_gemini_usage():
 1. **Audio Domain Expertise** - Professional audio production knowledge
 2. **Secure Processing** - PII protection with audio term preservation
 3. **Advanced Analysis** - Multi-modal content understanding
-4. **Scalable Architecture** - Docker deployment for production
 5. **Real-time Processing** - Live session enhancement capabilities
 6. **Comprehensive Analytics** - Performance monitoring and optimization
 

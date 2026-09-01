@@ -1,8 +1,0 @@
-{
-  "mcpServers": {
-    "local-intelligence-mcp": {
-      "command": "docker",
-      "args": ["exec", "-i", "local-intelligence-mcp", "/usr/local/bin/LocalIntelligenceMCP", "start-command", "--log-level", "info", "--mcp-mode"]
-    }
-  }
-}
