@@ -68,6 +68,7 @@ let package = Package(
             name: "LocalIntelligenceMCPTests",
             dependencies: [
                 "LocalIntelligenceMCP",
+                .product(name: "MCP", package: "swift-sdk"),
                 .product(name: "Quick", package: "Quick"),
                 .product(name: "Nimble", package: "Nimble"),
                 .product(name: "NIOCore", package: "swift-nio"),
@@ -82,6 +83,7 @@ let package = Package(
                 "AdvancedCapabilityTests.swift",
                 "WireLevelTests.swift",
                 "Phase45Tests.swift",
+                "EndToEndTests.swift",
             ]
         ),
 

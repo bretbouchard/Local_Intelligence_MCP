@@ -25,6 +25,15 @@ final class WireLevelTests: XCTestCase {
         await StartCommand.handleToolCall(name: tool, arguments: args, toolsRegistry: registry)
     }
 
+    /// CI runners have no Apple Intelligence: FM-routed tests skip rather than
+    /// exercise provider availability states that only exist on eligible Macs.
+    private func requiresEligibleAppleIntelligence() throws {
+        guard #available(macOS 26.0, *) else { throw XCTSkip("requires macOS 26+") }
+        guard RuntimeCapabilities().modelAvailability == .available else {
+            throw XCTSkip("requires eligible Apple Intelligence hardware")
+        }
+    }
+
     private func text(_ result: CallTool.Result) -> String {
         result.content.compactMap { content -> String? in
             if case .text(let t) = content { return t.text }
@@ -37,6 +46,7 @@ final class WireLevelTests: XCTestCase {
     // MARK: SEC-01 regression: nested arguments must survive the boundary
 
     func testNestedArguments_SurviveConversion() async throws {
+        try requiresEligibleAppleIntelligence()
         // responseSchema contains a nested object; if the boundary flattened
         // nested structures to strings, the validator would never see
         // "unsupported_keyword" and the call shape would degrade silently.
@@ -56,6 +66,7 @@ final class WireLevelTests: XCTestCase {
     }
 
     func testNestedArrayArguments_SurviveConversion() async throws {
+        try requiresEligibleAppleIntelligence()
         // apple_tags_generate takes text + limit; a nested-array case is
         // exercised via local_generate's tools allowlist (array of strings).
         let result = await call("local_generate", [
@@ -63,11 +74,7 @@ final class WireLevelTests: XCTestCase {
             "tools": .array([.string("local_automation_execute")]),
         ])
 
-        guard #available(macOS 26.0, *) else {
-            // On portable tiers the router fails earlier — still must not crash.
-            XCTAssertTrue(errored(result) || !text(result).isEmpty)
-            return
-        }
+        try requiresEligibleAppleIntelligence()
         XCTAssertTrue(errored(result), "side-effect tools must be rejected from the model allowlist")
         XCTAssertTrue(text(result).contains("POLICY_DENIED"), "got: \(text(result))")
     }

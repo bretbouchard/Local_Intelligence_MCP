@@ -1,5 +1,7 @@
 # 🧠 Local Intelligence MCP
 
+[![CI](https://github.com/bretbouchard/Local_Intelligence_MCP/actions/workflows/ci.yml/badge.svg)](https://github.com/bretbouchard/Local_Intelligence_MCP/actions/workflows/ci.yml)
+
 A lightweight Swift Model Context Protocol (MCP) server that gives AI agents practical access to Apple's local intelligence and automation stack, using the best capabilities available on each Mac while preserving graceful support for older systems.
 
 Local Intelligence MCP reports what your Mac can actually do at runtime, then routes work to genuine providers: Apple's on-device Foundation Model on macOS 26+, real Shortcuts automation, deterministic text analysis and OCR everywhere else — with Private Cloud Compute available only as an explicit opt-in. Unavailable capabilities return distinguishable machine-readable errors — nothing simulates success. Not developed, endorsed, or affiliated with Apple Inc.
@@ -30,6 +32,7 @@ Local Intelligence MCP reports what your Mac can actually do at runtime, then ro
 - **🛡️ Privacy preserving**: PII redaction (real SHA-256 hash mode); capability reports never fingerprint the machine
 - **📱 Offline capable**: deterministic tools and automation work without network connectivity
 - **📦 Evidence bundle**: `LocalIntelligenceMCP evidence` emits machine-readable runtime truth for a release
+- **🖥️ Reference consumer**: `LocalIntelligenceConsumer` — a working MCP client that spawns the server over stdio (the integration pattern for any app)
 
 ## Requirements
 
@@ -136,7 +139,7 @@ Detailed model: [`docs/gsd/SECURITY_MODEL.md`](docs/gsd/SECURITY_MODEL.md).
 
 `swift test` runs the shipped suites — capability kernel, routing behavior, automation safety, structured-output validation, wire-boundary contract tests, image understanding, PCC gating, deterministic evaluation thresholds, reliability/performance, audio/text tools, book intelligence, and RuntimeCapabilities feature scenarios:
 
-- **141 LocalIntelligenceMCPTests + 13 BDSTests, 0 failures**
+- **141 LocalIntelligenceMCPTests + 13 BDSTests, 0 failures** — including true end-to-end tests that spawn the real server process (discover, list, call, denial paths, restart, concurrent clients)
 - [`examples/01–08`](examples/README.md) — scripted end-to-end stdio scenarios
 - [`scripts/run_model_evals.sh`](scripts/run_model_evals.sh) — live-model evaluations (manual; all 4 pass on Apple Intelligence Macs)
 
