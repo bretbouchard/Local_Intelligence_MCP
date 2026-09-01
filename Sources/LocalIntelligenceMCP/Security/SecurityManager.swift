@@ -13,14 +13,14 @@ public actor SecurityManager {
 
     // MARK: - Properties
 
-    private let keychainManager: KeychainManager
+    private let keychainManager: any KeychainStoring
     private let configuration: SecurityManagerConfiguration
     private var auditLog: [SecurityAuditEntry] = []
 
     // MARK: - Initialization
 
-    init(configuration: SecurityManagerConfiguration = SecurityManagerConfiguration.default) {
-        self.keychainManager = KeychainManager()
+    init(configuration: SecurityManagerConfiguration = SecurityManagerConfiguration.default, keychain: any KeychainStoring = KeychainManager()) {
+        self.keychainManager = keychain
         self.configuration = configuration
     }
 

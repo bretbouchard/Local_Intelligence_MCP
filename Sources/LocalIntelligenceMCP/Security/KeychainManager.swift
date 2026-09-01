@@ -9,7 +9,33 @@ import Foundation
 
 /// Manages secure storage of sensitive data using cross-platform file storage with obfuscation
 /// Implements Security & Privacy First constitutional principle
-actor KeychainManager {
+/// Storage abstraction: dependency-injectable for testing (GSD hardening).
+protocol KeychainStoring: Sendable {
+    func store(key: String, data: Data) async throws
+    func retrieve(key: String) async throws -> Data?
+    func remove(key: String) async throws
+    func exists(key: String) async -> Bool
+}
+
+extension KeychainStoring {
+    func store(key: String, string: String) async throws {
+        guard let data = string.data(using: .utf8) else { throw KeychainError.invalidKey }
+        try await store(key: key, data: data)
+    }
+    func retrieveString(key: String) async throws -> String? {
+        guard let data = try await retrieve(key: key) else { return nil }
+        return String(data: data, encoding: .utf8)
+    }
+    func store<T: Codable>(key: String, object: T) async throws {
+        try await store(key: key, data: try JSONEncoder().encode(object))
+    }
+    func retrieveObject<T: Codable>(key: String, type: T.Type) async throws -> T? {
+        guard let data = try await retrieve(key: key) else { return nil }
+        return try JSONDecoder().decode(type, from: data)
+    }
+}
+
+actor KeychainManager: KeychainStoring {
 
     // MARK: - Configuration
 
