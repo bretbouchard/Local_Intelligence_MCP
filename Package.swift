@@ -86,6 +86,7 @@ let package = Package(
                 "EndToEndTests.swift",
                 "DeepCoverageTests.swift",
                 "DeepCoverageRound2Tests.swift",
+                "DeepCoverageRound3Tests.swift",
             ]
         ),
 
