@@ -27,7 +27,7 @@ struct LocalIntelligenceMCP: AsyncParsableCommand {
         and comprehensive audit logging for all operations.
         """,
         version: MCPConstants.Server.version,
-        subcommands: [StartCommand.self, StatusCommand.self, ConfigCommand.self, EvidenceCommand.self],
+        subcommands: [StartCommand.self, ConfigCommand.self, EvidenceCommand.self],
         defaultSubcommand: StartCommand.self
     )
 }
@@ -175,98 +175,6 @@ struct StartCommand: AsyncParsableCommand {
             }
             termSource.resume()
         }
-    }
-}
-
-/// Check server status
-struct StatusCommand: AsyncParsableCommand {
-    static let configuration = CommandConfiguration(
-        abstract: "Check server status and health"
-    )
-
-    @Option(name: .long, help: "Path to configuration file")
-    var configFile: String?
-
-    func run() async throws {
-        let logger = Logger(configuration: .default)
-
-        do {
-            // Load configuration
-            let config = try await loadConfiguration(logger: logger)
-
-            // Initialize components
-            let securityManager = SecurityManager()
-            let toolsRegistry = ToolsRegistry(logger: logger, securityManager: securityManager)
-            let server = MCPServer(
-                configuration: config,
-                logger: logger,
-                securityManager: securityManager,
-                toolsRegistry: toolsRegistry
-            )
-
-            // Check health
-            let healthResult = await server.healthCheck()
-            let healthStatus: [String: Any] = [
-                "status": healthResult.isHealthy ? "healthy" : "unhealthy",
-                "uptime": healthResult.uptime,
-                "activeConnections": healthResult.activeConnections,
-                "checks": healthResult.checks
-            ]
-
-            // Display status
-            await displayStatus(healthStatus: healthStatus)
-
-        } catch {
-            await logger.error("Failed to check server status", error: error, category: .server, metadata: [:])
-            throw error
-        }
-    }
-
-    private func loadConfiguration(logger: Logger) async throws -> ServerConfiguration {
-        let configuration = Configuration()
-
-        if let configFile = configFile {
-            try await configuration.loadFromFileAsync(path: configFile)
-        } else {
-            configuration.loadFromDefaults()
-            configuration.loadFromEnvironment()
-        }
-
-        return configuration.server
-    }
-
-    private func displayStatus(healthStatus: [String: Any]) async {
-        let logger = Logger(configuration: .default)
-
-        print("\n🍎 Local Intelligence MCP Status")
-        print("=" * 30)
-        print("Status: \(healthStatus["status"] as? String ?? "unknown")")
-        print("Uptime: \(healthStatus["uptime"] as? String ?? "unknown")")
-        print("Version: \(MCPConstants.Server.version)")
-        print("Active Connections: \(healthStatus["activeConnections"] as? Int ?? 0)")
-
-        if let systemInfo = healthStatus["systemInfo"] as? [String: Any], !systemInfo.isEmpty {
-            print("\nSystem Information:")
-            for (key, value) in systemInfo {
-                print("  \(key): \(value)")
-            }
-        }
-
-        if let errors = healthStatus["errors"] as? [String], !errors.isEmpty {
-            print("\n⚠️  Errors:")
-            for error in errors {
-                print("  • \(error)")
-            }
-        }
-
-        if let warnings = healthStatus["warnings"] as? [String], !warnings.isEmpty {
-            print("\n⚠️  Warnings:")
-            for warning in warnings {
-                print("  • \(warning)")
-            }
-        }
-
-        print("=" * 30)
     }
 }
 
