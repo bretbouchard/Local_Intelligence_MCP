@@ -653,9 +653,17 @@ public final class TextChunkingTool: AudioDomainTool, @unchecked Sendable {
             let endIndex = min(currentIndex + maxChunkSize, words.count)
             let chunkWords = Array(words[currentIndex..<endIndex])
 
-            // Try to end at sentence boundary if preserving audio structure
-            let adjustedEndIndex = preserveAudioStructure ?
-                findSentenceBoundary(in: chunkWords, originalText: text, startIndex: currentIndex) : endIndex
+            // Try to end at sentence boundary if preserving audio structure.
+            // findSentenceBoundary returns an offset within chunkWords; it must
+            // be translated back into the words array (crashed otherwise).
+            var adjustedEndIndex = endIndex
+            if preserveAudioStructure {
+                let boundary = findSentenceBoundary(in: chunkWords, originalText: text, startIndex: currentIndex)
+                let candidate = currentIndex + boundary
+                if candidate > currentIndex && candidate <= words.count {
+                    adjustedEndIndex = candidate
+                }
+            }
 
             let finalChunkWords = Array(words[currentIndex..<adjustedEndIndex])
             let finalChunkText = finalChunkWords.joined(separator: " ")
