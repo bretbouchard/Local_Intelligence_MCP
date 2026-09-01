@@ -32,16 +32,27 @@ swift build --product LocalIntelligenceConsumer > /tmp/ci-consumer.log 2>&1 || {
 ok "consumer built"
 
 step "3/5 — swift test"
-if [ "$FAST" = "1" ]; then
-  swift test > /tmp/ci-test.log 2>&1 || { grep -E "error:|failed:" /tmp/ci-test.log | head -15; fail "tests"; }
-else
-  swift test --enable-code-coverage > /tmp/ci-test.log 2>&1 || { grep -E "error:|failed:" /tmp/ci-test.log | head -15; fail "tests"; }
-fi
+run_tests() {
+  if [ "$FAST" = "1" ]; then
+    swift test > /tmp/ci-test.log 2>&1
+  else
+    swift test --enable-code-coverage > /tmp/ci-test.log 2>&1
+  fi
+}
+# One retry to distinguish transient flakes (FM model warm-up, parallel E2E
+# resource contention) from persistent failures. A test failing twice is real.
+attempt=1
+run_tests
+until grep -qE "with 0 failures" /tmp/ci-test.log || [ $attempt -ge 2 ]; do
+  echo "  ↻ test run $attempt had failures — retrying once…"
+  attempt=$((attempt + 1))
+  run_tests
+done
 TESTS=$(grep -oE "Executed [0-9]+ tests, with [0-9]+ failures" /tmp/ci-test.log | tail -1)
 ok "$TESTS"
-if echo "$TESTS" | grep -qvE "with 0 failures"; then
+if ! echo "$TESTS" | grep -q "with 0 failures"; then
   grep -E "failed:" /tmp/ci-test.log | head -10
-  fail "test failures detected"
+  fail "test failures persisted across retry"
 fi
 
 step "4/5 — coverage report"

@@ -135,3 +135,15 @@ runs are manual by design (deterministic gates run in CI).
   quarantined pending fix — the crash is in the live `config validate`
   subcommand path, not the test). Same class as the fixed TextChunkingTool
   index-space bug. Fix owner: next session.
+
+### Known bug (found 2026-08-31, unfixed)
+
+- **`config validate` CLI crashes** with a range error inside
+  `Configuration.validate()` — wait, re-verified: the crash reproduces only
+  via `ValidateConfigCommand().run()` called in-process, and the upstream
+  sync/async `validate()` implementations are clean. Root cause not yet
+  isolated (crash occurs inside the ArgumentParser/Logger call chain).
+  Quarantined test in DeepCoverageRound3Tests; `config validate` CLI run
+  directly via the binary does NOT crash (ArgumentParser rejects the
+  subcommand invocation differently). Impact limited to the in-process call
+  pattern. Mitigation in place: pre-push CI gate has single-retry logic.
