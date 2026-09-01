@@ -1,6 +1,7 @@
 # Local Intelligence MCP — Apple Intelligence Upgrade Path
 
-Status: implementation plan
+Status: SHIPPED 2026-08-31 — see docs/gsd/inventory/CAPABILITY_INVENTORY.md for the
+shipped state and docs/gsd/reviews/ for the council review evidence.
 Target: preserve broad macOS compatibility while progressively exposing Apple-native intelligence when available.
 
 ## Product direction

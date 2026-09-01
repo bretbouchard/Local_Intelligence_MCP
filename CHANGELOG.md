@@ -5,6 +5,60 @@ All notable changes to the Local Intelligence MCP project will be documented in 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2026-08-31
+
+### 🎉 The vNext upgrade — truth baseline, capability kernel, on-device intelligence
+
+Council-reviewed (APPROVE; see `docs/gsd/reviews/COUNCIL_REVIEW_2026_08_31.md`).
+Suite: 141 LocalIntelligenceMCPTests + 13 BDSTests, 0 failures.
+
+### 📚 Added
+- **Capability kernel**: stable `local_*` tool contracts (`local_capabilities`,
+  `local_generate`, `local_summarize`, `local_extract`, `local_classify`,
+  `local_automation_list`, `local_automation_execute`, `local_image_understand`)
+  over a deterministic-priority `CapabilityRouter` with provider pinning,
+  deadline propagation, and a 10-family machine-readable error taxonomy
+- **RuntimeCapabilities**: live OS tier / Apple Intelligence eligibility / model
+  availability / permission snapshot via `local_capabilities`
+- **Apple Foundation Models provider** (macOS 26+): `local_generate` with
+  structured-output validation (`responseSchema`, 2020-12 subset) and bounded
+  generation profiles; model-callable tool allowlist for read-only capabilities
+- **Image understanding**: deterministic Vision OCR default engine; Apple
+  multimodal engine on macOS 27+
+- **Private Cloud Compute**: separate opt-in provider class (`LI_ALLOW_PCC=1`),
+  pinned-only — never an invisible fallback
+- **Automation safety policy**: allow/deny lists, destructive-name confirmation,
+  timeout clamping, audited decisions
+- **Deterministic text providers**: extractive summarize, pattern extraction,
+  transparent keyword classification (byte-deterministic)
+- **Reference MCP consumer** (`LocalIntelligenceConsumer`) and scripted
+  end-to-end examples (`examples/01-08`)
+- **Evaluation harness**: versioned thresholds for deterministic capabilities;
+  `scripts/run_model_evals.sh` for live-model runs
+- **Evidence bundle**: `LocalIntelligenceMCP evidence` subcommand
+
+### 🔧 Fixed
+- Six registered audio tools were dead at the MCP boundary (missing
+  `performExecution` bridge); all verified live post-fix
+- PII redaction crashed on any detection (String.Index misuse) and never
+  detected mid-text emails (anchored validator regexes used as searches)
+- Hash-mode redaction leaked original PII (placeholder SHA-256) — now CryptoKit
+- Text chunking silently dropped trailing content on short inputs
+- `book.analyze` could crash the server on malformed payloads
+- Error envelopes surfaced as "Tool executed successfully" — now verbatim
+- `tools/list` exposed empty schemas for every tool — now authoritative
+
+### 🗑️ Removed
+- Simulated success paths: fabricated shortcut catalog, fake voice-command
+  recognition/execution (now truthful `UNSUPPORTED`)
+- Docker deployment path (server is stdio-only) and HTTP-era scripts/configs
+- Uncompilable legacy test corpus (replaced by consolidated modern suites)
+
+### ⚠️ Breaking
+- Tool surface is the verified 34-tool registry; removed names and HTTP
+  transport do not exist — clients must use stdio and `tools/list`
+- macOS 13+ deployment target unchanged; Apple features availability-gated
+
 ## [1.0.0] - 2025-10-26
 
 ### 🎉 Major Release - Complete Book Intelligence Knowledge Graph System
