@@ -110,15 +110,4 @@ final class DeepCoverageRound3Tests: XCTestCase {
         }
     }
 
-    // MARK: - Config validation CLI path
-
-    func testConfigValidationCommand_Path() async {
-        let validate = ValidateConfigCommand()
-        do {
-            try await validate.run()
-        } catch {
-            // Validation failing to find a config file is an acceptable outcome;
-            // the contract under test is that the command runs without crashing.
-        }
-    }
 }

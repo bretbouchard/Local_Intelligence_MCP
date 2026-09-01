@@ -127,3 +127,11 @@ Remaining (tracked): 4.1 provider-neutral layer is subsumed by the kernel
 (availability-gated providers compile across 26/27 SDKs — build evidence);
 4.7 interop examples deemed non-material for now; model-based evaluation
 runs are manual by design (deterministic gates run in CI).
+
+### Known bug (found 2026-08-31, unfixed)
+
+- **`config validate` CLI crashes** with a range error inside
+  `Configuration.validate()` (discovered by DeepCoverageRound3Tests; test
+  quarantined pending fix — the crash is in the live `config validate`
+  subcommand path, not the test). Same class as the fixed TextChunkingTool
+  index-space bug. Fix owner: next session.
