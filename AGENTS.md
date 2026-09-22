@@ -98,3 +98,15 @@ bd prime                # Refresh Beads context
 
 **Architecture in one line:** issues live in a local Dolt DB; sync uses `refs/dolt/data` on your git remote; `.beads/issues.jsonl` is a passive export. See https://github.com/gastownhall/beads/blob/main/docs/SYNC_CONCEPTS.md for details and anti-patterns.
 <!-- END BEADS CODEX SETUP -->
+
+<!-- BEGIN BD MULTI-PROJECT VISIBILITY (added 2026-09-22) -->
+## Beads Multi-Project Visibility
+
+This repo's bd (beads) issue database lives in `.beads/` (Dolt-backed) and syncs to its `sync.remote` (in `.beads/config.yaml`) via `refs/dolt/data` on the git remote — separate from code. Every project under `~/apps` has its own database:
+
+- **Read another project's board:** `bd -C ~/apps/<repo> status` (also `list`, `show <id>`, `ready`) — always fresh, zero setup.
+- **Fresh clone / missing database:** `bd bootstrap` — rebuilds from `sync.remote`. NEVER `bd bootstrap` in a repo whose `.beads/config.yaml` lacks `sync.remote`: bd silently falls back to the global `~/.beads` "buzz" workspace (remote = white_room_box.git) and shows the WRONG project's data.
+- **Sync:** `bd dolt push` / `bd dolt pull`; check state with `bd federation status`.
+- **Issues live where they were created** (prefix = project). Work other projects' issues via `bd -C`, never by recreating them locally.
+- On Bret's Mac, full conventions + audit: `~/.zcode/docs/bd-multi-project.md`
+<!-- END BD MULTI-PROJECT VISIBILITY -->
